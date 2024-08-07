@@ -1,26 +1,42 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { FormService } from './services/form.service';
-import { tap } from 'rxjs';
+import { Subject } from 'rxjs';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { takeUntil } from 'rxjs/operators';
+import { Informe } from './interfaces/informe.interface';
 
 @Component({
   selector: 'app-form',
   templateUrl: './form.component.html',
-  styleUrl: './form.component.scss'
+  styleUrls: ['./form.component.scss']
 })
-export class FormComponent implements OnInit {
-  informes: any[] = [];
-  selectedInforme: any = null;
+export class FormComponent implements OnInit, OnDestroy {
+  informes: Informe[] = [];
+  selectedInforme: Informe | null = null;
   informeForm: FormGroup;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private formService: FormService,
-    private _cdr: ChangeDetectorRef,
+    private cdr: ChangeDetectorRef,
     private formBuilder: FormBuilder,
     private datePipe: DatePipe,
   ) {
-      this.informeForm = this.formBuilder.group({
+    this.informeForm = this.createFormGroup();
+  }
+
+  ngOnInit(): void {
+    this.getNumeroInformes();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private createFormGroup(): FormGroup {
+    return this.formBuilder.group({
       numeroInforme: [''],
       empresa: [''],
       persona: [''],
@@ -36,42 +52,47 @@ export class FormComponent implements OnInit {
       fechaInspeccion: [''],
       estado: ['']
     });
-    }
-
-  ngOnInit(): void {
-    this.getNumeroInformes();
   }
 
-  getNumeroInformes(): void {
-    this.formService.getInformesPuente().pipe(
-      tap((data: any[]) => {
-        this.informes = data;
-        this._cdr.markForCheck();
-      })
+  async getNumeroInformes() {
+    await this.formService.getInformesPuente().pipe(
+      takeUntil(this.destroy$)
     ).subscribe({
+      next: (data: Informe[]) => {
+        this.informes = data;
+        this.cdr.detectChanges();
+      },
       error: (error) => {
-        console.log('Error: ' + error);
+        console.error('Error fetching informes:', error);
       }
     });
   }
 
-  selectInforme(informe: any): void {
-    this.selectedInforme = {
-      ...informe,
-      fechaInspeccion: this.formatDate(informe.fechaInspeccion),
-      fechaEmision: this.formatDate(informe.fechaEmision)
-    };
-    this.informeForm.patchValue(this.selectedInforme);
+  selectInforme(informe: Informe) {
+    this.formService.getInformesPuenteById(informe.idInforme).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (data: Informe) => {
+        this.selectedInforme = {
+          ...data,
+          fechaFabricacion: this.formatDate(data.fechaFabricacion),
+          fechaInspeccion: this.formatDate(data.fechaInspeccion),
+        };
+        this.informeForm.patchValue(this.selectedInforme);
+      },
+      error: (error) => {
+        console.error('Error fetching informe details:', error);
+      }
+    });
   }
 
-  deselectInforme(): void {
+  deselectInforme() {
     this.selectedInforme = null;
+    this.informeForm.reset();
+    this.cdr.detectChanges();
   }
 
   formatDate(date: string | null): string {
-    if (date === null) {
-      return '';
-    }
-    return this.datePipe.transform(date!, 'dd-MM-yyyy')!;
+    return date ? this.datePipe.transform(date, 'dd-MM-yyyy')! : '';
   }
 }

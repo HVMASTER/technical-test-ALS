@@ -2,10 +2,10 @@
   <h1>INFORME DE INSPECCIÓN Y PRUEBA DE CARGA A GRÚAS PUENTE y/o PÓRTICO</h1>
 </div>
 
-<div class="list-container">
+<div *ngIf="informes" class="list-container">
     <div *ngIf="!selectedInforme" class="informes-list">
       <ul>
-        <li *ngFor="let informe of informes" (click)="selectInforme(informe)">
+        <li *ngFor="let informe of informes" (click)="selectInforme(informe)">          
           {{ informe.numeroInforme }}
         </li>
       </ul>
