@@ -1,6 +1,8 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormService } from './services/form.service';
-import { filter, switchMap, tap } from 'rxjs';
+import { tap } from 'rxjs';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-form',
@@ -8,28 +10,43 @@ import { filter, switchMap, tap } from 'rxjs';
   styleUrl: './form.component.scss'
 })
 export class FormComponent implements OnInit {
-  numeroInformes: string[] = [];
   informes: any[] = [];
+  selectedInforme: any = null;
+  informeForm: FormGroup;
 
   constructor(
     private formService: FormService,
-    private _cdr: ChangeDetectorRef
-  ) { }
+    private _cdr: ChangeDetectorRef,
+    private formBuilder: FormBuilder,
+    private datePipe: DatePipe,
+  ) {
+      this.informeForm = this.formBuilder.group({
+      numeroInforme: [''],
+      empresa: [''],
+      persona: [''],
+      equipo: [''],
+      modelo: [''],
+      marca: [''],
+      polipasto1: [''],
+      polipasto2: [''],
+      polipasto3: [''],
+      fechaFabricacion: [''],
+      numeroSerie: [''],
+      lugarInscripcion: [''],
+      fechaInspeccion: [''],
+      estado: ['']
+    });
+    }
 
   ngOnInit(): void {
     this.getNumeroInformes();
-    //this.getInformeById(2);
-    //this.getInformeByNumero("GRC-2311-0441");
   }
 
   getNumeroInformes(): void {
     this.formService.getInformesPuente().pipe(
       tap((data: any[]) => {
-        data.forEach((informe) => {
-          this.numeroInformes.push(informe.numeroInforme);
-          this._cdr.markForCheck();
-        });
-        console.log('Informes: ' + this.numeroInformes);
+        this.informes = data;
+        this._cdr.markForCheck();
       })
     ).subscribe({
       error: (error) => {
@@ -38,31 +55,23 @@ export class FormComponent implements OnInit {
     });
   }
 
-  getInformeById(idInforme: number): void {
-    this.formService.getInformesPuenteById(idInforme).pipe(
-      filter((data: any) => data !== null),
-      switchMap((data: any) => {
-        console.log('Informe: ' + data);
-        return data;
-      })
-    ).subscribe({
-      error: (error) => {
-        console.log('Error: ' + error);
-      }
-    });
+  selectInforme(informe: any): void {
+    this.selectedInforme = {
+      ...informe,
+      fechaInspeccion: this.formatDate(informe.fechaInspeccion),
+      fechaEmision: this.formatDate(informe.fechaEmision)
+    };
+    this.informeForm.patchValue(this.selectedInforme);
   }
 
-  getInformeByNumero(numeroInforme: string): void {
-    this.formService.getInformesPuente().pipe(
-      tap((data: any[]) => {
-      data.filter((informe) => informe.numeroInforme === numeroInforme);
-      this._cdr.markForCheck();
-      console.log('Informe: ' + data);
-      })
-    ).subscribe({
-      error: (error) => {
-        console.log('Error: ' + error);
-      }
-    });
+  deselectInforme(): void {
+    this.selectedInforme = null;
+  }
+
+  formatDate(date: string | null): string {
+    if (date === null) {
+      return '';
+    }
+    return this.datePipe.transform(date!, 'dd-MM-yyyy')!;
   }
 }

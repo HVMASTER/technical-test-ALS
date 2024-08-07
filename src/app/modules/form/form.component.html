@@ -1,1 +1,76 @@
-<h1>form works!</h1>
+<div class="header">
+  <h1>INFORME DE INSPECCIÓN Y PRUEBA DE CARGA A GRÚAS PUENTE y/o PÓRTICO</h1>
+</div>
+
+<div class="list-container">
+    <div *ngIf="!selectedInforme" class="informes-list">
+      <ul>
+        <li *ngFor="let informe of informes" (click)="selectInforme(informe)">
+          {{ informe.numeroInforme }}
+        </li>
+      </ul>
+    </div>
+</div>
+
+<div *ngIf="selectedInforme" class="form-container">
+<button (click)="deselectInforme()" class="back-button">Volver</button>
+  <form [formGroup]="informeForm">
+    <div class="form-row">
+      <label>Informe N°</label>
+      <label>{{selectedInforme.numeroInforme}} |</label>
+      <label>Certificado asociado N°</label>
+      <label>{{selectedInforme.numeroInforme}}C</label>
+    </div>
+    <div class="form-row">
+      <label>Solicitado por</label>
+      <label>Empresa</label>
+      <label>{{selectedInforme.empresa}}</label>
+      <label>Persona</label>
+      <label>{{selectedInforme.persona}}</label>
+    </div>
+    <div class="form-row">
+      <label>Equipo</label>
+      <label>{{selectedInforme.equipo}}</label>
+    </div>
+    <div class="form-row">
+      <label>Modelo</label>
+      <label>{{selectedInforme.modelo}}</label>
+    </div>
+    <div class="form-row">
+      <label>Marca</label>
+      <label class="expand">{{selectedInforme.marca}}</label>
+    </div>
+    <div class="form-row capacidad-nominal">
+      <label>Capacidad Nominal</label>
+      <label>Polipasto 1</label>
+      <label>{{selectedInforme.polipasto1 !== 0 ? selectedInforme.polipasto1 : 'N/A'}}</label>
+      <label>kg</label>
+      <label>Polipasto 2</label>
+      <label>{{selectedInforme.polipasto2 !== 0 ? selectedInforme.polipasto2 : 'N/A'}}</label>
+      <label>kg</label>
+      <label>Polipasto 3</label>
+      <label>{{selectedInforme.polipasto3 !== 0 ? selectedInforme.polipasto3 : 'N/A'}}</label>
+      <label class="expand">kg</label>
+    </div>
+    <div class="form-row">
+      <label>Fecha de Fabricación</label>
+      <label class="expand">{{selectedInforme.fechaFabricacion}}</label>
+    </div>
+    <div class="form-row">
+      <label>ID o número de serie</label>
+      <label class="expand">{{selectedInforme.numeroSerie}}</label>
+    </div>
+    <div class="form-row">
+      <label>Lugar de inscripción y prueba</label>
+      <label class="expand">{{selectedInforme.lugarInscripcion}}</label>
+    </div>
+    <div class="form-row">
+      <label>Fecha de inspección y prueba</label>
+      <label class="expand">{{selectedInforme.fechaInspeccion}}</label>
+    </div>
+    <div class="form-row">
+      <label>Fecha de emisión informe</label>
+      <label class="expand">{{selectedInforme.fechaInspeccion}}</label>
+    </div>
+  </form>
+</div>
