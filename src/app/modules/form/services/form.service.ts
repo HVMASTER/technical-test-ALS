@@ -36,4 +36,8 @@ export class FormService {
   getStatus() {
     return this.http.get<any[]>(`${this.baseUrl}getStatus`);
   }
+
+  getdescripcionPuenteByIdInforme(idInforme: number) {
+    return this.http.get<any[]>(`${this.baseUrl}getdescripcionPuenteByIdInforme/${idInforme}`);
+  }
 }
