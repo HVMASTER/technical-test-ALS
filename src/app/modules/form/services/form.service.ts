@@ -17,11 +17,23 @@ export class FormService {
       this.baseUrl = environment.API_URL;
     }
 
-  getInformesPuente() {
-    return this.http.get<Informe[]>(`${this.baseUrl}getInformesPuente`);
+  getRegistroFormPuente() {
+    return this.http.get<Informe[]>(`${this.baseUrl}getRegistroFormPuente`);
   }
 
-  getInformesPuenteById(idInforme: number) {
+  getInformePuenteByID(idInforme: number) {
     return this.http.get<Informe>(`${this.baseUrl}getInformePuenteByID/${idInforme}`);
+  }
+
+  getItemPuenteByIdInforme(idInforme: number) {
+    return this.http.get<any>(`${this.baseUrl}getItemPuenteByIdInforme/${idInforme}`);
+  }
+
+  getDetalle() {
+    return this.http.get<any[]>(`${this.baseUrl}getDetalle`);
+  }
+
+  getStatus() {
+    return this.http.get<any[]>(`${this.baseUrl}getStatus`);
   }
 }

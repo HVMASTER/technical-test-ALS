@@ -16,32 +16,44 @@
 <button (click)="deselectInforme()" class="back-button">Volver</button>
   <form [formGroup]="informeForm">
     <div class="form-row">
-      <label>Informe N°</label>
+      <div class="title">
+        <label>Informe N°</label>
+      </div>
       <label>{{selectedInforme.numeroInforme}}</label>
       <label>Certificado asociado N°</label>
       <label>{{selectedInforme.numeroInforme}}</label>
     </div>
     <div class="form-row">
-      <label>Solicitado por</label>
+      <div class="title">
+        <label>Solicitado por</label>
+      </div>
       <label>Empresa</label>
       <label>{{selectedInforme.empresa}}</label>
       <label>Persona</label>
       <label>{{selectedInforme.persona}}</label>
     </div>
     <div class="form-row">
-      <label>Equipo</label>
+      <div class="title">
+        <label>Equipo</label>
+      </div>
       <label>{{selectedInforme.equipo}}</label>
     </div>
     <div class="form-row">
-      <label>Modelo</label>
+      <div class="title">
+        <label>Modelo</label>
+      </div>
       <label>{{selectedInforme.modelo}}</label>
     </div>
     <div class="form-row">
-      <label>Marca</label>
+      <div class="title">
+        <label>Marca</label>
+      </div>
       <label class="expand">{{selectedInforme.marca}}</label>
     </div>
     <div class="form-row capacidad-nominal">
-      <label>Capacidad Nominal</label>
+      <div class="title">
+        <label>Capacidad Nominal</label>
+      </div>
       <label>Polipasto 1</label>
       <label>{{selectedInforme.polipasto1 !== 0 ? selectedInforme.polipasto1 : 'N/A'}}</label>
       <label>kg</label>
@@ -53,24 +65,143 @@
       <label class="expand">kg</label>
     </div>
     <div class="form-row">
-      <label>Fecha de Fabricación</label>
+      <div class="title">
+        <label>Fecha de Fabricación</label>
+      </div>
       <label class="expand">{{selectedInforme.fechaFabricacion}}</label>
     </div>
     <div class="form-row">
-      <label>ID o número de serie</label>
+      <div class="title">
+        <label>ID o número de serie</label>
+      </div>
       <label class="expand">{{selectedInforme.numeroSerie}}</label>
     </div>
     <div class="form-row">
-      <label>Lugar de inscripción y prueba</label>
+      <div class="title">
+        <label>Lugar de inscripción y prueba</label>
+      </div>
       <label class="expand">{{selectedInforme.lugarInscripcion}}</label>
     </div>
     <div class="form-row">
-      <label>Fecha de inspección y prueba</label>
+      <div class="title">
+        <label>Fecha de inspección y prueba</label>
+      </div>
       <label class="expand">{{selectedInforme.fechaInspeccion}}</label>
     </div>
     <div class="form-row">
-      <label>Fecha de emisión informe</label>
+      <div class="title">
+        <label>Fecha de emisión informe</label>
+      </div>
       <label class="expand">{{selectedInforme.fechaInspeccion}}</label>
     </div>
-  </form>
+    <div>
+      <h3>(CU) CUMPLE (N/C)  NO CUMPLE  NO APLICA (N/A)  RECOMENDACIÓN(RE)</h3>
+    </div>
+    <h2>A.- Condición general y documental</h2>
+    <div class="form-row-A-F">
+      <label>Item</label>
+      <label>Detalle</label>
+      <label>Status</label>
+      <label>Item</label>
+      <label>Detalle</label>
+      <label>Status</label>
+    </div>
+    <div *ngFor="let item of itemsWithStatus | slice:0:6; let i = index" class="form-row-A-F">
+    <label>{{ item.idItem }}</label>
+    <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+    <label>{{ item.alias }}</label>
+    <label *ngIf="itemsWithStatus[6+i]">{{ itemsWithStatus[6+i].idItem }}</label>
+    <label *ngIf="itemsWithStatus[6+i]" title="{{ itemsWithStatus[6+i].detalle }}">{{ itemsWithStatus[6+i].detalle }}</label>
+    <label *ngIf="itemsWithStatus[6+i]">{{ itemsWithStatus[6+i].alias }}</label>
+  </div>
+  <h2>B.- Revisión sistemas mecánicos y estructurales</h2>
+  <div class="form-row-A-F">
+    <label>Item</label>
+    <label>Detalle</label>
+    <label>Status</label>
+    <label>Item</label>
+    <label>Detalle</label>
+    <label>Status</label>
+  </div>
+  <div *ngFor="let item of itemsWithStatus | slice:11:15; let i = index" class="form-row-A-F">
+    <label>{{ item.idItem }}</label>
+    <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+    <label>{{ item.alias }}</label>
+    <label *ngIf="itemsWithStatus[15+i]">{{ itemsWithStatus[15+i].idItem }}</label>
+    <label *ngIf="itemsWithStatus[15+i]" title="{{ itemsWithStatus[15+i].detalle }}">{{ itemsWithStatus[15+i].detalle }}</label>
+    <label *ngIf="itemsWithStatus[15+i]">{{ itemsWithStatus[15+i].alias }}</label>
+  </div>
+  <h2>C.- Revisión de sistemas alimentación y control</h2>
+  <div class="form-row-A-F">
+    <label>Item</label>
+    <label>Detalle</label>
+    <label>Status</label>
+    <label>Item</label>
+    <label>Detalle</label>
+    <label>Status</label>
+  </div>
+  <div *ngFor="let item of itemsWithStatus | slice:19:23; let i = index" class="form-row-A-F">
+    <label>{{ item.idItem }}</label>
+    <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+    <label>{{ item.alias }}</label>
+    <label *ngIf="itemsWithStatus[23+i]">{{ itemsWithStatus[23+i].idItem }}</label>
+    <label *ngIf="itemsWithStatus[23+i]" title="{{ itemsWithStatus[23+i].detalle }}">{{ itemsWithStatus[23+i].detalle }}</label>
+    <label *ngIf="itemsWithStatus[23+i]">{{ itemsWithStatus[23+i].alias }}</label>
+  </div>
+  <h2>D.- Revisión de dispositivos de seguridad y límites de carrera</h2>
+  <div class="form-row-A-F">
+    <label>Item</label>
+    <label>Detalle</label>
+    <label>Status</label>
+    <label>Item</label>
+    <label>Detalle</label>
+    <label>Status</label>
+  </div>
+  <div *ngFor="let item of itemsWithStatus | slice:26:35; let i = index" class="form-row-A-F">
+    <label>{{ item.idItem }}</label>
+    <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+    <label>{{ item.alias }}</label>
+    <label *ngIf="itemsWithStatus[35+i]">{{ itemsWithStatus[35+i].idItem }}</label>
+    <label *ngIf="itemsWithStatus[35+i]" title="{{ itemsWithStatus[35+i].detalle }}">{{ itemsWithStatus[35+i].detalle }}</label>
+    <label *ngIf="itemsWithStatus[35+i]">{{ itemsWithStatus[35+i].alias }}</label>
+  </div>
+  <h2>E.- Revisión de sistemas de izaje de carga y motrices</h2>
+  <div class="form-row-A-F">
+    <label>Item</label>
+    <label>Detalle</label>
+    <label>Status</label>
+    <label>Item</label>
+    <label>Detalle</label>
+    <label>Status</label>
+  </div>
+  <div *ngFor="let item of itemsWithStatus | slice:43:48; let i = index" class="form-row-A-F">
+    <label>{{ item.idItem }}</label>
+    <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+    <label>{{ item.alias }}</label>
+    <label *ngIf="itemsWithStatus[48+i]">{{ itemsWithStatus[48+i].idItem }}</label>
+    <label *ngIf="itemsWithStatus[48+i]" title="{{ itemsWithStatus[48+i].detalle }}">{{ itemsWithStatus[48+i].detalle }}</label>
+    <label *ngIf="itemsWithStatus[48+i]">{{ itemsWithStatus[48+i].alias }}</label>
+  </div>
+  <h2>F.- Revisión cables/cadena de izaje / ganchos</h2>
+  <div class="gancho">
+    <label class="gancho-label">Gancho 1</label>
+    <label class="gancho-label">Gancho 2</label>
+  </div>
+  <div class="form-row-A-F">
+    <label>Item</label>
+    <label>Detalle</label>
+    <label>Status</label>
+    <label>Item</label>
+    <label>Detalle</label>
+    <label>Status</label>
+  </div>
+  <div *ngFor="let item of itemsWithStatus | slice:52:60; let i = index" class="form-row-A-F">
+    <label>{{ item.idItem }}</label>
+    <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+    <label>{{ item.alias }}</label>
+    <label *ngIf="itemsWithStatus[60+i]">{{ itemsWithStatus[60+i].idItem }}</label>
+    <label *ngIf="itemsWithStatus[60+i]" title="{{ itemsWithStatus[60+i].detalle }}">{{ itemsWithStatus[60+i].detalle }}</label>
+    <label *ngIf="itemsWithStatus[60+i]">{{ itemsWithStatus[60+i].alias }}</label>
+  </div>
+  </form> 
 </div>
