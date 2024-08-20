@@ -15,7 +15,11 @@ export class FormComponent implements OnInit, OnDestroy {
   informes: Informe[] = [];
   selectedInforme: Informe | null = null;
   informeForm: FormGroup;
+  itemsWithStatus: any[] = [];
+  itemsWithDetail: any[] = [];
+  ganchos: any[] = [];
   private destroy$ = new Subject<void>();
+  
 
   constructor(
     private formService: FormService,
@@ -55,7 +59,7 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   async getNumeroInformes() {
-    await this.formService.getInformesPuente().pipe(
+    await this.formService.getRegistroFormPuente().pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (data: Informe[]) => {
@@ -69,7 +73,7 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   selectInforme(informe: Informe) {
-    this.formService.getInformesPuenteById(informe.idInforme).pipe(
+    this.formService.getInformePuenteByID(informe.idInforme).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (data: Informe) => {
@@ -79,11 +83,82 @@ export class FormComponent implements OnInit, OnDestroy {
           fechaInspeccion: this.formatDate(data.fechaInspeccion),
         };
         this.informeForm.patchValue(this.selectedInforme);
+
+        this.loadItemDetails(informe.idInforme);
       },
       error: (error) => {
         console.error('Error fetching informe details:', error);
       }
     });
+  }
+
+  private loadItemDetails(idInforme: number) {
+    this.formService.getItemPuenteByIdInforme(idInforme).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (items) => {
+        this.loadItemStatus(items);
+        this.loadDetail(items);
+
+        setTimeout(() => {
+          this.combineItemData();
+        }, 500);
+      },
+      error: (error) => {
+        console.error('Error fetching item data:', error);
+      }
+    });
+  }
+
+  private loadItemStatus(items: any[]) {
+    this.formService.getStatus().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (statusList) => {
+        this.itemsWithStatus = items.map(item => {
+          const statusObj = statusList.find(status => status.idStatus === item.idStatus);
+          return {
+            ...item,
+            status: statusObj?.status || 'N/A',
+            alias: statusObj?.alias || 'N/A'
+          };
+        });
+      },
+      error: (error) => {
+        console.error('Error fetching status:', error);
+      }
+    });
+  }
+
+  loadDetail(items: any[]) {
+    this.formService.getDetalle().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (detailList) => {
+        this.itemsWithDetail = items.map(item => {
+          const detailObj = detailList.find(detail => detail.idDetalle === item.idDetalle);
+          return {
+            ...item,
+            detalle: detailObj?.detalle || 'N/A'
+          };
+        });
+      },
+      error: (error) => {
+        console.error('Error fetching detail:', error);
+      }
+    });
+  }
+
+  private combineItemData() {
+    if (this.itemsWithStatus.length > 0 && this.itemsWithDetail.length > 0) {
+      this.itemsWithStatus = this.itemsWithStatus.map(item => {
+        const detailObj = this.itemsWithDetail.find(detail => detail.idItem === item.idItem);
+        return {
+          ...item,
+          detalle: detailObj ? detailObj.detalle : 'N/A'
+        };
+      });
+    }
   }
 
   deselectInforme() {

@@ -72,10 +72,16 @@ $secondary-row-color: #ffffff;
 
   label {
     flex: 1;
-    padding: 2px;
+    padding: 1px;
     border: 1px solid $border-color;
     font: menu;
 
+  }
+
+  
+  .title {
+    display: grid;
+    width: 180px;
   }
 
   .form-row {
@@ -100,6 +106,28 @@ $secondary-row-color: #ffffff;
     }
   }
 
+  .form-row-A-F {
+    display: grid;
+    grid-template-columns: 0.2fr 2fr 0.2fr 0.2fr 2fr 0.2fr; 
+    align-items: center;
+    border-bottom: 1px solid $border-color;
+
+    label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      position: relative;
+    }
+
+    &:nth-child(odd) {
+      background-color: $primary-row-color;
+    }
+
+    &:nth-child(even) {
+      background-color: $secondary-row-color;
+    }
+  }
+
   .back-button {
   margin-bottom: 20px;
   background-color: slategrey;
@@ -113,4 +141,18 @@ $secondary-row-color: #ffffff;
     background-color: darken(slategrey, 10%);
    }
   }
+
+  .gancho {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+
+  .gancho-label {
+    grid-column: span 3; /* Cada gancho abarca 3 columnas */
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid $border-color;
+    padding: 5px;
+  }
+}
+
 }
