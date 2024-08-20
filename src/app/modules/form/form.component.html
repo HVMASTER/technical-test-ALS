@@ -203,5 +203,24 @@
     <label *ngIf="itemsWithStatus[60+i]" title="{{ itemsWithStatus[60+i].detalle }}">{{ itemsWithStatus[60+i].detalle }}</label>
     <label *ngIf="itemsWithStatus[60+i]">{{ itemsWithStatus[60+i].alias }}</label>
   </div>
+  <h2>G.- Informe de recomendaciones (RE) y no conformidades (N/C) importantes de seguridad encontradas.</h2>
+  <div class="form-row-G">
+    <label>Item</label>
+    <label>RE o N/C</label>
+    <label>Descripción</label>
+  </div>
+  <div *ngFor="let descripcion of descripcionItems" class="form-row-G">
+  <label>{{ descripcion.idDetalle }}</label>
+  <label>{{ getStatusLabel(descripcion.idStatus) }}</label>
+  <label>{{ descripcion.descripcion }}</label>
+</div>
+<h2>Notas en columna descripción:</h2>
+  <ul>
+      <h2>-	La palabra “debe” indica un requisito. Se relaciona con una no conformidad (N/C) y debe ser corregida por el cliente.</h2>
+      <h2>-	La palabra “debería” indica una recomendación/observación (RE). Puede o no ser tratada por el cliente.</h2>
+  </ul>
+  <h3>Nota muy importante: Si correspondiesen acciones correctivas (por no conformidades, n/c), estas deberán ser solucionadas o tratadas por el cliente en el menor tiempo posible con el fin de reducir los riesgos asociados de mantener en operación un equipo sub-estándar. 
+  </h3>
+  <h3>Las observaciones importantes de seguridad (N/C) deberán, si corresponde, ser levantadas mediante el documento “levantamiento de no conformidades”.</h3>
   </form> 
 </div>

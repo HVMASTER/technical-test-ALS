@@ -146,13 +146,37 @@ $secondary-row-color: #ffffff;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
 
-  .gancho-label {
-    grid-column: span 3; /* Cada gancho abarca 3 columnas */
-    text-align: center;
-    font-weight: bold;
+    .gancho-label {
+      grid-column: span 3;
+      text-align: center;
+      font-weight: bold;
+      border: 1px solid $border-color;
+      padding: 5px;
+    }
+  }
+
+  .form-row-G {
+  display: grid;
+  grid-template-columns: 0.2fr 0.2fr 2fr; /* 3 columnas: Item, RE o NC, Descripción */
+  align-items: center;
+  border-bottom: 1px solid $border-color;
+  //padding: 5px 0;
+
+  &:nth-child(odd) {
+    background-color: $primary-row-color;
+  }
+
+  &:nth-child(even) {
+    background-color: $secondary-row-color;
+  }
+
+  label {
+    padding: 1px;
     border: 1px solid $border-color;
-    padding: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
   }
 }
-
 }

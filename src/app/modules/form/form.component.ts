@@ -18,6 +18,7 @@ export class FormComponent implements OnInit, OnDestroy {
   itemsWithStatus: any[] = [];
   itemsWithDetail: any[] = [];
   ganchos: any[] = [];
+  descripcionItems: any[] = [];
   private destroy$ = new Subject<void>();
   
 
@@ -99,6 +100,7 @@ export class FormComponent implements OnInit, OnDestroy {
       next: (items) => {
         this.loadItemStatus(items);
         this.loadDetail(items);
+        this.loadDescripcion(idInforme);
 
         setTimeout(() => {
           this.combineItemData();
@@ -159,6 +161,24 @@ export class FormComponent implements OnInit, OnDestroy {
         };
       });
     }
+  }
+
+  private loadDescripcion(idInforme: number) {
+    this.formService.getdescripcionPuenteByIdInforme(idInforme).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (descripcionItems) => {
+        // Ordenar por idDetalle
+        this.descripcionItems = descripcionItems.sort((a, b) => a.idDetalle - b.idDetalle);
+      },
+      error: (error) => {
+        console.error('Error fetching descripcion data:', error);
+      }
+    });
+  }
+
+  getStatusLabel(idStatus: number): string {
+    return idStatus === 2 ? 'N/C' : idStatus === 4 ? 'RE' : '';
   }
 
   deselectInforme() {
