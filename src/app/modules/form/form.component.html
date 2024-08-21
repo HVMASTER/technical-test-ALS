@@ -377,5 +377,58 @@
   <div>
     <label class="upper comentario">COMENTARIOS: {{ formHData?.comentarios }}</label>
   </div>
+
+  <h2>H.1. Evaluación de frenos - Medición descenso de la carga de prueba >= 100% <=125%</h2>
+
+  <div class="form-row titulo-h1">
+    <label>Medición</label>
+    <label>Antes</label>
+    <label>Después</label>
+    <label>Hora inicio</label>
+    <label>Hora término</label>
+    <label>Resultado</label>
+  </div>
+  <div class="form-row datos-h1">
+    <label>Polipasto #1</label>
+    <label>{{ formH1Data?.poliUnoAntes }}</label>
+    <label>cm</label>
+    <label>{{ formH1Data?.poliUnoDespues }}</label>
+    <label>cm</label>
+    <label>{{ formH1Data?.poliUnoHInicio }}:00</label>
+    <label>{{ formH1Data?.poliUnoHTermino }}:00</label>
+    <label>{{ formH1Data?.poliUnoResultado === 'SI' ? 'SATISFACTORIO' : 'INSATISFACTORIO' }}</label>
+  </div>
+  <div class="form-row datos-h1">
+    <label>Polipasto #2</label>
+    <label>{{ formH1Data?.poliDosAntes }}</label>
+    <label>cm</label>
+    <label>{{ formH1Data?.poliDosDespues }}</label>
+    <label>cm</label>
+    <label>{{ formH1Data?.poliDosHInicio }}:00</label>
+    <label>{{ formH1Data?.poliDosHTermino }}:00</label>
+    <label>{{ formH1Data?.poliDosResultado === 'SI' ? 'SATISFACTORIO' : 'INSATISFACTORIO' }}</label>
+  </div>
+  <div class="form-row datos-h1">
+    <label>Polipasto #3</label>
+    <label>{{ formH1Data?.poliTresAntes && formH1Data?.poliTresAntes !== 0 ? formH1Data?.poliTresAntes : 'N/A' }}</label>
+    <label>cm</label>
+    <label>{{ formH1Data?.poliTresDespues && formH1Data?.poliTresDespues !== 0 ? formH1Data?.poliTresDespues : 'N/A' }}</label>
+    <label>cm</label>
+    <label>{{ formH1Data?.poliTresHInicio && formH1Data?.poliTresHInicio !== 0 ? formH1Data?.poliTresHInicio + ':00' : 'N/A' }}</label>
+    <label>{{ formH1Data?.poliTresHTermino && formH1Data?.poliTresHTermino !== 0 ? formH1Data?.poliTresHTermino + ':00' : 'N/A' }}</label>
+    <label>{{ formH1Data?.poliTresResultado && formH1Data?.poliTresResultado === 'SI' ? 'SATISFACTORIO' : (formH1Data?.poliTresResultado === 'N/A' ? 'N/A' : 'INSATISFACTORIO') }}</label>
+  </div>
+
+    <div class="check">
+      <h4 class="center">Condición de frenos:</h4>
+      <label class="cuadrado">
+        <span *ngIf="formH1Data?.condicionFrenos === 'satisfactorio'">X</span>
+      </label>
+      <h4 class="text-left">Satisfactorio</h4>
+      <label class="cuadrado">
+        <span *ngIf="formH1Data?.condicionFrenos !== 'satisfactorio'">X</span>
+      </label>
+      <h4 class="text-left">Insatisfactorio</h4>
+    </div>
   </form> 
 </div>
