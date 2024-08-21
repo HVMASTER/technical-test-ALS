@@ -77,8 +77,7 @@ $secondary-row-color: #ffffff;
     font: menu;
 
   }
-
-  
+ 
   .title {
     display: grid;
     width: 180px;
@@ -86,8 +85,8 @@ $secondary-row-color: #ffffff;
 
   .form-row {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    flex-wrap: wrap;   
+    align-items: stretch;
 
     label.expand{
       flex-grow: 1;
@@ -156,27 +155,163 @@ $secondary-row-color: #ffffff;
   }
 
   .form-row-G {
-  display: grid;
-  grid-template-columns: 0.2fr 0.2fr 2fr; /* 3 columnas: Item, RE o NC, Descripción */
-  align-items: center;
-  border-bottom: 1px solid $border-color;
-  //padding: 5px 0;
+    display: grid;
+    grid-template-columns: 0.2fr 0.2fr 2fr; /* 3 columnas: Item, RE o NC, Descripción */
+    align-items: center;
+    border-bottom: 1px solid $border-color;
+    //padding: 5px 0;
 
-  &:nth-child(odd) {
-    background-color: $primary-row-color;
+    &:nth-child(odd) {
+      background-color: $primary-row-color;
+    }
+
+    &:nth-child(even) {
+      background-color: $secondary-row-color;
+    }
+
+    label {
+      padding: 1px;
+      border: 1px solid $border-color;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      position: relative;
+    }
   }
 
-  &:nth-child(even) {
-    background-color: $secondary-row-color;
+  .form-row-H {
+    display: grid;
+    grid-template-columns: 0.7fr 2fr; /* Primera columna para los títulos, segunda para los datos */
+    align-items: stretch;
+
+    label.expand{
+      flex-grow: 1;
+    }
+
+    &:nth-child(odd) {
+      background-color: $primary-row-color;
+    }
+
+    &:nth-child(even) {
+      background-color: $secondary-row-color;
+    }
+
+    .titulo-columna {
+      font-weight: bold;
+      text-align: left;
+    }
   }
 
-  label {
-    padding: 1px;
-    border: 1px solid $border-color;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    position: relative;
+  .equipo-medicion {
+    display: grid;
+    grid-template-columns: 1.05fr 3fr;
+    align-items: normal;
+
+  .titulo-columna {
+    background-color: $secondary-color;
+    color: #fff;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .equipo-datos {
+    display: flex;
+    flex-direction: column;
+
+    .equipo-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      background-color: $secondary-row-color;
+      text-align: center;
+    }
   }
 }
+  .form-row-nominal {
+    display: grid;
+    grid-template-columns: 0.734fr 0.3fr 0.3fr 0.1fr 0.3fr 0.3fr 0.1fr 0.3fr 0.3fr 0.1fr;
+    align-items: stretch;
+    white-space: nowrap;
+  }
+
+  .form-row-single {
+    display: grid;
+    grid-template-columns: 0.7fr 2fr;
+    align-items: center;
+
+    input.error-input {
+      color: red; 
+      border-color: red; 
+    }
+
+    input::placeholder {
+      color: red; 
+      opacity: 1; 
+    }
+
+    &:nth-child(odd) {
+      background-color: $primary-row-color;
+    }
+
+    &:nth-child(even) {
+      background-color: $secondary-row-color;
+    }
+
+  }
+
+  .form-row-clasificacion {
+    display: grid;
+    grid-template-columns: 0.9fr 0.9fr 0.9fr 0.9fr 1.6fr 0.2fr 1.6fr 0.2fr;
+    align-items: center;
+    
+    label {
+      text-align: center;
+    }
+
+    .title-col {
+      font-weight: bold;
+    }
+  }
+
+  .form-item {
+    display: grid;
+    grid-template-columns: repeat(4, 25%);
+  }
+
+  .title-class {
+    display: grid;
+  }
+
+  .title-part1 {
+    display: grid;
+    grid-template-columns: 100%;
+  }
+
+  .title-part2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .union {
+    display: grid;
+    grid-template-columns: 50% 50%;
+  }
+
+  .center {
+    text-align: center;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .upper {
+    text-transform: uppercase;
+  }
+
+  .comentario {
+    display: flex;
+    padding: 0px 5px;
+  }
 }

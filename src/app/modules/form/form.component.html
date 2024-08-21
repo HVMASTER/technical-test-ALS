@@ -222,5 +222,160 @@
   <h3>Nota muy importante: Si correspondiesen acciones correctivas (por no conformidades, n/c), estas deberán ser solucionadas o tratadas por el cliente en el menor tiempo posible con el fin de reducir los riesgos asociados de mantener en operación un equipo sub-estándar. 
   </h3>
   <h3>Las observaciones importantes de seguridad (N/C) deberán, si corresponde, ser levantadas mediante el documento “levantamiento de no conformidades”.</h3>
+  <div class="form-row-H">
+    <label class="titulo-columna">Fecha prueba de carga</label>
+    <label>{{ formHData?.fecha }}</label>
+  </div>
+  <div class="form-row-H">
+    <label class="titulo-columna">Vigencia prueba de carga <br>(sujeta a inspección visual, auditiva funcional y de <br>seguridad anual)</label>
+    <label>{{ formHData?.vigencia }}</label>
+  </div>
+  <div class="form-row-H">
+    <label class="titulo-columna">Lugar de prueba de carga</label>
+    <label>{{ formHData?.lugar }}</label>
+  </div>
+  <div class="form-row-H">
+    <label class="titulo-columna">Norma para certificación Carga de Prueba</label>
+    <label>ASME B30.2-2016, Capítulo 2-2.3.1 // 2-2.3.2</label> <!-- Valor fijo -->
+  </div>
+  <div class="form-row-H equipo-medicion">
+  <div class="titulo-columna">
+    <h3>Equipos / instrumentos de medición</h3>
+  </div>
+  <div class="equipo-datos">
+    <div class="equipo-header">
+      <label>Nombre de equipo</label>
+      <label>SI</label>
+      <label>NO</label>
+      <label>Certificado Número</label>
+    </div>
+    <div class="equipo-items">
+      <div class="form-row">
+        <label>Cinta métrica (flexómetro)</label>
+        <label class="center">{{ formHData?.cintaMetrica === 'SI' ? '✔' : '' }}</label>
+        <label class="center">{{ formHData?.cintaMetrica === 'NO' ? '✖' : '' }}</label>
+        <label class="center">{{ formHData?.cintaMetricaNCertificado }}</label>
+      </div>
+      <div class="form-row">
+        <label>Pie de metro (caliper)</label>
+        <label class="center">{{ formHData?.pie_metro === 'SI' ? '✔' : '' }}</label>
+        <label class="center">{{ formHData?.pie_metro === 'NO' ? '✖' : '' }}</label>
+        <label class="center">{{ formHData?.pie_metroNCertificado }}</label>
+      </div>
+      <div class="form-row">
+        <label>Bolsas de agua</label>
+        <label class="center">{{ formHData?.bolsasAgua === 'SI' ? '✔' : '' }}</label>
+        <label class="center">{{ formHData?.bolsasAgua === 'NO' ? '✖' : '' }}</label>
+        <label class="center">{{ formHData?.bolsasAguaNCertificado }}</label>
+      </div>
+      <div class="form-row">
+        <label>Masas</label>
+        <label class="center">{{ formHData?.masas === 'SI' ? '✔' : '' }}</label>
+        <label class="center">{{ formHData?.masas === 'NO' ? '✖' : '' }}</label>
+        <label class="center">{{ formHData?.masasNCertificado }}</label>
+      </div>
+      <div class="form-row">
+        <label>Dinamómetro</label>
+        <label class="center">{{ formHData?.dinamometro === 'SI' ? '✔' : '' }}</label>
+        <label class="center">{{ formHData?.dinamometro === 'NO' ? '✖' : '' }}</label>
+        <label class="center">{{ formHData?.dinamometroNCertificado }}</label>
+      </div>
+      <div class="form-row">
+        <label>Flujómetro</label>
+        <label class="center">{{ formHData?.flujometro === 'SI' ? '✔' : '' }}</label>
+        <label class="center">{{ formHData?.flujometro === 'NO' ? '✖' : '' }}</label>
+        <label class="center">{{ formHData?.flujometroNCertificado }}</label>
+      </div>
+      <div class="form-row">
+        <label>Otro (indicar)</label>
+        <label class="center">{{ formHData?.otro === 'SI' ? '✔' : '' }}</label>
+        <label class="center">{{ formHData?.otro === 'NO' ? '✖' : '' }}</label>
+        <label class="center">{{ formHData?.otroNCertificado }}</label>
+      </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-row-nominal">
+    <label>Capacidad nominal puente (SWL)</label>
+    <label>Polipasto 1</label>
+    <label>{{ formHData?.cargaPruebaPoli1 }}</label>
+    <label>kg</label>
+    <label>Polipasto 2</label>
+    <label>{{ formHData?.cargaPruebaPoli2 }}</label>
+    <label>kg</label>
+    <label>Polipasto 3</label>
+    <label>{{ formHData?.cargaPruebaPoli3 !== 0 ? formHData?.cargaPruebaPoli3 : 'N/A' }}</label>
+    <label>kg</label>
+  </div>
+
+  <div class="form-row-single">
+    <label>Operador (NOMBRE/RUT)</label>
+    <label>{{selectedInforme.persona}}</label>
+  </div>
+  <div class="form-row-single">
+    <label>Inspector ALS (NOMBRE/RUT)</label>
+    <input 
+      formControlName="inspector" 
+      [placeholder]="inspectorControl?.invalid && inspectorControl?.touched ? 'El nombre del inspector es obligatorio' : ''" 
+      [class.error-input]="inspectorControl?.invalid && inspectorControl?.touched">
+  </div>
+  <div class="union">
+    <div class="title-part1">
+      <div class="title-class">
+        <label>Clasificación Bueno (B) Regular (R) Malo (M)</label>
+      </div>
+      <div class="form-item">
+        <label class="title-col">ITEM</label>
+        <label class="title-col">Traslación (puente)</label>
+        <label class="title-col">Dirección (carro)</label>
+        <label class="title-col">Izaje (gancho)</label>
+      </div>
+    </div>
+    <div class="title-part2">
+      <label class="title-col">Carga de prueba aplicada >= 100% <= 125%</label>
+      <label class="title-col">SWL (Carga segura de trabajo)</label>
+    </div>
+  </div>
+
+  <div class="form-row form-row-clasificacion">
+      <label>Polipasto 1</label>
+      <label>{{ formHData?.poliUnoTraslacion }}</label>
+      <label>{{ formHData?.poliUnoDireccion }}</label>
+      <label>{{ formHData?.poliUnoIzaje }}</label>
+      <label>{{ formHData?.cargaPruebaPoli1 }}</label>
+      <label>kg</label>
+      <label>{{formHData?.cargaSeguraPoli1}}</label>
+      <label>kg</label>
+  </div>
+
+  <div class="form-row form-row-clasificacion">
+      <label>Polipasto 2</label>
+      <label>{{ formHData?.poliDosTraslacion }}</label>
+      <label>{{ formHData?.poliDosDireccion }}</label>
+      <label>{{ formHData?.poliDosIzaje }}</label>
+      <label>{{ formHData?.cargaPruebaPoli2 }}</label>
+      <label>kg</label>
+      <label>{{formHData?.cargaSeguraPoli2}}</label>
+      <label>kg</label>
+  </div>
+
+  <div class="form-row form-row-clasificacion">
+      <label>Polipasto 3</label>
+      <label>{{ formHData?.poliTresTraslacion !== 0 ? formHData?.poliTresTraslacion : 'N/A' }}</label>
+      <label>{{ formHData?.poliTresDireccion !== 0 ? formHData?.poliTresDireccion : 'N/A' }}</label>
+      <label>{{ formHData?.poliTresIzaje !== 0 ? formHData?.poliTresIzaje : 'N/A' }}</label>
+      <label>{{ formHData?.cargaPruebaPoli3 !== 0 ? formHData?.cargaPruebaPoli3 : 'N/A' }}</label>
+      <label>kg</label>
+      <label>{{formHData?.cargaSeguraPoli3 !== 0 ? formHData?.cargaSeguraPoli3 : 'N/A'}}</label>
+      <label>kg</label>
+  </div>
+
+  <div class="form-row">
+      <label class="text-right">RESULTADO PRUEBA DE CARGA:</label>
+      <label class="upper">{{ formHData?.resulPruebaCarga }}</label>
+  </div>
+  <div>
+    <label class="upper comentario">COMENTARIOS: {{ formHData?.comentarios }}</label>
+  </div>
   </form> 
 </div>

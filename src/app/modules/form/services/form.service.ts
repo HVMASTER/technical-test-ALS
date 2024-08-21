@@ -40,4 +40,8 @@ export class FormService {
   getdescripcionPuenteByIdInforme(idInforme: number) {
     return this.http.get<any[]>(`${this.baseUrl}getdescripcionPuenteByIdInforme/${idInforme}`);
   }
+
+  getformHPuenteByIdInforme(idInforme: number) {
+    return this.http.get<any>(`${this.baseUrl}getformHPuenteByIdInforme/${idInforme}`);
+  }
 }
