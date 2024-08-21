@@ -306,6 +306,10 @@ $secondary-row-color: #ffffff;
     text-align: right;
   }
 
+  .text-left {
+    text-align: left;
+  }
+
   .upper {
     text-transform: uppercase;
   }
@@ -313,5 +317,32 @@ $secondary-row-color: #ffffff;
   .comentario {
     display: flex;
     padding: 0px 5px;
+  }
+
+  .titulo-h1 {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .datos-h1 {
+    display: grid;
+    grid-template-columns: 1fr 0.5fr 0.5fr 0.5fr 0.5fr 1fr 1fr 1fr;
+  }
+
+  .cuadrado {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 1px solid black; /* Borde del cuadrado */
+    text-align: center;
+    vertical-align: middle;
+    line-height: 20px; /* Asegura que la "X" esté centrada verticalmente */
+    font-size: 20px;
+  }
+
+  .check {
+    display: grid;
+    grid-template-columns: 40% 5% 25% 5% 25%;
+    align-items: center;
   }
 }
