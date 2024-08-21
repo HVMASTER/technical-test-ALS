@@ -156,7 +156,7 @@ $secondary-row-color: #ffffff;
 
   .form-row-G {
     display: grid;
-    grid-template-columns: 0.2fr 0.2fr 2fr; /* 3 columnas: Item, RE o NC, Descripción */
+    grid-template-columns: 0.2fr 0.2fr 2fr; 
     align-items: center;
     border-bottom: 1px solid $border-color;
     //padding: 5px 0;
@@ -181,7 +181,7 @@ $secondary-row-color: #ffffff;
 
   .form-row-H {
     display: grid;
-    grid-template-columns: 0.7fr 2fr; /* Primera columna para los títulos, segunda para los datos */
+    grid-template-columns: 0.7fr 2fr; 
     align-items: stretch;
 
     label.expand{
@@ -298,8 +298,55 @@ $secondary-row-color: #ffffff;
     grid-template-columns: 50% 50%;
   }
 
+  .unionH2 {
+    display: grid;
+    grid-template-columns: 80% 20%;
+  } 
+
+  .title-part3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .title-part4 {
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: 40%;
+  }
+
+  .datos-h2 {
+    display: grid;
+    grid-template-columns: 1fr 0.8fr 0.2fr 0.8fr 0.2fr;
+  }
+
+  .justifyCenter{
+    display: flex;
+    justify-content: center;
+    place-items: center;
+  }
+
+  .imgH2 {
+    padding: 3px 0px;
+    margin: 2px;
+    border: 1px solid;
+    img {
+      width: 100%; 
+      height: auto;
+      max-width: 200px;
+    }
+  }
+
+  .resultadoH2 {
+    display: grid;
+    grid-template-columns: 1fr 0.8fr 0.2fr 0.8fr 0.2fr 0.75fr;
+  }
+
   .center {
     text-align: center;
+  }
+
+  .centerCuadrado {
+    margin-inline: auto;
   }
 
   .text-right {
@@ -312,6 +359,11 @@ $secondary-row-color: #ffffff;
 
   .upper {
     text-transform: uppercase;
+  }
+
+  .paddingLeft {
+    padding-left: 5px;
+    align-content: center;
   }
 
   .comentario {
@@ -331,13 +383,14 @@ $secondary-row-color: #ffffff;
 
   .cuadrado {
     display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 1px solid black; /* Borde del cuadrado */
+    width: 15px;
+    height: 15px;
+    border: 1px solid black; 
     text-align: center;
     vertical-align: middle;
-    line-height: 20px; /* Asegura que la "X" esté centrada verticalmente */
-    font-size: 20px;
+    line-height: 20px; 
+    font-size: 13px;
+    font-weight: 700;
   }
 
   .check {
