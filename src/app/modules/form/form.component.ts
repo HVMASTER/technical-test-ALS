@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { FormService } from './services/form.service';
 import { Subject } from 'rxjs';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { takeUntil } from 'rxjs/operators';
 import { Informe } from './interfaces/informe.interface';
@@ -19,6 +19,7 @@ export class FormComponent implements OnInit, OnDestroy {
   itemsWithDetail: any[] = [];
   ganchos: any[] = [];
   descripcionItems: any[] = [];
+  formHData: any;
   private destroy$ = new Subject<void>();
   
 
@@ -55,7 +56,8 @@ export class FormComponent implements OnInit, OnDestroy {
       numeroSerie: [''],
       lugarInscripcion: [''],
       fechaInspeccion: [''],
-      estado: ['']
+      estado: [''],
+      inspector: ['', Validators.required],
     });
   }
 
@@ -86,6 +88,7 @@ export class FormComponent implements OnInit, OnDestroy {
         this.informeForm.patchValue(this.selectedInforme);
 
         this.loadItemDetails(informe.idInforme);
+        this.loadFormH(informe.idInforme);
       },
       error: (error) => {
         console.error('Error fetching informe details:', error);
@@ -168,7 +171,6 @@ export class FormComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (descripcionItems) => {
-        // Ordenar por idDetalle
         this.descripcionItems = descripcionItems.sort((a, b) => a.idDetalle - b.idDetalle);
       },
       error: (error) => {
@@ -179,6 +181,23 @@ export class FormComponent implements OnInit, OnDestroy {
 
   getStatusLabel(idStatus: number): string {
     return idStatus === 2 ? 'N/C' : idStatus === 4 ? 'RE' : '';
+  }
+
+  private loadFormH(idInforme: number) {
+    this.formService.getformHPuenteByIdInforme(idInforme).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (data) => {
+        this.formHData = data[0];
+      },
+      error: (error) => {
+        console.error('Error fetching form H data:', error);
+      }
+    });
+  }
+
+  get inspectorControl() {
+    return this.informeForm.get('inspector');
   }
 
   deselectInforme() {
