@@ -430,5 +430,143 @@
       </label>
       <h4 class="text-left">Insatisfactorio</h4>
     </div>
+
+  <h2>H.2. Medición de los ganchos antes y después de la prueba</h2>
+  <div class="unionH2">
+    <div class="title-part4">
+      <div class="title-part3">
+        <label class="paddingLeft">GANCHO DOBLE</label>
+        <label class="center justifyCenter">Antes de la prueba</label>
+        <label class="center justifyCenter">Después de la prueba</label>
+      </div>
+      <div class="form-row datos-h2">
+        <label class="paddingLeft">Longitud A-B</label>
+        <label class="center">{{ formH2Data?.longitudUABAntes }}</label>
+        <label class="center">cm</label>
+        <label class="center">{{ formH2Data?.longitudUABDesp }}</label>
+        <label class="center">cm</label>
+      </div>
+      <div class="form-row datos-h2">
+        <label class="paddingLeft">Longitud B-C</label>
+        <label class="center">{{ formH2Data?.longitudDBCAntes }}</label>
+        <label class="center">cm</label>
+        <label class="center">{{ formH2Data?.longitudDBCDesp }}</label>
+        <label class="center">cm</label>
+      </div>
+      <div class="form-row datos-h2">
+        <label class="paddingLeft">Longitud A-B'</label>
+        <label class="center">{{ formH2Data?.longitudTABAntes }}</label>
+        <label class="center">cm</label>
+        <label class="center">{{ formH2Data?.longitudTABDesp }}</label>
+        <label class="center">cm</label>
+      </div>
+      <div class="form-row datos-h2">
+        <label class="paddingLeft">Longitud B-C'</label>
+        <label class="center">{{ formH2Data?.longitudCBCAntes }}</label>
+        <label class="center">cm</label>
+        <label class="center">{{ formH2Data?.longitudCBCDesp }}</label>
+        <label class="center">cm</label>
+      </div>
+    </div>
+      <label>
+        <div class="imgH2">
+          <img src="assets/formulario_puente/tipo_doble.jpg" alt="Tipo doble">
+        </div>
+      </label>
+  </div>
+  <div class="form-row resultadoH2">
+    <label class="text-right">Resultado (X)</label>
+    <label class="text-right">Satisfactorio</label>
+    <label class="cuadrado centerCuadrado">
+      <span *ngIf="formH2Data?.longitudResulDoble === 'satisfactorio'">X</span>
+    </label>
+    <label class="text-right">Insatisfactorio</label>
+    <label class="cuadrado centerCuadrado">
+      <span *ngIf="formH2Data?.longitudResulDoble !== 'satisfactorio'">X</span>
+    </label>
+    <label class="center">Tipo doble</label>
+  </div>
+  <br>
+  <div class="unionH2">
+    <div class="title-part4">
+      <div class="title-part3">
+        <label class="paddingLeft">GANCHO SIMPLE</label>
+        <label class="center justifyCenter">Antes de la prueba</label>
+        <label class="center justifyCenter">Después de la prueba</label>
+      </div>
+      <div class="form-row datos-h2">
+        <label class="paddingLeft">Longitud A-B</label>
+        <label class="center">{{ formH2Data?.longDABAntes }}</label>
+        <label class="center">cm</label>
+        <label class="center">{{ formH2Data?.longDABDesp }}</label>
+        <label class="center">cm</label>
+      </div>
+      <div class="form-row datos-h2">
+        <label class="paddingLeft">Longitud B-C</label>
+        <label class="center">{{ formH2Data?.longDBCAntes }}</label>
+        <label class="center">cm</label>
+        <label class="center">{{ formH2Data?.longDBCDesp }}</label>
+        <label class="center">cm</label>
+      </div>    
+    </div>
+      <label>
+        <div class="imgH2">
+          <img src="assets/formulario_puente/tipo_simple.jpg" alt="Tipo simple">
+        </div>
+      </label>
+  </div>
+  <div class="form-row resultadoH2">
+    <label class="text-right">Resultado (X)</label>
+    <label class="text-right">Satisfactorio</label>
+    <label class="cuadrado centerCuadrado">
+      <span *ngIf="formH2Data?.longResulSimple === 'satisfactorio'">X</span>
+    </label>
+    <label class="text-right">Insatisfactorio</label>
+    <label class="cuadrado centerCuadrado">
+      <span *ngIf="formH2Data?.longResulSimple !== 'satisfactorio'">X</span>
+    </label>
+    <label class="center">Tipo simple</label>
+  </div>
+  <br>
+  <div class="unionH2">
+    <div class="title-part4">
+      <div class="title-part3">
+        <label class="paddingLeft">GANCHO SIMPLE</label>
+        <label class="center justifyCenter">Antes de la prueba</label>
+        <label class="center justifyCenter">Después de la prueba</label>
+      </div>
+      <div class="form-row datos-h2">
+        <label class="paddingLeft">Longitud A-B</label>
+        <label class="center">{{ formH2Data?.longGSABAntes }}</label>
+        <label class="center">cm</label>
+        <label class="center">{{ formH2Data?.longGSABDesp }}</label>
+        <label class="center">cm</label>
+      </div>
+      <div class="form-row datos-h2">
+        <label class="paddingLeft">Longitud B-C</label>
+        <label class="center">{{ formH2Data?.longGSBCAntes }}</label>
+        <label class="center">cm</label>
+        <label class="center">{{ formH2Data?.longGSBCDesp }}</label>
+        <label class="center">cm</label>
+      </div>    
+    </div>
+      <label>
+        <div class="imgH2">
+          <img src="assets/formulario_puente/tipo_simple.jpg" alt="Tipo simple">
+        </div>
+      </label>
+  </div>
+  <div class="form-row resultadoH2">
+    <label class="text-right">Resultado (X)</label>
+    <label class="text-right">Satisfactorio</label>
+    <label class="cuadrado centerCuadrado">
+      <span *ngIf="formH2Data?.longResulSimpleDos === 'satisfactorio'">X</span>
+    </label>
+    <label class="text-right">Insatisfactorio</label>
+    <label class="cuadrado centerCuadrado">
+      <span *ngIf="formH2Data?.longResulSimpleDos !== 'satisfactorio' && formH2Data?.longResulSimpleDos !== 'N/A'">X</span>
+    </label>
+    <label class="center">Tipo simple</label>
+  </div>
   </form> 
 </div>

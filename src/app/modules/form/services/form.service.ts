@@ -48,4 +48,8 @@ export class FormService {
   getformH1PuenteByIdInforme(idInforme: number) {
     return this.http.get<any>(`${this.baseUrl}getformH1PuenteByIdInforme/${idInforme}`);
   }
+
+  getformH2PuenteByIdInforme(idInforme: number) {
+    return this.http.get<any>(`${this.baseUrl}getformH2PuenteByIdInforme/${idInforme}`);
+  }
 }
