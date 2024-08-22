@@ -1,7 +1,3 @@
-<div class="header">
-  <h1>INFORME DE INSPECCIÓN Y PRUEBA DE CARGA A GRÚAS PUENTE y/o PÓRTICO</h1>
-</div>
-
 <div *ngIf="informes" class="list-container">
     <div *ngIf="!selectedInforme" class="informes-list">
       <ul>
@@ -11,9 +7,11 @@
       </ul>
     </div>
 </div>
-
-<div *ngIf="selectedInforme" class="form-container">
 <button (click)="deselectInforme()" class="back-button">Volver</button>
+<div *ngIf="selectedInforme" class="form-container">
+<div class="header">
+  <h1>INFORME DE INSPECCIÓN Y PRUEBA DE CARGA A GRÚAS PUENTE y/o PÓRTICO</h1>
+</div>
   <form [formGroup]="informeForm">
     <div class="form-row">
       <div class="title">
@@ -107,13 +105,13 @@
       <label>Status</label>
     </div>
     <div *ngFor="let item of itemsWithStatus | slice:0:6; let i = index" class="form-row-A-F">
-    <label>{{ item.idItem }}</label>
-    <label title="{{ item.detalle }}">{{ item.detalle }}</label>
-    <label>{{ item.alias }}</label>
-    <label *ngIf="itemsWithStatus[6+i]">{{ itemsWithStatus[6+i].idItem }}</label>
-    <label *ngIf="itemsWithStatus[6+i]" title="{{ itemsWithStatus[6+i].detalle }}">{{ itemsWithStatus[6+i].detalle }}</label>
-    <label *ngIf="itemsWithStatus[6+i]">{{ itemsWithStatus[6+i].alias }}</label>
-  </div>
+      <label>{{ item.idItem }}</label>
+      <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+      <label>{{ item.alias }}</label>
+      <label *ngIf="itemsWithStatus[6 + i] && itemsWithStatus[6 + i].idItem <= 11">{{ itemsWithStatus[6 + i].idItem }}</label>
+      <label *ngIf="itemsWithStatus[6 + i] && itemsWithStatus[6 + i].idItem <= 11" title="{{ itemsWithStatus[6 + i].detalle }}">{{ itemsWithStatus[6 + i].detalle }}</label>
+      <label *ngIf="itemsWithStatus[6 + i] && itemsWithStatus[6 + i].idItem <= 11">{{ itemsWithStatus[6 + i].alias }}</label>
+    </div>
   <h2>B.- Revisión sistemas mecánicos y estructurales</h2>
   <div class="form-row-A-F">
     <label>Item</label>
@@ -144,9 +142,9 @@
     <label>{{ item.idItem }}</label>
     <label title="{{ item.detalle }}">{{ item.detalle }}</label>
     <label>{{ item.alias }}</label>
-    <label *ngIf="itemsWithStatus[23+i]">{{ itemsWithStatus[23+i].idItem }}</label>
-    <label *ngIf="itemsWithStatus[23+i]" title="{{ itemsWithStatus[23+i].detalle }}">{{ itemsWithStatus[23+i].detalle }}</label>
-    <label *ngIf="itemsWithStatus[23+i]">{{ itemsWithStatus[23+i].alias }}</label>
+    <label *ngIf="itemsWithStatus[23 + i] && itemsWithStatus[23 + i].idItem <= 26">{{ itemsWithStatus[23 + i].idItem }}</label>
+    <label *ngIf="itemsWithStatus[23 + i] && itemsWithStatus[23 + i].idItem <= 26" title="{{ itemsWithStatus[23 + i].detalle }}">{{ itemsWithStatus[23 + i].detalle }}</label>
+    <label *ngIf="itemsWithStatus[23 + i] && itemsWithStatus[23 + i].idItem <= 26">{{ itemsWithStatus[23 + i].alias }}</label>
   </div>
   <h2>D.- Revisión de dispositivos de seguridad y límites de carrera</h2>
   <div class="form-row-A-F">
@@ -161,9 +159,9 @@
     <label>{{ item.idItem }}</label>
     <label title="{{ item.detalle }}">{{ item.detalle }}</label>
     <label>{{ item.alias }}</label>
-    <label *ngIf="itemsWithStatus[35+i]">{{ itemsWithStatus[35+i].idItem }}</label>
-    <label *ngIf="itemsWithStatus[35+i]" title="{{ itemsWithStatus[35+i].detalle }}">{{ itemsWithStatus[35+i].detalle }}</label>
-    <label *ngIf="itemsWithStatus[35+i]">{{ itemsWithStatus[35+i].alias }}</label>
+    <label *ngIf="itemsWithStatus[35 + i] && itemsWithStatus[35 + i].idItem <= 43">{{ itemsWithStatus[35 + i].idItem }}</label>
+    <label *ngIf="itemsWithStatus[35 + i] && itemsWithStatus[35 + i].idItem <= 43" title="{{ itemsWithStatus[35 + i].detalle }}">{{ itemsWithStatus[35 + i].detalle }}</label>
+    <label *ngIf="itemsWithStatus[35 + i] && itemsWithStatus[35 + i].idItem <= 43">{{ itemsWithStatus[35 + i].alias }}</label>
   </div>
   <h2>E.- Revisión de sistemas de izaje de carga y motrices</h2>
   <div class="form-row-A-F">
@@ -178,9 +176,9 @@
     <label>{{ item.idItem }}</label>
     <label title="{{ item.detalle }}">{{ item.detalle }}</label>
     <label>{{ item.alias }}</label>
-    <label *ngIf="itemsWithStatus[48+i]">{{ itemsWithStatus[48+i].idItem }}</label>
-    <label *ngIf="itemsWithStatus[48+i]" title="{{ itemsWithStatus[48+i].detalle }}">{{ itemsWithStatus[48+i].detalle }}</label>
-    <label *ngIf="itemsWithStatus[48+i]">{{ itemsWithStatus[48+i].alias }}</label>
+    <label *ngIf="itemsWithStatus[48 + i] && itemsWithStatus[48 + i].idItem <= 52">{{ itemsWithStatus[48 + i].idItem }}</label>
+    <label *ngIf="itemsWithStatus[48 + i] && itemsWithStatus[48 + i].idItem <= 52" title="{{ itemsWithStatus[48 + i].detalle }}">{{ itemsWithStatus[48 + i].detalle }}</label>
+    <label *ngIf="itemsWithStatus[48 + i] && itemsWithStatus[48 + i].idItem <= 52">{{ itemsWithStatus[48 + i].alias }}</label>
   </div>
   <h2>F.- Revisión cables/cadena de izaje / ganchos</h2>
   <div class="gancho">
@@ -298,10 +296,10 @@
   <div class="form-row-nominal">
     <label>Capacidad nominal puente (SWL)</label>
     <label>Polipasto 1</label>
-    <label>{{ formHData?.cargaPruebaPoli1 }}</label>
+    <label>{{ formHData?.cargaPruebaPoli1 }}.000</label>
     <label>kg</label>
     <label>Polipasto 2</label>
-    <label>{{ formHData?.cargaPruebaPoli2 }}</label>
+    <label>{{ formHData?.cargaPruebaPoli2 }}.000</label>
     <label>kg</label>
     <label>Polipasto 3</label>
     <label>{{ formHData?.cargaPruebaPoli3 !== 0 ? formHData?.cargaPruebaPoli3 : 'N/A' }}</label>
@@ -342,9 +340,9 @@
       <label>{{ formHData?.poliUnoTraslacion }}</label>
       <label>{{ formHData?.poliUnoDireccion }}</label>
       <label>{{ formHData?.poliUnoIzaje }}</label>
-      <label>{{ formHData?.cargaPruebaPoli1 }}</label>
+      <label>{{ formHData?.cargaPruebaPoli1 }}.000</label>
       <label>kg</label>
-      <label>{{formHData?.cargaSeguraPoli1}}</label>
+      <label>{{formHData?.cargaSeguraPoli1}}.000</label>
       <label>kg</label>
   </div>
 
@@ -353,9 +351,9 @@
       <label>{{ formHData?.poliDosTraslacion }}</label>
       <label>{{ formHData?.poliDosDireccion }}</label>
       <label>{{ formHData?.poliDosIzaje }}</label>
-      <label>{{ formHData?.cargaPruebaPoli2 }}</label>
+      <label>{{ formHData?.cargaPruebaPoli2 }}.000</label>
       <label>kg</label>
-      <label>{{formHData?.cargaSeguraPoli2}}</label>
+      <label>{{formHData?.cargaSeguraPoli2}}.000</label>
       <label>kg</label>
   </div>
 
@@ -567,6 +565,48 @@
       <span *ngIf="formH2Data?.longResulSimpleDos !== 'satisfactorio' && formH2Data?.longResulSimpleDos !== 'N/A'">X</span>
     </label>
     <label class="center">Tipo simple</label>
+  </div>
+  <br>
+  <h2>I.- Resultado General</h2>
+  <div class="resultGeneral">
+    <h3 class="justifySelfEnd">INDICACIÓN (X)</h3>
+    <h3>SI</h3>
+    <h3>NO</h3>
+  </div>
+  <div class="form-row resultGeneral">
+    <label>Conforme a la inspección y prueba de carga, la grúa puente se encuentra aprobada y puede ser operada de manera segura para la capacidad indicada.</label>
+    <label class="cuadrado"></label>
+    <label class="cuadrado"></label>
+  </div>
+  <h3>Documento asociado: Certificado de Inspección y Prueba de Carga (Solo en caso de pasar satisfactoriamente inspección). GRC-2311-0441 C</h3>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <div class="center justifyCenter">
+    <h3>Este informe se realizó sin prejuicio de ningún tipo y para el interés de quien <br>concierna.</h3>
+  </div>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <h4 class="center justifyCenter">Nombre y firma <br>INSPECTOR <br>ALS Inspection Chile SPA</h4>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <h2 class="center justifyCenter">SET FOTOGRÁFICO</h2>
+  <div class="photo-grid">
+    <div *ngFor="let photo of photos" class="photo-item">
+      <img [src]="photo.url" [alt]="photo.descripcionSF">
+      <p>{{ photo.descripcionSF }}</p>
+    </div>
   </div>
   </form> 
 </div>
