@@ -22,7 +22,9 @@ export class FormComponent implements OnInit, OnDestroy {
   formHData: any;
   formH1Data: any;
   formH2Data: any;
-  photos: any[] = [];
+  photos: any;
+  photoUrl: string = '';
+  tituloForm: any[] = [];
   private destroy$ = new Subject<void>();
   
 
@@ -37,6 +39,7 @@ export class FormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.getNumeroInformes();
+    this.getTitulosForm();
   }
 
   ngOnDestroy(): void {
@@ -60,7 +63,7 @@ export class FormComponent implements OnInit, OnDestroy {
       lugarInscripcion: [''],
       fechaInspeccion: [''],
       estado: [''],
-      inspector: ['', Validators.required],
+      operador: ['', Validators.required],
     });
   }
 
@@ -98,6 +101,19 @@ export class FormComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error fetching informe details:', error);
+      }
+    });
+  }
+
+  private getTitulosForm() {
+    this.formService.getNombreForm().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (titulos) => {
+        this.tituloForm = titulos;
+      },
+      error: (error) => {
+        console.error('Error fetching form titles:', error);
       }
     });
   }
@@ -233,7 +249,7 @@ export class FormComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response.success && response.photos.length > 0) {
           this.photos = response.photos;
         }
       },
@@ -243,8 +259,8 @@ export class FormComponent implements OnInit, OnDestroy {
     });
   }
 
-  get inspectorControl() {
-    return this.informeForm.get('inspector');
+  get operadorControl() {
+    return this.informeForm.get('operador');
   }
 
   deselectInforme() {

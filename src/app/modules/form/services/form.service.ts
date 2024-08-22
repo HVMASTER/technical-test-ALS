@@ -56,4 +56,8 @@ export class FormService {
   getSetFotograficoByIdInforme(idInforme: number) {
     return this.http.get<any>(`${this.baseUrl}getSetFotograficoByIdInforme/${idInforme}`);
   }
+
+  getNombreForm() {
+    return this.http.get<any[]>(`${this.baseUrl}getNombreForm`);
+  }
 }

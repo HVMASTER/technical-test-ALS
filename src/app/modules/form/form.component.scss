@@ -2,7 +2,7 @@ $primary-color: #007bff;
 $secondary-color: #6c757d;
 $background-color: #f8f9fa;
 $header-font-size: 4em;
-$form-padding: 20px;
+$form-padding: 20px 20px;
 $border-color: #9dc2e5;
 $hover-background-color: #e9ecef;
 $font-family: 'AvenirNextLTPro-Bold', sans-serif;
@@ -16,8 +16,8 @@ $secondary-row-color: #ffffff;
   font-family: $font-family;
 
   h1 {
-    font-size: $header-font-size;
-    font-size: xx-large;
+    font-weight: 700;
+    font-size: xxx-large;
   }
 }
 
@@ -62,6 +62,52 @@ $secondary-row-color: #ffffff;
   }
 }
 
+.cuadrado2 {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 1px solid black;
+  text-align: center;
+  line-height: 18px;
+  vertical-align: middle;
+  font-size: 20px;
+}
+
+.cuadradoH2 {
+  display: inline-block;
+  width: 17px;
+  height: 18px;
+  border: 1px solid black;
+  text-align: center;
+  line-height: 18px;
+  vertical-align: middle;
+  font-size: 20px;
+}
+
+form {
+  padding: 0px 90px;
+}
+
+.underline {
+  text-decoration: underline 2px;
+}
+
+.font-size-20 {
+  font-size: 20px;
+}
+
+.font-size-25 {
+  font-size: 25px;
+}
+
+.font-size-30 {
+  font-size: 30px;
+}
+
+.font-size-xxxlarge {
+  font-size: xxx-large;
+}
+
 .form-container {
   font-family: $font-family;
   padding: $form-padding;
@@ -75,7 +121,6 @@ $secondary-row-color: #ffffff;
     flex: 1;
     padding: 1px;
     border: 1px solid $border-color;
-    font: menu;
 
   }
 
@@ -132,6 +177,18 @@ $secondary-row-color: #ffffff;
     }
   }
 
+  .custom-h3 {
+    font-weight: normal;
+  }
+
+  .custom-h3 strong {
+    font-weight: bold;
+  }
+
+  .font-italic {
+    font-style: italic;
+  }
+
   .back-button {
   margin-bottom: 20px;
   background-color: slategrey;
@@ -164,7 +221,6 @@ $secondary-row-color: #ffffff;
     grid-template-columns: 0.2fr 0.2fr 2fr; 
     align-items: center;
     border-bottom: 1px solid $border-color;
-    //padding: 5px 0;
 
     &:nth-child(odd) {
       background-color: $primary-row-color;
@@ -188,6 +244,7 @@ $secondary-row-color: #ffffff;
     display: grid;
     grid-template-columns: 0.7fr 2fr; 
     align-items: stretch;
+    font-size: 15px;
 
     label.expand{
       flex-grow: 1;
@@ -200,11 +257,6 @@ $secondary-row-color: #ffffff;
     &:nth-child(even) {
       background-color: $secondary-row-color;
     }
-
-    .titulo-columna {
-      font-weight: bold;
-      text-align: left;
-    }
   }
 
   .equipo-medicion {
@@ -213,8 +265,7 @@ $secondary-row-color: #ffffff;
     align-items: normal;
 
   .titulo-columna {
-    background-color: $secondary-color;
-    color: #fff;
+    background-color: $background-color;
     padding: 10px;
     display: flex;
     align-items: center;
@@ -272,10 +323,6 @@ $secondary-row-color: #ffffff;
     
     label {
       text-align: center;
-    }
-
-    .title-col {
-      font-weight: bold;
     }
   }
 
@@ -358,6 +405,11 @@ $secondary-row-color: #ffffff;
     margin-inline: auto;
   }
 
+  .subtitle {
+    padding-left: 25px;
+    align-content: center;
+  }
+
   .text-right {
     text-align: right;
   }
@@ -383,23 +435,12 @@ $secondary-row-color: #ffffff;
   .titulo-h1 {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
+    line-height: 35px;
   }
 
   .datos-h1 {
     display: grid;
     grid-template-columns: 1fr 0.5fr 0.5fr 0.5fr 0.5fr 1fr 1fr 1fr;
-  }
-
-  .cuadrado {
-    display: inline-block;
-    width: 15px;
-    height: 15px;
-    border: 1px solid black; 
-    text-align: center;
-    vertical-align: middle;
-    line-height: 20px; 
-    font-size: 13px;
-    font-weight: 700;
   }
 
   .check {
@@ -426,14 +467,13 @@ $secondary-row-color: #ffffff;
 
     img {
       width: 100%;
-      height: auto;
+      height: 360px;
       border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    p {
+    span {
       margin-top: 10px;
-      font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+      font-family: $font-family;
       font-size: 1.2em;
     }
   }
