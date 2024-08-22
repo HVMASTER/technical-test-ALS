@@ -52,4 +52,8 @@ export class FormService {
   getformH2PuenteByIdInforme(idInforme: number) {
     return this.http.get<any>(`${this.baseUrl}getformH2PuenteByIdInforme/${idInforme}`);
   }
+
+  getSetFotograficoByIdInforme(idInforme: number) {
+    return this.http.get<any>(`${this.baseUrl}getSetFotograficoByIdInforme/${idInforme}`);
+  }
 }

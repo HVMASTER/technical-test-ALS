@@ -22,6 +22,7 @@ export class FormComponent implements OnInit, OnDestroy {
   formHData: any;
   formH1Data: any;
   formH2Data: any;
+  photos: any[] = [];
   private destroy$ = new Subject<void>();
   
 
@@ -93,6 +94,7 @@ export class FormComponent implements OnInit, OnDestroy {
         this.loadFormH(informe.idInforme);
         this.loadFormH1(informe.idInforme);
         this.loadFormH2(informe.idInforme);
+        this.loadSetFotografico(informe.idInforme);
       },
       error: (error) => {
         console.error('Error fetching informe details:', error);
@@ -222,6 +224,21 @@ export class FormComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error fetching form H2 data:', error);
+      }
+    });
+  }
+
+  private loadSetFotografico(idInforme: number) {
+    this.formService.getSetFotograficoByIdInforme(idInforme).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.photos = response.photos;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching set fotografico:', error);
       }
     });
   }
