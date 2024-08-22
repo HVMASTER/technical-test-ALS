@@ -4,6 +4,8 @@ export interface Informe {
     numeroInforme:    string;
     empresa:          string;
     persona:          string;
+    Nombre:           string;
+    rut:              string;
     equipo:           string;
     modelo:           string;
     marca:            string;
