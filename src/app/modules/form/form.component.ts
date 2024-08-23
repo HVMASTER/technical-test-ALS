@@ -25,6 +25,22 @@ export class FormComponent implements OnInit, OnDestroy {
   photos: any;
   photoUrl: string = '';
   tituloForm: any[] = [];
+  isEditing: boolean = false;
+  isEditingStatusA = false;
+  isEditingStatusB = false;
+  isEditingStatusC = false;
+  isEditingStatusD = false;
+  isEditingStatusE = false;
+  isEditingStatusF = false;
+  isEditingFormG = false;
+  isEditingFormH1 = false;
+  optionStatus = [
+    {idStatus: 1, alias: 'CU'},
+    {idStatus: 2, alias: 'N/C'},
+    {idStatus: 3, alias: 'N/A'},
+    {idStatus: 4, alias: 'RE'}
+  ]
+  selectedOption: string | null = null;
   private destroy$ = new Subject<void>();
   
 
@@ -38,6 +54,7 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.informeForm.disable();
     this.getNumeroInformes();
     this.getTitulosForm();
   }
@@ -86,12 +103,13 @@ export class FormComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (data: Informe) => {
-        this.selectedInforme = {
-          ...data,
-          fechaFabricacion: this.formatDate(data.fechaFabricacion),
-          fechaInspeccion: this.formatDate(data.fechaInspeccion),
-        };
-        this.informeForm.patchValue(this.selectedInforme);
+        this.selectedInforme = data,
+
+
+        this.informeForm.patchValue({
+          ...this.selectedInforme,
+          fechaInspeccion: this.selectedInforme.fechaInspeccion || '',
+        });
 
         this.loadItemDetails(informe.idInforme);
         this.loadFormH(informe.idInforme);
@@ -271,5 +289,78 @@ export class FormComponent implements OnInit, OnDestroy {
 
   formatDate(date: string | null): string {
     return date ? this.datePipe.transform(date, 'dd-MM-yyyy')! : '';
+  }
+
+  toggleEdit() {
+    this.isEditing = !this.isEditing;
+    if (this.isEditing) {
+      this.informeForm.enable(); // Habilitar el formulario en modo edición
+    } else {
+      this.informeForm.disable(); // Deshabilitar el formulario fuera del modo edición
+    }
+  }
+
+  saveChanges() {
+    if (this.informeForm.valid) {
+      // Aquí puedes agregar la lógica para guardar los datos en la base de datos
+      this.isEditing = false;
+      // Puedes hacer una llamada al servicio para actualizar los datos
+    }
+  }
+
+  toggleEditStatus(tabla: string) {
+    switch (tabla) {
+      case 'A':
+        this.isEditingStatusA = !this.isEditingStatusA;
+        if (!this.isEditingStatusA) this.saveStatusChanges('A');
+        break;
+      case 'B':
+        this.isEditingStatusB = !this.isEditingStatusB;
+        if (!this.isEditingStatusB) this.saveStatusChanges('B');
+        break;
+      case 'C':
+        this.isEditingStatusC = !this.isEditingStatusC;
+        if (!this.isEditingStatusC) this.saveStatusChanges('C');
+        break;
+      case 'D':
+        this.isEditingStatusD = !this.isEditingStatusD;
+        if (!this.isEditingStatusD) this.saveStatusChanges('D');
+        break;
+      case 'E':
+        this.isEditingStatusE = !this.isEditingStatusE;
+        if (!this.isEditingStatusE) this.saveStatusChanges('E');
+        break;
+      case 'F':
+        this.isEditingStatusF = !this.isEditingStatusF;
+        if (!this.isEditingStatusF) this.saveStatusChanges('F');
+        break;
+    }
+  }
+
+  toggleEditFormG() {
+    this.isEditingFormG = !this.isEditingFormG;
+    if (!this.isEditingFormG) {
+      this.saveFormGChanges();
+    } 
+  }
+
+  saveStatusChanges(tabla: string) {
+    console.log(`Guardando cambios en la tabla ${tabla}`);
+  }
+
+  saveFormGChanges() {
+    console.log('Descripción modificada:', this.descripcionItems);
+  }
+
+  selectStatus(item: any, selectedIdStatus: string) {
+    const selectedOption = this.optionStatus.find(option => option.idStatus.toString() === selectedIdStatus);
+    if (selectedOption) {
+      item.alias = selectedOption.alias; 
+    }
+  }
+
+  updateFormG(descripcion: any, event: Event) {
+    const inputElement = event.target as HTMLInputElement;
+    descripcion.descripcion = inputElement.value;
   }
 }
