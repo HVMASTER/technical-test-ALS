@@ -46,7 +46,7 @@ export class FormService {
   }
 
   getformH1PuenteByIdInforme(idInforme: number) {
-    return this.http.get<any>(`${this.baseUrl}getformH1PuenteByIdInforme/${idInforme}`);
+    return this.http.get<any[]>(`${this.baseUrl}getformH1PuenteByIdInforme/${idInforme}`);
   }
 
   getformH2PuenteByIdInforme(idInforme: number) {
@@ -59,5 +59,13 @@ export class FormService {
 
   getNombreForm() {
     return this.http.get<any[]>(`${this.baseUrl}getNombreForm`);
+  }
+
+  editInformePuente(idInforme: number, informeData: any) {
+    return this.http.put(`${this.baseUrl}editInformePuente/${idInforme}`, informeData);
+  }
+
+  editFormHPuente(idInforme: number, formHData: any) {
+    return this.http.put(`${this.baseUrl}editFormHPuente/${idInforme}`, formHData);
   }
 }

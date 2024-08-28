@@ -122,6 +122,55 @@ form {
   visibility: hidden;
 }
 
+.flex {
+  display: flex;
+  align-items: center;
+}
+
+.alignCenter {
+  text-align: center;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.padding-none {
+  padding: 0;
+}
+
+.error-input {
+  border: 1px solid red;
+}
+
+.missing-data {
+  color: red;
+  font-style: italic;
+}
+
+.error-message {
+  color: red;
+  font-size: 12px;
+}
+
+.inline-textarea {
+  width: 85%; 
+  resize: none; /* Evita que el textarea sea redimensionable */
+  font-size: medium;
+  font-family: sans-serif;
+}
+
+.inline-input {
+  flex: auto;
+  font-size: medium;
+  font-family: sans-serif;
+}
+
+.width-fill-available {
+  width: -webkit-fill-available;
+}
+
+
 .form-container {
   font-family: $font-family;
   padding: $form-padding;
@@ -538,9 +587,17 @@ form {
   }
 }
 
-.editInput {
+.editInputFormG {
   input {
     width: 100%;
     max-width: 900px;
+  }
+}
+
+.editInputFormH1 {
+  display: contents;
+  input {
+    width: 84px;
+    place-self: center;
   }
 }
