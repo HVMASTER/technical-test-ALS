@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { FormService } from './services/form.service';
+import { PdfService } from './../../services/pdf.service';
 import { Subject } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
@@ -53,6 +54,7 @@ export class FormComponent implements OnInit, OnDestroy {
 
   constructor(
     private formService: FormService,
+    private pdfService: PdfService,
     private cdr: ChangeDetectorRef,
     private formBuilder: FormBuilder,
     private datePipe: DatePipe
@@ -692,5 +694,9 @@ export class FormComponent implements OnInit, OnDestroy {
         this.informeForm.enable(); // Habilitar si está en modo edición
       }
     }
+  }
+
+  generatePDF() {
+    this.pdfService.generatePDF('contentToConvert');
   }
 }

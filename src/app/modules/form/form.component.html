@@ -9,2379 +9,2285 @@
 </div>
 <button (click)="deselectInforme()" class="back-button">Volver</button>
 <button (click)="togglePreview()">Vista Previa</button>
+<button (click)="generatePDF()">Exportar a PDF</button>
 <div *ngIf="selectedInforme" class="form-container">
-  <div class="header">
-    <h1>INFORME DE INSPECCIÓN Y PRUEBA DE CARGA A GRÚAS PUENTE y/o PÓRTICO</h1>
-  </div>
-  <form [formGroup]="informeForm">
-    <div *ngIf="!isPreviewMode">
-      <button (click)="toggleEdit()">
-        {{ isEditing ? "Cancelar" : "Editar" }}
-      </button>
-    </div>
-    <button *ngIf="isEditing" (click)="saveChanges()">Guardar</button>
-    <div class="form-row">
-      <div class="title">
-        <label>Informe N°</label>
-      </div>
-      <ng-container *ngIf="isEditing; else viewNumeroInforme">
-        <input formControlName="numeroInforme" type="text" />
-      </ng-container>
-      <ng-template #viewNumeroInforme>
-        <label>{{ informeForm.get("numeroInforme")?.value }}</label>
-      </ng-template>
-      <label>Certificado asociado N°</label>
-      <ng-container *ngIf="isEditing; else viewCertificado">
-        <input formControlName="numeroInforme" type="text" />
-      </ng-container>
-      <ng-template #viewCertificado>
-        <label>{{ informeForm.get("numeroInforme")?.value }}</label>
-      </ng-template>
+  <div id="contentToConvert">
+
+    <div class="header">
+      <app-header></app-header>
     </div>
 
-    <div class="form-row">
-      <div class="title">
-        <label>Solicitado por</label>
-      </div>
-      <label>Empresa</label>
-      <ng-container *ngIf="isEditing; else viewEmpresa">
-        <input formControlName="empresa" type="text" />
-      </ng-container>
-      <ng-template #viewEmpresa>
-        <label>{{ informeForm.get("empresa")?.value }}</label>
-      </ng-template>
-      <label>Persona</label>
-      <ng-container *ngIf="isEditing; else viewPersona">
-        <input formControlName="persona" type="text" />
-      </ng-container>
-      <ng-template #viewPersona>
-        <label>{{ informeForm.get("persona")?.value }}</label>
-      </ng-template>
-    </div>
-    <div class="form-row">
-      <div class="title">
-        <label>Equipo</label>
-      </div>
-      <ng-container *ngIf="isEditing; else viewEquipo">
-        <input formControlName="equipo" type="text" />
-      </ng-container>
-      <ng-template #viewEquipo>
-        <label>{{ informeForm.get("equipo")?.value }}</label>
-      </ng-template>
+    <div class="title-main">
+      <h1>
+        INFORME DE INSPECCIÓN Y PRUEBA DE CARGA A GRÚAS PUENTE y/o PÓRTICO
+      </h1>
     </div>
 
-    <div class="form-row">
-      <div class="title">
-        <label>Modelo</label>
-      </div>
-      <ng-container *ngIf="isEditing; else viewModelo">
-        <input formControlName="modelo" type="text" />
-      </ng-container>
-      <ng-template #viewModelo>
-        <label>{{ informeForm.get("modelo")?.value }}</label>
-      </ng-template>
-    </div>
-
-    <div class="form-row">
-      <div class="title">
-        <label>Marca</label>
-      </div>
-      <ng-container *ngIf="isEditing; else viewMarca">
-        <input formControlName="marca" type="text" />
-      </ng-container>
-      <ng-template #viewMarca>
-        <label>{{ informeForm.get("marca")?.value }}</label>
-      </ng-template>
-    </div>
-
-    <div class="form-row capacidad-nominal">
-      <div class="title">
-        <label>Capacidad Nominal</label>
-      </div>
-
-      <label>Polipasto 1</label>
-      <ng-container *ngIf="isEditing; else viewPolipasto1">
-        <ng-container
-          *ngIf="informeForm.get('polipasto1')?.value !== 0; else naPolipasto1"
-        >
-          <input formControlName="polipasto1" type="number" />
-        </ng-container>
-        <ng-template #naPolipasto1>
-          <label>N/A</label>
-        </ng-template>
-      </ng-container>
-      <ng-template #viewPolipasto1>
-        <label>{{
-          informeForm.get("polipasto1")?.value !== 0
-            ? informeForm.get("polipasto1")?.value + " kg"
-            : "N/A"
-        }}</label>
-      </ng-template>
-
-      <label>Polipasto 2</label>
-      <ng-container *ngIf="isEditing; else viewPolipasto2">
-        <ng-container
-          *ngIf="informeForm.get('polipasto2')?.value !== 0; else naPolipasto2"
-        >
-          <input formControlName="polipasto2" type="number" />
-        </ng-container>
-        <ng-template #naPolipasto2>
-          <label>N/A</label>
-        </ng-template>
-      </ng-container>
-      <ng-template #viewPolipasto2>
-        <label>{{
-          informeForm.get("polipasto2")?.value !== 0
-            ? informeForm.get("polipasto2")?.value + " kg"
-            : "N/A"
-        }}</label>
-      </ng-template>
-
-      <label>Polipasto 3</label>
-      <ng-container *ngIf="isEditing; else viewPolipasto3">
-        <ng-container
-          *ngIf="informeForm.get('polipasto3')?.value !== 0; else naPolipasto3"
-        >
-          <input formControlName="polipasto3" type="number" />
-        </ng-container>
-        <ng-template #naPolipasto3>
-          <label>N/A</label>
-        </ng-template>
-      </ng-container>
-      <ng-template #viewPolipasto3>
-        <label>{{
-          informeForm.get("polipasto3")?.value !== 0
-            ? informeForm.get("polipasto3")?.value + " kg"
-            : "N/A"
-        }}</label>
-      </ng-template>
-    </div>
-
-    <div class="form-row">
-      <div class="title">
-        <label>Fecha de Fabricación</label>
-      </div>
-      <ng-container *ngIf="isEditing; else viewFechaFabricacion">
-        <input formControlName="fechaFabricacion" type="text" />
-      </ng-container>
-      <ng-template #viewFechaFabricacion>
-        <label>{{ informeForm.get("fechaFabricacion")?.value }}</label>
-      </ng-template>
-    </div>
-
-    <div class="form-row">
-      <div class="title">
-        <label>ID o número de serie</label>
-      </div>
-      <ng-container *ngIf="isEditing; else viewNumeroSerie">
-        <input formControlName="numeroSerie" type="text" />
-      </ng-container>
-      <ng-template #viewNumeroSerie>
-        <label>{{ informeForm.get("numeroSerie")?.value }}</label>
-      </ng-template>
-    </div>
-
-    <div class="form-row">
-      <div class="title">
-        <label>Lugar de inscripción y prueba</label>
-      </div>
-      <ng-container *ngIf="isEditing; else viewLugarInscripcion">
-        <input formControlName="lugarInscripcion" type="text" />
-      </ng-container>
-      <ng-template #viewLugarInscripcion>
-        <label>{{ informeForm.get("lugarInscripcion")?.value }}</label>
-      </ng-template>
-    </div>
-
-    <div class="form-row">
-      <div class="title">
-        <label>Fecha de inspección y prueba</label>
-      </div>
-      <ng-container *ngIf="isEditing; else viewFechaInspeccion">
-        <input formControlName="fechaInspeccion" type="date" />
-      </ng-container>
-      <ng-template #viewFechaInspeccion>
-        <label>{{ informeForm.get("fechaInspeccion")?.value }}</label>
-      </ng-template>
-    </div>
-
-    <div class="form-row">
-      <div class="title">
-        <label>Fecha de emisión informe</label>
-      </div>
-      <ng-container *ngIf="isEditing; else viewFechaEmision">
-        <input formControlName="fechaInspeccion" type="date" />
-      </ng-container>
-      <ng-template #viewFechaEmision>
-        <label>{{ informeForm.get("fechaInspeccion")?.value }}</label>
-      </ng-template>
-    </div>
-    <div class="subtitle">
-      <h3 class="custom-h3">
-        <strong>(CU)</strong> CUMPLE <strong>(N/C)</strong> NO CUMPLE NO APLICA
-        <strong>(N/A)</strong>
-        RECOMENDACIÓN
-        <strong>(RE)</strong>
-      </h3>
-    </div>
-    <h2 class="subtitle" *ngIf="tituloForm.length > 0">
-      {{ tituloForm[0]?.nombre }}
-    </h2>
-    <div *ngIf="!isPreviewMode">
-      <button (click)="toggleEditStatus('A')">
-        {{ isEditingStatusA ? "Guardar" : "Editar" }}
-      </button>
-    </div>
-    <div class="form-row-A-F">
-      <strong class="center">Item</strong>
-      <strong class="center">Detalle</strong>
-      <strong class="center">Status</strong>
-      <strong class="center">Item</strong>
-      <strong class="center">Detalle</strong>
-      <strong class="center">Status</strong>
-    </div>
-
-    <div
-      *ngFor="let item of itemsWithStatus | slice : 0 : 6; let i = index"
-      class="form-row-A-F"
-    >
-      <label class="center"
-        ><strong>{{ item.idItem }}</strong></label
-      >
-      <label title="{{ item.detalle }}">{{ item.detalle }}</label>
-
-      <div *ngIf="isEditingStatusA; else viewMode">
-        <div class="options-list">
-          <form>
-            <label *ngFor="let option of optionStatus">
-              <input
-                type="radio"
-                name="option_{{ i }}"
-                [value]="option.idStatus"
-                [checked]="option.alias === item.alias"
-                (change)="selectStatus(item, option.idStatus.toString())"
-              />
-              {{ option.alias }}
-            </label>
-          </form>
-        </div>
-      </div>
-      <ng-template #viewMode>
-        <label class="center">{{ item.alias }}</label>
-      </ng-template>
-
-      <ng-container
-        *ngIf="
-          6 + i < itemsWithStatus.length && itemsWithStatus[6 + i].idItem <= 11
-        "
-      >
-        <label class="center"
-          ><strong>{{ itemsWithStatus[6 + i].idItem }}</strong></label
-        >
-        <label title="{{ itemsWithStatus[6 + i].detalle }}">{{
-          itemsWithStatus[6 + i].detalle
-        }}</label>
-
-        <div *ngIf="isEditingStatusA; else viewMode2">
-          <div class="options-list">
-            <form>
-              <label *ngFor="let option of optionStatus">
-                <input
-                  type="radio"
-                  name="option_{{ 6 + i }}"
-                  [value]="option.idStatus"
-                  [checked]="option.alias === itemsWithStatus[6 + i]?.alias"
-                  (change)="
-                    selectStatus(
-                      itemsWithStatus[6 + i],
-                      option.idStatus.toString()
-                    )
-                  "
-                />
-                {{ option.alias }}
-              </label>
-            </form>
+    <div class="page">
+      <div class="content">
+        <form [formGroup]="informeForm" class="A-C">
+          <div *ngIf="!isPreviewMode">
+            <button (click)="toggleEdit()">
+              {{ isEditing ? "Cancelar" : "Editar" }}
+            </button>
           </div>
-        </div>
-        <ng-template #viewMode2>
-          <label class="center">{{ itemsWithStatus[6 + i]?.alias }}</label>
-        </ng-template>
-      </ng-container>
-    </div>
-
-    <h2 class="subtitle" *ngIf="tituloForm.length > 0">
-      {{ tituloForm[1].nombre }}
-    </h2>
-    <div *ngIf="!isPreviewMode">
-      <button (click)="toggleEditStatus('B')">
-        {{ isEditingStatusB ? "Guardar" : "Editar" }}
-      </button>
-    </div>
-    <div class="form-row-A-F">
-      <strong class="center">Item</strong>
-      <strong class="center">Detalle</strong>
-      <strong class="center">Status</strong>
-      <strong class="center">Item</strong>
-      <strong class="center">Detalle</strong>
-      <strong class="center">Status</strong>
-    </div>
-
-    <div
-      *ngFor="let item of itemsWithStatus | slice : 11 : 15; let i = index"
-      class="form-row-A-F"
-    >
-      <label class="center"
-        ><strong>{{ item.idItem }}</strong></label
-      >
-      <label title="{{ item.detalle }}">{{ item.detalle }}</label>
-
-      <div *ngIf="isEditingStatusB; else viewMode">
-        <div class="options-list">
-          <form>
-            <label *ngFor="let option of optionStatus">
-              <input
-                type="radio"
-                name="option_{{ 11 + i }}"
-                [value]="option.idStatus"
-                [checked]="option.alias === item.alias"
-                (change)="selectStatus(item, option.idStatus.toString())"
-              />
-              {{ option.alias }}
-            </label>
-          </form>
-        </div>
-      </div>
-      <ng-template #viewMode>
-        <label class="center">{{ item.alias }}</label>
-      </ng-template>
-
-      <ng-container
-        *ngIf="
-          15 + i < itemsWithStatus.length &&
-          itemsWithStatus[15 + i].idItem <= 19
-        "
-      >
-        <label class="center"
-          ><strong>{{ itemsWithStatus[15 + i].idItem }}</strong></label
-        >
-        <label title="{{ itemsWithStatus[15 + i].detalle }}">{{
-          itemsWithStatus[15 + i].detalle
-        }}</label>
-
-        <div *ngIf="isEditingStatusB; else viewMode2">
-          <div class="options-list">
-            <form>
-              <label *ngFor="let option of optionStatus">
-                <input
-                  type="radio"
-                  name="option_{{ 15 + i }}"
-                  [value]="option.idStatus"
-                  [checked]="option.alias === itemsWithStatus[15 + i]?.alias"
-                  (change)="
-                    selectStatus(
-                      itemsWithStatus[15 + i],
-                      option.idStatus.toString()
-                    )
-                  "
-                />
-                {{ option.alias }}
-              </label>
-            </form>
+          <button *ngIf="isEditing" (click)="saveChanges()">Guardar</button>
+          <div class="form-row">
+            <div class="title">
+              <label>Informe N°</label>
+            </div>
+            <ng-container *ngIf="isEditing; else viewNumeroInforme">
+              <input formControlName="numeroInforme" type="text" />
+            </ng-container>
+            <ng-template #viewNumeroInforme>
+              <label>{{ informeForm.get("numeroInforme")?.value }}</label>
+            </ng-template>
+            <label>Certificado asociado N°</label>
+            <ng-container *ngIf="isEditing; else viewCertificado">
+              <input formControlName="numeroInforme" type="text" />
+            </ng-container>
+            <ng-template #viewCertificado>
+              <label>{{ informeForm.get("numeroInforme")?.value }}</label>
+            </ng-template>
           </div>
-        </div>
-        <ng-template #viewMode2>
-          <label class="center">{{ itemsWithStatus[15 + i]?.alias }}</label>
-        </ng-template>
-      </ng-container>
-    </div>
-
-    <h2 class="subtitle" *ngIf="tituloForm.length > 0">
-      {{ tituloForm[2].nombre }}
-    </h2>
-    <div *ngIf="!isPreviewMode">
-      <button (click)="toggleEditStatus('C')">
-        {{ isEditingStatusC ? "Guardar" : "Editar" }}
-      </button>
-    </div>
-    <div class="form-row-A-F">
-      <strong class="center">Item</strong>
-      <strong class="center">Detalle</strong>
-      <strong class="center">Status</strong>
-      <strong class="center">Item</strong>
-      <strong class="center">Detalle</strong>
-      <strong class="center">Status</strong>
-    </div>
-
-    <div
-      *ngFor="let item of itemsWithStatus | slice : 19 : 23; let i = index"
-      class="form-row-A-F"
-    >
-      <label class="center"
-        ><strong>{{ item.idItem }}</strong></label
-      >
-      <label title="{{ item.detalle }}">{{ item.detalle }}</label>
-
-      <div *ngIf="isEditingStatusC; else viewModeC">
-        <div class="options-list">
-          <form>
-            <label *ngFor="let option of optionStatus">
-              <input
-                type="radio"
-                name="option_{{ 19 + i }}"
-                [value]="option.idStatus"
-                [checked]="option.alias === item.alias"
-                (change)="selectStatus(item, option.idStatus.toString())"
-              />
-              {{ option.alias }}
-            </label>
-          </form>
-        </div>
-      </div>
-      <ng-template #viewModeC>
-        <label class="center">{{ item.alias }}</label>
-      </ng-template>
-
-      <ng-container
-        *ngIf="
-          23 + i < itemsWithStatus.length &&
-          itemsWithStatus[23 + i].idItem <= 26
-        "
-      >
-        <label class="center"
-          ><strong>{{ itemsWithStatus[23 + i].idItem }}</strong></label
-        >
-        <label title="{{ itemsWithStatus[23 + i].detalle }}">{{
-          itemsWithStatus[23 + i].detalle
-        }}</label>
-
-        <div *ngIf="isEditingStatusC; else viewModeC2">
-          <div class="options-list">
-            <form>
-              <label *ngFor="let option of optionStatus">
-                <input
-                  type="radio"
-                  name="option_{{ 23 + i }}"
-                  [value]="option.idStatus"
-                  [checked]="option.alias === itemsWithStatus[23 + i]?.alias"
-                  (change)="
-                    selectStatus(
-                      itemsWithStatus[23 + i],
-                      option.idStatus.toString()
-                    )
-                  "
-                />
-                {{ option.alias }}
-              </label>
-            </form>
+          <div class="form-row">
+            <div class="title">
+              <label>Solicitado por</label>
+            </div>
+            <label>Empresa</label>
+            <ng-container *ngIf="isEditing; else viewEmpresa">
+              <input formControlName="empresa" type="text" />
+            </ng-container>
+            <ng-template #viewEmpresa>
+              <label>{{ informeForm.get("empresa")?.value }}</label>
+            </ng-template>
+            <label>Persona</label>
+            <ng-container *ngIf="isEditing; else viewPersona">
+              <input formControlName="persona" type="text" />
+            </ng-container>
+            <ng-template #viewPersona>
+              <label>{{ informeForm.get("persona")?.value }}</label>
+            </ng-template>
           </div>
-        </div>
-        <ng-template #viewModeC2>
-          <label class="center">{{ itemsWithStatus[23 + i]?.alias }}</label>
-        </ng-template>
-      </ng-container>
-    </div>
-
-    <h2 class="subtitle" *ngIf="tituloForm.length > 0">
-      {{ tituloForm[3].nombre }}
-    </h2>
-    <div *ngIf="!isPreviewMode">
-      <button (click)="toggleEditStatus('D')">
-        {{ isEditingStatusD ? "Guardar" : "Editar" }}
-      </button>
-    </div>
-    <div class="form-row-A-F">
-      <strong class="center">Item</strong>
-      <strong class="center">Detalle</strong>
-      <strong class="center">Status</strong>
-      <strong class="center">Item</strong>
-      <strong class="center">Detalle</strong>
-      <strong class="center">Status</strong>
-    </div>
-
-    <div
-      *ngFor="let item of itemsWithStatus | slice : 26 : 35; let i = index"
-      class="form-row-A-F"
-    >
-      <label class="center"
-        ><strong>{{ item.idItem }}</strong></label
-      >
-      <label title="{{ item.detalle }}">{{ item.detalle }}</label>
-
-      <div *ngIf="isEditingStatusD; else viewModeD">
-        <div class="options-list">
-          <form>
-            <label *ngFor="let option of optionStatus">
-              <input
-                type="radio"
-                name="option_{{ 26 + i }}"
-                [value]="option.idStatus"
-                [checked]="option.alias === item.alias"
-                (change)="selectStatus(item, option.idStatus.toString())"
-              />
-              {{ option.alias }}
-            </label>
-          </form>
-        </div>
-      </div>
-      <ng-template #viewModeD>
-        <label class="center">{{ item.alias }}</label>
-      </ng-template>
-
-      <ng-container
-        *ngIf="
-          35 + i < itemsWithStatus.length &&
-          itemsWithStatus[35 + i].idItem <= 43
-        "
-      >
-        <label class="center"
-          ><strong>{{ itemsWithStatus[35 + i].idItem }}</strong></label
-        >
-        <label title="{{ itemsWithStatus[35 + i].detalle }}">{{
-          itemsWithStatus[35 + i].detalle
-        }}</label>
-
-        <div *ngIf="isEditingStatusD; else viewModeD2">
-          <div class="options-list">
-            <form>
-              <label *ngFor="let option of optionStatus">
-                <input
-                  type="radio"
-                  name="option_{{ 35 + i }}"
-                  [value]="option.idStatus"
-                  [checked]="option.alias === itemsWithStatus[35 + i]?.alias"
-                  (change)="
-                    selectStatus(
-                      itemsWithStatus[35 + i],
-                      option.idStatus.toString()
-                    )
-                  "
-                />
-                {{ option.alias }}
-              </label>
-            </form>
+          <div class="form-row">
+            <div class="title">
+              <label>Equipo</label>
+            </div>
+            <ng-container *ngIf="isEditing; else viewEquipo">
+              <input formControlName="equipo" type="text" />
+            </ng-container>
+            <ng-template #viewEquipo>
+              <label>{{ informeForm.get("equipo")?.value }}</label>
+            </ng-template>
           </div>
-        </div>
-        <ng-template #viewModeD2>
-          <label class="center">{{ itemsWithStatus[35 + i]?.alias }}</label>
-        </ng-template>
-      </ng-container>
-    </div>
-
-    <h2 class="subtitle" *ngIf="tituloForm.length > 0">
-      {{ tituloForm[4].nombre }}
-    </h2>
-    <div *ngIf="!isPreviewMode">
-      <button (click)="toggleEditStatus('E')">
-        {{ isEditingStatusE ? "Guardar" : "Editar" }}
-      </button>
-    </div>
-    <div class="form-row-A-F">
-      <strong class="center">Item</strong>
-      <strong class="center">Detalle</strong>
-      <strong class="center">Status</strong>
-      <strong class="center">Item</strong>
-      <strong class="center">Detalle</strong>
-      <strong class="center">Status</strong>
-    </div>
-
-    <div
-      *ngFor="let item of itemsWithStatus | slice : 43 : 48; let i = index"
-      class="form-row-A-F"
-    >
-      <label class="center"
-        ><strong>{{ item.idItem }}</strong></label
-      >
-      <label title="{{ item.detalle }}" class="detalle-column">{{
-        item.detalle
-      }}</label>
-
-      <div *ngIf="isEditingStatusE; else viewModeE" class="options-container">
-        <div class="options-list">
-          <form>
-            <label *ngFor="let option of optionStatus">
-              <input
-                type="radio"
-                name="option_{{ 43 + i }}"
-                [value]="option.idStatus"
-                [checked]="option.alias === item.alias"
-                (change)="selectStatus(item, option.idStatus.toString())"
-              />
-              {{ option.alias }}
-            </label>
-          </form>
-        </div>
-      </div>
-      <ng-template #viewModeE>
-        <label class="center">{{ item.alias }}</label>
-      </ng-template>
-
-      <ng-container
-        *ngIf="
-          48 + i < itemsWithStatus.length &&
-          itemsWithStatus[48 + i].idItem <= 52
-        "
-      >
-        <label class="center"
-          ><strong>{{ itemsWithStatus[48 + i].idItem }}</strong></label
-        >
-        <label
-          title="{{ itemsWithStatus[48 + i].detalle }}"
-          class="detalle-column"
-          >{{ itemsWithStatus[48 + i].detalle }}</label
-        >
-
-        <div
-          *ngIf="isEditingStatusE; else viewModeE2"
-          class="options-container"
-        >
-          <div class="options-list">
-            <form>
-              <label *ngFor="let option of optionStatus">
-                <input
-                  type="radio"
-                  name="option_{{ 48 + i }}"
-                  [value]="option.idStatus"
-                  [checked]="option.alias === itemsWithStatus[48 + i]?.alias"
-                  (change)="
-                    selectStatus(
-                      itemsWithStatus[48 + i],
-                      option.idStatus.toString()
-                    )
-                  "
-                />
-                {{ option.alias }}
-              </label>
-            </form>
+          <div class="form-row">
+            <div class="title">
+              <label>Modelo</label>
+            </div>
+            <ng-container *ngIf="isEditing; else viewModelo">
+              <input formControlName="modelo" type="text" />
+            </ng-container>
+            <ng-template #viewModelo>
+              <label>{{ informeForm.get("modelo")?.value }}</label>
+            </ng-template>
           </div>
-        </div>
-        <ng-template #viewModeE2>
-          <label class="center">{{ itemsWithStatus[48 + i]?.alias }}</label>
-        </ng-template>
-      </ng-container>
-    </div>
-
-    <h2 class="subtitle" *ngIf="tituloForm.length > 0">
-      {{ tituloForm[5].nombre }}
-    </h2>
-    <div *ngIf="!isPreviewMode">
-      <button (click)="toggleEditStatus('F')">
-        {{ isEditingStatusF ? "Guardar" : "Editar" }}
-      </button>
-    </div>
-    <div class="gancho">
-      <label class="gancho-label">Gancho 1</label>
-      <label class="gancho-label">Gancho 2</label>
-    </div>
-    <div class="form-row-A-F">
-      <strong class="center">Item</strong>
-      <strong class="center">Detalle</strong>
-      <strong class="center">Status</strong>
-      <strong class="center">Item</strong>
-      <strong class="center">Detalle</strong>
-      <strong class="center">Status</strong>
-    </div>
-
-    <div
-      *ngFor="let item of itemsWithStatus | slice : 52 : 60; let i = index"
-      class="form-row-A-F"
-    >
-      <label class="center"
-        ><strong>{{ item.idItem }}</strong></label
-      >
-      <label title="{{ item.detalle }}">{{ item.detalle }}</label>
-
-      <div *ngIf="isEditingStatusF; else viewModeF">
-        <div class="options-list">
-          <form>
-            <label *ngFor="let option of optionStatus">
-              <input
-                type="radio"
-                name="option_{{ 52 + i }}"
-                [value]="option.idStatus"
-                [checked]="option.alias === item.alias"
-                (change)="selectStatus(item, option.idStatus.toString())"
-              />
-              {{ option.alias }}
-            </label>
-          </form>
-        </div>
-      </div>
-      <ng-template #viewModeF>
-        <label class="center">{{ item.alias }}</label>
-      </ng-template>
-
-      <ng-container
-        *ngIf="
-          60 + i < itemsWithStatus.length &&
-          itemsWithStatus[60 + i].idItem <= 68
-        "
-      >
-        <label class="center"
-          ><strong>{{ itemsWithStatus[60 + i].idItem }}</strong></label
-        >
-        <label title="{{ itemsWithStatus[60 + i].detalle }}">{{
-          itemsWithStatus[60 + i].detalle
-        }}</label>
-
-        <div *ngIf="isEditingStatusF; else viewModeF2">
-          <div class="options-list">
-            <form>
-              <label *ngFor="let option of optionStatus">
-                <input
-                  type="radio"
-                  name="option_{{ 60 + i }}"
-                  [value]="option.idStatus"
-                  [checked]="option.alias === itemsWithStatus[60 + i]?.alias"
-                  (change)="
-                    selectStatus(
-                      itemsWithStatus[60 + i],
-                      option.idStatus.toString()
-                    )
-                  "
-                />
-                {{ option.alias }}
-              </label>
-            </form>
+          <div class="form-row">
+            <div class="title">
+              <label>Marca</label>
+            </div>
+            <ng-container *ngIf="isEditing; else viewMarca">
+              <input formControlName="marca" type="text" />
+            </ng-container>
+            <ng-template #viewMarca>
+              <label>{{ informeForm.get("marca")?.value }}</label>
+            </ng-template>
           </div>
-        </div>
-        <ng-template #viewModeF2>
-          <label class="center">{{ itemsWithStatus[60 + i]?.alias }}</label>
-        </ng-template>
-      </ng-container>
-    </div>
-
-    <h2 class="subtitle" *ngIf="tituloForm.length > 0">
-      {{ tituloForm[6].nombre }}
-    </h2>
-    <div *ngIf="!isPreviewMode">
-      <button (click)="toggleEditFormG()">
-        {{ isEditingFormG ? "Guardar" : "Editar" }}
-      </button>
-    </div>
-    <div class="form-row-G">
-      <strong class="center">Item</strong>
-      <strong class="center">RE o N/C</strong>
-      <strong class="center">Descripción</strong>
-    </div>
-
-    <div
-      *ngFor="let descripcion of descripcionItems"
-      class="form-row-G editInputFormG"
-    >
-      <label class="center">{{ descripcion.idDetalle }}</label>
-      <label class="center"
-        ><strong>{{ getStatusLabel(descripcion.idStatus) }}</strong></label
-      >
-
-      <div *ngIf="isEditingFormG; else viewModeFormG">
-        <input
-          [value]="descripcion.descripcion"
-          (input)="updateFormG(descripcion, $event)"
-          type="text"
-          class="edit-input"
-        />
+          <div class="form-row capacidad-nominal">
+            <div class="title">
+              <label>Capacidad Nominal</label>
+            </div>
+            <label>Polipasto 1</label>
+            <ng-container *ngIf="isEditing; else viewPolipasto1">
+              <ng-container
+                *ngIf="
+                  informeForm.get('polipasto1')?.value !== 0;
+                  else naPolipasto1
+                "
+              >
+                <input formControlName="polipasto1" type="number" />
+              </ng-container>
+              <ng-template #naPolipasto1>
+                <label>N/A</label>
+              </ng-template>
+            </ng-container>
+            <ng-template #viewPolipasto1>
+              <label>{{
+                informeForm.get("polipasto1")?.value !== 0
+                  ? informeForm.get("polipasto1")?.value + " kg"
+                  : "N/A"
+              }}</label>
+            </ng-template>
+            <label>Polipasto 2</label>
+            <ng-container *ngIf="isEditing; else viewPolipasto2">
+              <ng-container
+                *ngIf="
+                  informeForm.get('polipasto2')?.value !== 0;
+                  else naPolipasto2
+                "
+              >
+                <input formControlName="polipasto2" type="number" />
+              </ng-container>
+              <ng-template #naPolipasto2>
+                <label>N/A</label>
+              </ng-template>
+            </ng-container>
+            <ng-template #viewPolipasto2>
+              <label>{{
+                informeForm.get("polipasto2")?.value !== 0
+                  ? informeForm.get("polipasto2")?.value + " kg"
+                  : "N/A"
+              }}</label>
+            </ng-template>
+            <label>Polipasto 3</label>
+            <ng-container *ngIf="isEditing; else viewPolipasto3">
+              <ng-container
+                *ngIf="
+                  informeForm.get('polipasto3')?.value !== 0;
+                  else naPolipasto3
+                "
+              >
+                <input formControlName="polipasto3" type="number" />
+              </ng-container>
+              <ng-template #naPolipasto3>
+                <label>N/A</label>
+              </ng-template>
+            </ng-container>
+            <ng-template #viewPolipasto3>
+              <label>{{
+                informeForm.get("polipasto3")?.value !== 0
+                  ? informeForm.get("polipasto3")?.value + " kg"
+                  : "N/A"
+              }}</label>
+            </ng-template>
+          </div>
+          <div class="form-row">
+            <div class="title">
+              <label>Fecha de Fabricación</label>
+            </div>
+            <ng-container *ngIf="isEditing; else viewFechaFabricacion">
+              <input formControlName="fechaFabricacion" type="text" />
+            </ng-container>
+            <ng-template #viewFechaFabricacion>
+              <label>{{ informeForm.get("fechaFabricacion")?.value }}</label>
+            </ng-template>
+          </div>
+          <div class="form-row">
+            <div class="title">
+              <label>ID o número de serie</label>
+            </div>
+            <ng-container *ngIf="isEditing; else viewNumeroSerie">
+              <input formControlName="numeroSerie" type="text" />
+            </ng-container>
+            <ng-template #viewNumeroSerie>
+              <label>{{ informeForm.get("numeroSerie")?.value }}</label>
+            </ng-template>
+          </div>
+          <div class="form-row">
+            <div class="title">
+              <label>Lugar de inscripción y prueba</label>
+            </div>
+            <ng-container *ngIf="isEditing; else viewLugarInscripcion">
+              <input formControlName="lugarInscripcion" type="text" />
+            </ng-container>
+            <ng-template #viewLugarInscripcion>
+              <label>{{ informeForm.get("lugarInscripcion")?.value }}</label>
+            </ng-template>
+          </div>
+          <div class="form-row">
+            <div class="title">
+              <label>Fecha de inspección y prueba</label>
+            </div>
+            <ng-container *ngIf="isEditing; else viewFechaInspeccion">
+              <input formControlName="fechaInspeccion" type="date" />
+            </ng-container>
+            <ng-template #viewFechaInspeccion>
+              <label>{{ informeForm.get("fechaInspeccion")?.value }}</label>
+            </ng-template>
+          </div>
+          <div class="form-row">
+            <div class="title">
+              <label>Fecha de emisión informe</label>
+            </div>
+            <ng-container *ngIf="isEditing; else viewFechaEmision">
+              <input formControlName="fechaInspeccion" type="date" />
+            </ng-container>
+            <ng-template #viewFechaEmision>
+              <label>{{ informeForm.get("fechaInspeccion")?.value }}</label>
+            </ng-template>
+          </div>
+          <div class="subtitle">
+            <h3 class="custom-h3">
+              <strong>(CU)</strong> CUMPLE <strong>(N/C)</strong> NO CUMPLE NO
+              APLICA
+              <strong>(N/A)</strong>
+              RECOMENDACIÓN
+              <strong>(RE)</strong>
+            </h3>
+          </div>
+          <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+            {{ tituloForm[0]?.nombre }}
+          </h2>
+          <div *ngIf="!isPreviewMode">
+            <button (click)="toggleEditStatus('A')">
+              {{ isEditingStatusA ? "Guardar" : "Editar" }}
+            </button>
+          </div>
+          <div class="form-row-A-F">
+            <strong class="center">Item</strong>
+            <strong class="center">Detalle</strong>
+            <strong class="center">Status</strong>
+            <strong class="center">Item</strong>
+            <strong class="center">Detalle</strong>
+            <strong class="center">Status</strong>
+          </div>
+          <div
+            *ngFor="let item of itemsWithStatus | slice : 0 : 6; let i = index"
+            class="form-row-A-F"
+          >
+            <label class="center"
+              ><strong>{{ item.idItem }}</strong></label
+            >
+            <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+            <div *ngIf="isEditingStatusA; else viewMode">
+              <div class="options-list">
+                <form>
+                  <label *ngFor="let option of optionStatus">
+                    <input
+                      type="radio"
+                      name="option_{{ i }}"
+                      [value]="option.idStatus"
+                      [checked]="option.alias === item.alias"
+                      (change)="selectStatus(item, option.idStatus.toString())"
+                    />
+                    {{ option.alias }}
+                  </label>
+                </form>
+              </div>
+            </div>
+            <ng-template #viewMode>
+              <label class="center">{{ item.alias }}</label>
+            </ng-template>
+            <ng-container
+              *ngIf="
+                6 + i < itemsWithStatus.length &&
+                itemsWithStatus[6 + i].idItem <= 11
+              "
+            >
+              <label class="center"
+                ><strong>{{ itemsWithStatus[6 + i].idItem }}</strong></label
+              >
+              <label title="{{ itemsWithStatus[6 + i].detalle }}">{{
+                itemsWithStatus[6 + i].detalle
+              }}</label>
+              <div *ngIf="isEditingStatusA; else viewMode2">
+                <div class="options-list">
+                  <form>
+                    <label *ngFor="let option of optionStatus">
+                      <input
+                        type="radio"
+                        name="option_{{ 6 + i }}"
+                        [value]="option.idStatus"
+                        [checked]="option.alias === itemsWithStatus[6 + i]?.alias"
+                        (change)="
+                          selectStatus(
+                            itemsWithStatus[6 + i],
+                            option.idStatus.toString()
+                          )
+                        "
+                      />
+                      {{ option.alias }}
+                    </label>
+                  </form>
+                </div>
+              </div>
+              <ng-template #viewMode2>
+                <label class="center">{{ itemsWithStatus[6 + i]?.alias }}</label>
+              </ng-template>
+            </ng-container>
+          </div>
+          <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+            {{ tituloForm[1].nombre }}
+          </h2>
+          <div *ngIf="!isPreviewMode">
+            <button (click)="toggleEditStatus('B')">
+              {{ isEditingStatusB ? "Guardar" : "Editar" }}
+            </button>
+          </div>
+          <div class="form-row-A-F">
+            <strong class="center">Item</strong>
+            <strong class="center">Detalle</strong>
+            <strong class="center">Status</strong>
+            <strong class="center">Item</strong>
+            <strong class="center">Detalle</strong>
+            <strong class="center">Status</strong>
+          </div>
+          <div
+            *ngFor="let item of itemsWithStatus | slice : 11 : 15; let i = index"
+            class="form-row-A-F"
+          >
+            <label class="center"
+              ><strong>{{ item.idItem }}</strong></label
+            >
+            <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+            <div *ngIf="isEditingStatusB; else viewMode">
+              <div class="options-list">
+                <form>
+                  <label *ngFor="let option of optionStatus">
+                    <input
+                      type="radio"
+                      name="option_{{ 11 + i }}"
+                      [value]="option.idStatus"
+                      [checked]="option.alias === item.alias"
+                      (change)="selectStatus(item, option.idStatus.toString())"
+                    />
+                    {{ option.alias }}
+                  </label>
+                </form>
+              </div>
+            </div>
+            <ng-template #viewMode>
+              <label class="center">{{ item.alias }}</label>
+            </ng-template>
+            <ng-container
+              *ngIf="
+                15 + i < itemsWithStatus.length &&
+                itemsWithStatus[15 + i].idItem <= 19
+              "
+            >
+              <label class="center"
+                ><strong>{{ itemsWithStatus[15 + i].idItem }}</strong></label
+              >
+              <label title="{{ itemsWithStatus[15 + i].detalle }}">{{
+                itemsWithStatus[15 + i].detalle
+              }}</label>
+              <div *ngIf="isEditingStatusB; else viewMode2">
+                <div class="options-list">
+                  <form>
+                    <label *ngFor="let option of optionStatus">
+                      <input
+                        type="radio"
+                        name="option_{{ 15 + i }}"
+                        [value]="option.idStatus"
+                        [checked]="option.alias === itemsWithStatus[15 + i]?.alias"
+                        (change)="
+                          selectStatus(
+                            itemsWithStatus[15 + i],
+                            option.idStatus.toString()
+                          )
+                        "
+                      />
+                      {{ option.alias }}
+                    </label>
+                  </form>
+                </div>
+              </div>
+              <ng-template #viewMode2>
+                <label class="center">{{ itemsWithStatus[15 + i]?.alias }}</label>
+              </ng-template>
+            </ng-container>
+          </div>
+          <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+            {{ tituloForm[2].nombre }}
+          </h2>
+          <div *ngIf="!isPreviewMode">
+            <button (click)="toggleEditStatus('C')">
+              {{ isEditingStatusC ? "Guardar" : "Editar" }}
+            </button>
+          </div>
+          <div class="form-row-A-F">
+            <strong class="center">Item</strong>
+            <strong class="center">Detalle</strong>
+            <strong class="center">Status</strong>
+            <strong class="center">Item</strong>
+            <strong class="center">Detalle</strong>
+            <strong class="center">Status</strong>
+          </div>
+          <div
+            *ngFor="let item of itemsWithStatus | slice : 19 : 23; let i = index"
+            class="form-row-A-F"
+          >
+            <label class="center"
+              ><strong>{{ item.idItem }}</strong></label
+            >
+            <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+            <div *ngIf="isEditingStatusC; else viewModeC">
+              <div class="options-list">
+                <form>
+                  <label *ngFor="let option of optionStatus">
+                    <input
+                      type="radio"
+                      name="option_{{ 19 + i }}"
+                      [value]="option.idStatus"
+                      [checked]="option.alias === item.alias"
+                      (change)="selectStatus(item, option.idStatus.toString())"
+                    />
+                    {{ option.alias }}
+                  </label>
+                </form>
+              </div>
+            </div>
+            <ng-template #viewModeC>
+              <label class="center">{{ item.alias }}</label>
+            </ng-template>
+            <ng-container
+              *ngIf="
+                23 + i < itemsWithStatus.length &&
+                itemsWithStatus[23 + i].idItem <= 26
+              "
+            >
+              <label class="center"
+                ><strong>{{ itemsWithStatus[23 + i].idItem }}</strong></label
+              >
+              <label title="{{ itemsWithStatus[23 + i].detalle }}">{{
+                itemsWithStatus[23 + i].detalle
+              }}</label>
+              <div *ngIf="isEditingStatusC; else viewModeC2">
+                <div class="options-list">
+                  <form>
+                    <label *ngFor="let option of optionStatus">
+                      <input
+                        type="radio"
+                        name="option_{{ 23 + i }}"
+                        [value]="option.idStatus"
+                        [checked]="option.alias === itemsWithStatus[23 + i]?.alias"
+                        (change)="
+                          selectStatus(
+                            itemsWithStatus[23 + i],
+                            option.idStatus.toString()
+                          )
+                        "
+                      />
+                      {{ option.alias }}
+                    </label>
+                  </form>
+                </div>
+              </div>
+              <ng-template #viewModeC2>
+                <label class="center">{{ itemsWithStatus[23 + i]?.alias }}</label>
+              </ng-template>
+            </ng-container>
+          </div>
+        </form>
       </div>
-      <ng-template #viewModeFormG>
-        <label>{{ descripcion.descripcion }}</label>
-      </ng-template>
     </div>
-    <h2>Notas en columna descripción:</h2>
-    <ul>
-      <h2>
-        - La palabra <strong>“debe” indica un requisito.</strong> Se relaciona
-        con una no conformidad (N/C) y debe ser corregida por el cliente.
-      </h2>
-      <h2>
-        - La palabra <strong>“debería”</strong> indica una
-        recomendación/observación (RE). Puede o no ser tratada por el cliente.
-      </h2>
-    </ul>
-    <h3>
-      Nota <span class="underline">muy importante</span>: Si correspondiesen
-      acciones correctivas (por no conformidades, n/c), estas deberán ser
-      solucionadas o tratadas por el cliente en el menor tiempo posible con el
-      fin de reducir los riesgos asociados de mantener en operación un equipo
-      sub-estándar.
-    </h3>
-    <h3 class="custom-h3 font-italic">
-      Las observaciones importantes de seguridad (N/C) deberán, si corresponde,
-      ser levantadas mediante el documento “levantamiento de no conformidades”.
-    </h3>
+
+    <div class="page">
+      <div class="content">
+        <form class="D-F">
+          <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+            {{ tituloForm[3].nombre }}
+          </h2>
+          <div *ngIf="!isPreviewMode">
+            <button (click)="toggleEditStatus('D')">
+              {{ isEditingStatusD ? "Guardar" : "Editar" }}
+            </button>
+          </div>
+          <div class="form-row-A-F">
+            <strong class="center">Item</strong>
+            <strong class="center">Detalle</strong>
+            <strong class="center">Status</strong>
+            <strong class="center">Item</strong>
+            <strong class="center">Detalle</strong>
+            <strong class="center">Status</strong>
+          </div>
+          <div
+            *ngFor="let item of itemsWithStatus | slice : 26 : 35; let i = index"
+            class="form-row-A-F"
+          >
+            <label class="center"
+              ><strong>{{ item.idItem }}</strong></label
+            >
+            <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+            <div *ngIf="isEditingStatusD; else viewModeD">
+              <div class="options-list">
+          
+                  <label *ngFor="let option of optionStatus">
+                    <input
+                      type="radio"
+                      name="option_{{ 26 + i }}"
+                      [value]="option.idStatus"
+                      [checked]="option.alias === item.alias"
+                      (change)="selectStatus(item, option.idStatus.toString())"
+                    />
+                    {{ option.alias }}
+                  </label>
+          
+              </div>
+            </div>
+            <ng-template #viewModeD>
+              <label class="center">{{ item.alias }}</label>
+            </ng-template>
+            <ng-container
+              *ngIf="
+                35 + i < itemsWithStatus.length &&
+                itemsWithStatus[35 + i].idItem <= 43
+              "
+            >
+              <label class="center"
+                ><strong>{{ itemsWithStatus[35 + i].idItem }}</strong></label
+              >
+              <label title="{{ itemsWithStatus[35 + i].detalle }}">{{
+                itemsWithStatus[35 + i].detalle
+              }}</label>
+              <div *ngIf="isEditingStatusD; else viewModeD2">
+                <div class="options-list">
+                  <form>
+                    <label *ngFor="let option of optionStatus">
+                      <input
+                        type="radio"
+                        name="option_{{ 35 + i }}"
+                        [value]="option.idStatus"
+                        [checked]="option.alias === itemsWithStatus[35 + i]?.alias"
+                        (change)="
+                          selectStatus(
+                            itemsWithStatus[35 + i],
+                            option.idStatus.toString()
+                          )
+                        "
+                      />
+                      {{ option.alias }}
+                    </label>
+                  </form>
+                </div>
+              </div>
+              <ng-template #viewModeD2>
+                <label class="center">{{ itemsWithStatus[35 + i]?.alias }}</label>
+              </ng-template>
+            </ng-container>
+          </div>
+          <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+            {{ tituloForm[4].nombre }}
+          </h2>
+          <div *ngIf="!isPreviewMode">
+            <button (click)="toggleEditStatus('E')">
+              {{ isEditingStatusE ? "Guardar" : "Editar" }}
+            </button>
+          </div>
+          <div class="form-row-A-F">
+            <strong class="center">Item</strong>
+            <strong class="center">Detalle</strong>
+            <strong class="center">Status</strong>
+            <strong class="center">Item</strong>
+            <strong class="center">Detalle</strong>
+            <strong class="center">Status</strong>
+          </div>
+          <div
+            *ngFor="let item of itemsWithStatus | slice : 43 : 48; let i = index"
+            class="form-row-A-F"
+          >
+            <label class="center"
+              ><strong>{{ item.idItem }}</strong></label
+            >
+            <label title="{{ item.detalle }}" class="detalle-column">{{
+              item.detalle
+            }}</label>
+            <div *ngIf="isEditingStatusE; else viewModeE" class="options-container">
+              <div class="options-list">
+                <form>
+                  <label *ngFor="let option of optionStatus">
+                    <input
+                      type="radio"
+                      name="option_{{ 43 + i }}"
+                      [value]="option.idStatus"
+                      [checked]="option.alias === item.alias"
+                      (change)="selectStatus(item, option.idStatus.toString())"
+                    />
+                    {{ option.alias }}
+                  </label>
+                </form>
+              </div>
+            </div>
+            <ng-template #viewModeE>
+              <label class="center">{{ item.alias }}</label>
+            </ng-template>
+            <ng-container
+              *ngIf="
+                48 + i < itemsWithStatus.length &&
+                itemsWithStatus[48 + i].idItem <= 52
+              "
+            >
+              <label class="center"
+                ><strong>{{ itemsWithStatus[48 + i].idItem }}</strong></label
+              >
+              <label
+                title="{{ itemsWithStatus[48 + i].detalle }}"
+                class="detalle-column"
+                >{{ itemsWithStatus[48 + i].detalle }}</label
+              >
+              <div
+                *ngIf="isEditingStatusE; else viewModeE2"
+                class="options-container"
+              >
+                <div class="options-list">
+                  <form>
+                    <label *ngFor="let option of optionStatus">
+                      <input
+                        type="radio"
+                        name="option_{{ 48 + i }}"
+                        [value]="option.idStatus"
+                        [checked]="option.alias === itemsWithStatus[48 + i]?.alias"
+                        (change)="
+                          selectStatus(
+                            itemsWithStatus[48 + i],
+                            option.idStatus.toString()
+                          )
+                        "
+                      />
+                      {{ option.alias }}
+                    </label>
+                  </form>
+                </div>
+              </div>
+              <ng-template #viewModeE2>
+                <label class="center">{{ itemsWithStatus[48 + i]?.alias }}</label>
+              </ng-template>
+            </ng-container>
+          </div>
+          <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+            {{ tituloForm[5].nombre }}
+          </h2>
+          <div *ngIf="!isPreviewMode">
+            <button (click)="toggleEditStatus('F')">
+              {{ isEditingStatusF ? "Guardar" : "Editar" }}
+            </button>
+          </div>
+          <div class="gancho">
+            <label class="gancho-label">Gancho 1</label>
+            <label class="gancho-label">Gancho 2</label>
+          </div>
+          <div class="form-row-A-F">
+            <strong class="center">Item</strong>
+            <strong class="center">Detalle</strong>
+            <strong class="center">Status</strong>
+            <strong class="center">Item</strong>
+            <strong class="center">Detalle</strong>
+            <strong class="center">Status</strong>
+          </div>
+          <div
+            *ngFor="let item of itemsWithStatus | slice : 52 : 60; let i = index"
+            class="form-row-A-F"
+          >
+            <label class="center"
+              ><strong>{{ item.idItem }}</strong></label
+            >
+            <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+            <div *ngIf="isEditingStatusF; else viewModeF">
+              <div class="options-list">
+                <form>
+                  <label *ngFor="let option of optionStatus">
+                    <input
+                      type="radio"
+                      name="option_{{ 52 + i }}"
+                      [value]="option.idStatus"
+                      [checked]="option.alias === item.alias"
+                      (change)="selectStatus(item, option.idStatus.toString())"
+                    />
+                    {{ option.alias }}
+                  </label>
+                </form>
+              </div>
+            </div>
+            <ng-template #viewModeF>
+              <label class="center">{{ item.alias }}</label>
+            </ng-template>
+            <ng-container
+              *ngIf="
+                60 + i < itemsWithStatus.length &&
+                itemsWithStatus[60 + i].idItem <= 68
+              "
+            >
+              <label class="center"
+                ><strong>{{ itemsWithStatus[60 + i].idItem }}</strong></label
+              >
+              <label title="{{ itemsWithStatus[60 + i].detalle }}">{{
+                itemsWithStatus[60 + i].detalle
+              }}</label>
+              <div *ngIf="isEditingStatusF; else viewModeF2">
+                <div class="options-list">
+                  <form>
+                    <label *ngFor="let option of optionStatus">
+                      <input
+                        type="radio"
+                        name="option_{{ 60 + i }}"
+                        [value]="option.idStatus"
+                        [checked]="option.alias === itemsWithStatus[60 + i]?.alias"
+                        (change)="
+                          selectStatus(
+                            itemsWithStatus[60 + i],
+                            option.idStatus.toString()
+                          )
+                        "
+                      />
+                      {{ option.alias }}
+                    </label>
+                  </form>
+                </div>
+              </div>
+              <ng-template #viewModeF2>
+                <label class="center">{{ itemsWithStatus[60 + i]?.alias }}</label>
+              </ng-template>
+            </ng-container>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="page">
+      <div class="content">
+        <form class="G">
+          <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+            {{ tituloForm[6].nombre }}
+          </h2>
+          <div *ngIf="!isPreviewMode">
+            <button (click)="toggleEditFormG()">
+              {{ isEditingFormG ? "Guardar" : "Editar" }}
+            </button>
+          </div>
+          <form class="padding-none">
+            <div class="form-row-G">
+              <strong class="center">Item</strong>
+              <strong class="center">RE o N/C</strong>
+              <strong class="center">Descripción</strong>
+            </div>
+            <div
+              *ngFor="let descripcion of descripcionItems"
+              class="form-row-G editInputFormG"
+            >
+              <label class="center">{{ descripcion.idDetalle }}</label>
+              <label class="center"
+                ><strong>{{ getStatusLabel(descripcion.idStatus) }}</strong></label
+              >
+              <div *ngIf="isEditingFormG; else viewModeFormG">
+                <input
+                  [value]="descripcion.descripcion"
+                  (input)="updateFormG(descripcion, $event)"
+                  type="text"
+                  class="edit-input"
+                />
+              </div>
+              <ng-template #viewModeFormG>
+                <label>{{ descripcion.descripcion }}</label>
+              </ng-template>
+            </div>
+          </form>
+          <h2>Notas en columna descripción:</h2>
+          <ul>
+            <h2>
+              - La palabra <strong>“debe” indica un requisito.</strong> Se relaciona
+              con una no conformidad (N/C) y debe ser corregida por el cliente.
+            </h2>
+            <h2>
+              - La palabra <strong>“debería”</strong> indica una
+              recomendación/observación (RE). Puede o no ser tratada por el cliente.
+            </h2>
+          </ul>
+          <h3>
+            Nota <span class="underline">muy importante</span>: Si correspondiesen
+            acciones correctivas (por no conformidades, n/c), estas deberán ser
+            solucionadas o tratadas por el cliente en el menor tiempo posible con el
+            fin de reducir los riesgos asociados de mantener en operación un equipo
+            sub-estándar.
+          </h3>
+          <h3 class="custom-h3 font-italic">
+            Las observaciones importantes de seguridad (N/C) deberán, si corresponde,
+            ser levantadas mediante el documento “levantamiento de no conformidades”.
+          </h3>
+        </form>
+      </div>
+    </div>
+
     <br /><br /><br />
 
-    <h2 class="subtitle" *ngIf="tituloForm.length > 0">
-      {{ tituloForm[7].nombre }}
-    </h2>
-
-    <div *ngIf="!isPreviewMode">
-      <button (click)="toggleEditFormH()">
-        {{ isEditingFormH ? "Cancelar" : "Editar" }}
-      </button>
-    </div>
-    <button *ngIf="isEditingFormH" (click)="saveFormHChanges()">Guardar</button>
-
-    <form class="padding-none" [formGroup]="formH">
-      <div class="form-row-H">
-        <label class="paddingLeft"
-          ><strong>Fecha prueba de carga</strong></label
-        >
-
-        <ng-container *ngIf="isEditingFormH; else viewModeFecha">
-          <input formControlName="fecha" type="date" />
-        </ng-container>
-        <ng-template #viewModeFecha>
-          <label>{{ formHData?.fecha }}</label>
-        </ng-template>
-      </div>
-
-      <!-- Campo Vigencia prueba de carga -->
-      <div class="form-row-H">
-        <label class="paddingLeft"
-          ><strong>Vigencia prueba de carga</strong><br />
-          (sujeta a inspección visual, auditiva funcional y de seguridad anual)
-        </label>
-
-        <ng-container *ngIf="isEditingFormH; else viewModeVigencia">
-          <input formControlName="vigencia" type="text" />
-        </ng-container>
-        <ng-template #viewModeVigencia>
-          <label>{{ formHData?.vigencia }}</label>
-        </ng-template>
-      </div>
-
-      <!-- Campo Lugar de prueba de carga -->
-      <div class="form-row-H">
-        <label class="paddingLeft"
-          ><strong>Lugar de prueba de carga</strong></label
-        >
-
-        <ng-container *ngIf="isEditingFormH; else viewModeLugar">
-          <input formControlName="lugar" type="text" />
-        </ng-container>
-        <ng-template #viewModeLugar>
-          <label>{{ formHData?.lugar }}</label>
-        </ng-template>
-      </div>
-
-      <div class="form-row-H">
-        <label class="paddingLeft"
-          ><strong>Norma para certificación Carga de Prueba</strong></label
-        >
-        <!-- Valor fijo -->
-        <label>ASME B30.2-2016, Capítulo 2-2.3.1 // 2-2.3.2</label>
-      </div>
-
-      <div class="form-row-H equipo-medicion">
-        <div class="titulo-columna">
-          <h4>Equipos / instrumentos de medición</h4>
-        </div>
-        <div class="equipo-datos">
-          <div class="equipo-header">
-            <label><strong>Nombre de equipo</strong></label>
-            <label><strong>SI</strong></label>
-            <label><strong>NO</strong></label>
-            <label><strong>Certificado Número</strong></label>
+    <div class="page">
+      <div class="content">
+        <form class="H-H1">
+          <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+            {{ tituloForm[7].nombre }}
+          </h2>
+          <div *ngIf="!isPreviewMode">
+            <button (click)="toggleEditFormH()">
+              {{ isEditingFormH ? "Cancelar" : "Editar" }}
+            </button>
           </div>
-          <div class="equipo-items">
-            <!-- Cinta métrica -->
-            <div class="form-row">
-              <label>Cinta métrica (flexómetro)</label>
-              <ng-container *ngIf="isEditingFormH; else viewModeCintaMetrica">
-                <label class="center">
-                  <input
-                    type="radio"
-                    formControlName="cintaMetrica"
-                    value="SI"
-                  />
-                </label>
-                <label class="center">
-                  <input
-                    type="radio"
-                    formControlName="cintaMetrica"
-                    value="NO"
-                  />
-                </label>
-                <input formControlName="cintaMetricaNCertificado" type="text" />
+          <button *ngIf="isEditingFormH" (click)="saveFormHChanges()">Guardar</button>
+          <form class="padding-none" [formGroup]="formH">
+            <div class="form-row-H">
+              <label class="paddingLeft"
+                ><strong>Fecha prueba de carga</strong></label
+              >
+              <ng-container *ngIf="isEditingFormH; else viewModeFecha">
+                <input formControlName="fecha" type="date" />
               </ng-container>
-              <ng-template #viewModeCintaMetrica>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.cintaMetrica === "SI" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.cintaMetrica === "NO" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">{{
-                  formHData?.cintaMetricaNCertificado !== "N/A"
-                    ? formHData?.cintaMetricaNCertificado
-                    : "N/A"
-                }}</label>
+              <ng-template #viewModeFecha>
+                <label>{{ formHData?.fecha }}</label>
               </ng-template>
             </div>
-
-            <!-- Pie de metro -->
-            <div class="form-row">
-              <label>Pie de metro (caliper)</label>
-              <ng-container *ngIf="isEditingFormH; else viewModePieMetro">
-                <label class="center">
-                  <input type="radio" formControlName="pie_metro" value="SI" />
-                </label>
-                <label class="center">
-                  <input type="radio" formControlName="pie_metro" value="NO" />
-                </label>
-                <input formControlName="pie_metroNCertificado" type="text" />
+            <!-- Campo Vigencia prueba de carga -->
+            <div class="form-row-H">
+              <label class="paddingLeft"
+                ><strong>Vigencia prueba de carga</strong><br />
+                (sujeta a inspección visual, auditiva funcional y de seguridad anual)
+              </label>
+              <ng-container *ngIf="isEditingFormH; else viewModeVigencia">
+                <input formControlName="vigencia" type="text" />
               </ng-container>
-              <ng-template #viewModePieMetro>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.pie_metro === "SI" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.pie_metro === "NO" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">{{
-                  formHData?.pie_metroNCertificado !== "N/A"
-                    ? formHData?.pie_metroNCertificado
-                    : "N/A"
-                }}</label>
+              <ng-template #viewModeVigencia>
+                <label>{{ formHData?.vigencia }}</label>
               </ng-template>
             </div>
-
-            <!-- Bolsas de agua -->
-            <div class="form-row">
-              <label>Bolsas de agua</label>
-              <ng-container *ngIf="isEditingFormH; else viewModeBolsasAgua">
-                <label class="center">
-                  <input type="radio" formControlName="bolsasAgua" value="SI" />
-                </label>
-                <label class="center">
-                  <input type="radio" formControlName="bolsasAgua" value="NO" />
-                </label>
-                <input formControlName="bolsasAguaNCertificado" type="text" />
+            <!-- Campo Lugar de prueba de carga -->
+            <div class="form-row-H">
+              <label class="paddingLeft"
+                ><strong>Lugar de prueba de carga</strong></label
+              >
+              <ng-container *ngIf="isEditingFormH; else viewModeLugar">
+                <input formControlName="lugar" type="text" />
               </ng-container>
-              <ng-template #viewModeBolsasAgua>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.bolsasAgua === "SI" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.bolsasAgua === "NO" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">{{
-                  formHData?.bolsasAguaNCertificado !== "N/A"
-                    ? formHData?.bolsasAguaNCertificado
-                    : "N/A"
-                }}</label>
+              <ng-template #viewModeLugar>
+                <label>{{ formHData?.lugar }}</label>
               </ng-template>
             </div>
-
-            <!-- Masas -->
-            <div class="form-row">
-              <label>Masas</label>
-              <ng-container *ngIf="isEditingFormH; else viewModeMasas">
-                <label class="center">
-                  <input type="radio" formControlName="masas" value="SI" />
-                </label>
-                <label class="center">
-                  <input type="radio" formControlName="masas" value="NO" />
-                </label>
-                <input formControlName="masasNCertificado" type="text" />
-              </ng-container>
-              <ng-template #viewModeMasas>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.masas === "SI" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.masas === "NO" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">{{
-                  formHData?.masasNCertificado !== "N/A"
-                    ? formHData?.masasNCertificado
-                    : "N/A"
-                }}</label>
-              </ng-template>
+            <div class="form-row-H">
+              <label class="paddingLeft"
+                ><strong>Norma para certificación Carga de Prueba</strong></label
+              >
+              <!-- Valor fijo -->
+              <label>ASME B30.2-2016, Capítulo 2-2.3.1 // 2-2.3.2</label>
             </div>
-
-            <!-- Dinamómetro -->
-            <div class="form-row">
-              <label>Dinamómetro</label>
-              <ng-container *ngIf="isEditingFormH; else viewModeDinamometro">
-                <label class="center">
-                  <input
-                    type="radio"
-                    formControlName="dinamometro"
-                    value="SI"
-                  />
-                </label>
-                <label class="center">
-                  <input
-                    type="radio"
-                    formControlName="dinamometro"
-                    value="NO"
-                  />
-                </label>
-                <input formControlName="dinamometroNCertificado" type="text" />
-              </ng-container>
-              <ng-template #viewModeDinamometro>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.dinamometro === "SI" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.dinamometro === "NO" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">{{
-                  formHData?.dinamometroNCertificado !== "N/A"
-                    ? formHData?.dinamometroNCertificado
-                    : "N/A"
-                }}</label>
-              </ng-template>
+            <div class="form-row-H equipo-medicion">
+              <div class="titulo-columna">
+                <h4>Equipos / instrumentos de medición</h4>
+              </div>
+              <div class="equipo-datos">
+                <div class="equipo-header">
+                  <label><strong>Nombre de equipo</strong></label>
+                  <label><strong>SI</strong></label>
+                  <label><strong>NO</strong></label>
+                  <label><strong>Certificado Número</strong></label>
+                </div>
+                <div class="equipo-items">
+                  <!-- Cinta métrica -->
+                  <div class="form-row">
+                    <label>Cinta métrica (flexómetro)</label>
+                    <ng-container *ngIf="isEditingFormH; else viewModeCintaMetrica">
+                      <label class="center">
+                        <input
+                          type="radio"
+                          formControlName="cintaMetrica"
+                          value="SI"
+                        />
+                      </label>
+                      <label class="center">
+                        <input
+                          type="radio"
+                          formControlName="cintaMetrica"
+                          value="NO"
+                        />
+                      </label>
+                      <input formControlName="cintaMetricaNCertificado" type="text" />
+                    </ng-container>
+                    <ng-template #viewModeCintaMetrica>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.cintaMetrica === "SI" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.cintaMetrica === "NO" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">{{
+                        formHData?.cintaMetricaNCertificado !== "N/A"
+                          ? formHData?.cintaMetricaNCertificado
+                          : "N/A"
+                      }}</label>
+                    </ng-template>
+                  </div>
+                  <!-- Pie de metro -->
+                  <div class="form-row">
+                    <label>Pie de metro (caliper)</label>
+                    <ng-container *ngIf="isEditingFormH; else viewModePieMetro">
+                      <label class="center">
+                        <input type="radio" formControlName="pie_metro" value="SI" />
+                      </label>
+                      <label class="center">
+                        <input type="radio" formControlName="pie_metro" value="NO" />
+                      </label>
+                      <input formControlName="pie_metroNCertificado" type="text" />
+                    </ng-container>
+                    <ng-template #viewModePieMetro>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.pie_metro === "SI" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.pie_metro === "NO" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">{{
+                        formHData?.pie_metroNCertificado !== "N/A"
+                          ? formHData?.pie_metroNCertificado
+                          : "N/A"
+                      }}</label>
+                    </ng-template>
+                  </div>
+                  <!-- Bolsas de agua -->
+                  <div class="form-row">
+                    <label>Bolsas de agua</label>
+                    <ng-container *ngIf="isEditingFormH; else viewModeBolsasAgua">
+                      <label class="center">
+                        <input type="radio" formControlName="bolsasAgua" value="SI" />
+                      </label>
+                      <label class="center">
+                        <input type="radio" formControlName="bolsasAgua" value="NO" />
+                      </label>
+                      <input formControlName="bolsasAguaNCertificado" type="text" />
+                    </ng-container>
+                    <ng-template #viewModeBolsasAgua>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.bolsasAgua === "SI" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.bolsasAgua === "NO" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">{{
+                        formHData?.bolsasAguaNCertificado !== "N/A"
+                          ? formHData?.bolsasAguaNCertificado
+                          : "N/A"
+                      }}</label>
+                    </ng-template>
+                  </div>
+                  <!-- Masas -->
+                  <div class="form-row">
+                    <label>Masas</label>
+                    <ng-container *ngIf="isEditingFormH; else viewModeMasas">
+                      <label class="center">
+                        <input type="radio" formControlName="masas" value="SI" />
+                      </label>
+                      <label class="center">
+                        <input type="radio" formControlName="masas" value="NO" />
+                      </label>
+                      <input formControlName="masasNCertificado" type="text" />
+                    </ng-container>
+                    <ng-template #viewModeMasas>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.masas === "SI" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.masas === "NO" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">{{
+                        formHData?.masasNCertificado !== "N/A"
+                          ? formHData?.masasNCertificado
+                          : "N/A"
+                      }}</label>
+                    </ng-template>
+                  </div>
+                  <!-- Dinamómetro -->
+                  <div class="form-row">
+                    <label>Dinamómetro</label>
+                    <ng-container *ngIf="isEditingFormH; else viewModeDinamometro">
+                      <label class="center">
+                        <input
+                          type="radio"
+                          formControlName="dinamometro"
+                          value="SI"
+                        />
+                      </label>
+                      <label class="center">
+                        <input
+                          type="radio"
+                          formControlName="dinamometro"
+                          value="NO"
+                        />
+                      </label>
+                      <input formControlName="dinamometroNCertificado" type="text" />
+                    </ng-container>
+                    <ng-template #viewModeDinamometro>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.dinamometro === "SI" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.dinamometro === "NO" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">{{
+                        formHData?.dinamometroNCertificado !== "N/A"
+                          ? formHData?.dinamometroNCertificado
+                          : "N/A"
+                      }}</label>
+                    </ng-template>
+                  </div>
+                  <!-- Flujómetro -->
+                  <div class="form-row">
+                    <label>Flujómetro</label>
+                    <ng-container *ngIf="isEditingFormH; else viewModeFlujometro">
+                      <label class="center">
+                        <input type="radio" formControlName="flujometro" value="SI" />
+                      </label>
+                      <label class="center">
+                        <input type="radio" formControlName="flujometro" value="NO" />
+                      </label>
+                      <input formControlName="flujometroNCertificado" type="text" />
+                    </ng-container>
+                    <ng-template #viewModeFlujometro>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.flujometro === "SI" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.flujometro === "NO" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">{{
+                        formHData?.flujometroNCertificado !== "N/A"
+                          ? formHData?.flujometroNCertificado
+                          : "N/A"
+                      }}</label>
+                    </ng-template>
+                  </div>
+                  <!-- Otro (indicar) -->
+                  <div class="form-row">
+                    <ng-container *ngIf="isEditingFormH; else viewModeOtro">
+                      <!-- Campo editable en modo edición -->
+                      <label class="center">
+                        <input
+                          class="width-fill-available"
+                          type="text"
+                          formControlName="descripcionOtro"
+                          placeholder="Indicar nombre del equipo"
+                        />
+                      </label>
+                      <label class="center">
+                        <input type="radio" formControlName="otro" value="SI" />
+                      </label>
+                      <label class="center">
+                        <input type="radio" formControlName="otro" value="NO" />
+                      </label>
+                      <input
+                        formControlName="otroNCertificado"
+                        type="text"
+                        placeholder="Certificado Número"
+                      />
+                    </ng-container>
+                    <ng-template #viewModeOtro>
+                      <!-- Vista en modo solo lectura -->
+                      <label>{{
+                        formHData?.descripcionOtro !== "N/A"
+                          ? formHData?.descripcionOtro
+                          : "Otro (indicar)"
+                      }}</label>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.otro === "SI" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">
+                        <span class="cuadrado2">{{
+                          formHData?.otro === "NO" ? "✖" : ""
+                        }}</span>
+                      </label>
+                      <label class="center">{{
+                        formHData?.otroNCertificado !== "N/A"
+                          ? formHData?.otroNCertificado
+                          : "N/A"
+                      }}</label>
+                    </ng-template>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <!-- Flujómetro -->
-            <div class="form-row">
-              <label>Flujómetro</label>
-              <ng-container *ngIf="isEditingFormH; else viewModeFlujometro">
-                <label class="center">
-                  <input type="radio" formControlName="flujometro" value="SI" />
-                </label>
-                <label class="center">
-                  <input type="radio" formControlName="flujometro" value="NO" />
-                </label>
-                <input formControlName="flujometroNCertificado" type="text" />
+            <div class="form-row-nominal">
+              <label class="paddingLeft"
+                ><strong>Capacidad nominal puente (SWL)</strong></label
+              >
+              <label><strong>Polipasto 1</strong></label>
+              <ng-container *ngIf="isEditingFormH; else viewModePoli1">
+                <select formControlName="cargaSeguraPoli1">
+                  <option *ngFor="let num of range99" [value]="num">{{ num }}</option>
+                </select>
               </ng-container>
-              <ng-template #viewModeFlujometro>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.flujometro === "SI" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.flujometro === "NO" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">{{
-                  formHData?.flujometroNCertificado !== "N/A"
-                    ? formHData?.flujometroNCertificado
-                    : "N/A"
-                }}</label>
+              <ng-template #viewModePoli1>
+                <label>{{ formHData?.cargaSeguraPoli1 }}.000</label>
               </ng-template>
-            </div>
-
-            <!-- Otro (indicar) -->
-            <div class="form-row">
-              <ng-container *ngIf="isEditingFormH; else viewModeOtro">
-                <!-- Campo editable en modo edición -->
-                <label class="center">
-                  <input
-                    class="width-fill-available"
-                    type="text"
-                    formControlName="descripcionOtro"
-                    placeholder="Indicar nombre del equipo"
-                  />
-                </label>
-                <label class="center">
-                  <input type="radio" formControlName="otro" value="SI" />
-                </label>
-                <label class="center">
-                  <input type="radio" formControlName="otro" value="NO" />
-                </label>
-                <input
-                  formControlName="otroNCertificado"
-                  type="text"
-                  placeholder="Certificado Número"
-                />
+              <label>kg</label>
+              <label><strong>Polipasto 2</strong></label>
+              <ng-container *ngIf="isEditingFormH; else viewModePoli2">
+                <select formControlName="cargaSeguraPoli2">
+                  <option *ngFor="let num of range99" [value]="num">{{ num }}</option>
+                </select>
               </ng-container>
-
-              <ng-template #viewModeOtro>
-                <!-- Vista en modo solo lectura -->
+              <ng-template #viewModePoli2>
+                <label>{{ formHData?.cargaSeguraPoli2 }}.000</label>
+              </ng-template>
+              <label>kg</label>
+              <label><strong>Polipasto 3</strong></label>
+              <ng-container *ngIf="isEditingFormH; else viewModePoli3">
+                <select formControlName="cargaSeguraPoli3">
+                  <option *ngFor="let num of range99" [value]="num">{{ num }}</option>
+                </select>
+              </ng-container>
+              <ng-template #viewModePoli3>
                 <label>{{
-                  formHData?.descripcionOtro !== "N/A"
-                    ? formHData?.descripcionOtro
-                    : "Otro (indicar)"
-                }}</label>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.otro === "SI" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">
-                  <span class="cuadrado2">{{
-                    formHData?.otro === "NO" ? "✖" : ""
-                  }}</span>
-                </label>
-                <label class="center">{{
-                  formHData?.otroNCertificado !== "N/A"
-                    ? formHData?.otroNCertificado
+                  formHData?.cargaSeguraPoli3 !== 0
+                    ? formHData?.cargaSeguraPoli3
                     : "N/A"
                 }}</label>
               </ng-template>
+              <label>kg</label>
+            </div>
+            <!-- Campo para Operador (NOMBRE/RUT) -->
+            <div class="form-row-single">
+              <label class="paddingLeft"
+                ><strong>Operador (NOMBRE/RUT)</strong></label
+              >
+              <!-- Modo de edición -->
+              <ng-container *ngIf="isEditingFormH; else viewModeOperador">
+                <input
+                  formControlName="operador"
+                  placeholder="Ingrese nombre y RUT del operador"
+                  [class.error-input]="
+                    operadorControl?.invalid || !operadorControl?.value
+                  "
+                />
+                <!-- Mensaje de error si el campo es inválido o está vacío -->
+                <div
+                  *ngIf="
+                    (operadorControl?.invalid || !operadorControl?.value) &&
+                    operadorControl?.touched
+                  "
+                  class="error-message"
+                >
+                  Este campo es obligatorio. Por favor, ingrese el nombre y RUT del
+                  operador.
+                </div>
+              </ng-container>
+              <!-- Modo de visualización -->
+              <ng-template #viewModeOperador>
+                <label [class.missing-data]="!formH.get('operador')?.value">
+                  {{
+                    formH.get("operador")?.value ||
+                      "Dato faltante: Ingrese nombre y RUT del operador"
+                  }}
+                </label>
+              </ng-template>
+            </div>
+            <!-- Campo para Inspector ALS (NOMBRE/RUT) -->
+            <div class="form-row-single">
+              <label class="paddingLeft"
+                ><strong>Inspector ALS (NOMBRE/RUT)</strong></label
+              >
+              <ng-container *ngIf="isEditingFormH; else viewModeInspector">
+                <div class="input-group">
+                  <input
+                    formControlName="Nombre"
+                    [value]="selectedInforme.Nombre"
+                    placeholder="Nombre del Inspector"
+                  />
+                  <input
+                    formControlName="rut"
+                    [value]="selectedInforme.rut"
+                    placeholder="RUT del Inspector"
+                  />
+                </div>
+              </ng-container>
+              <ng-template #viewModeInspector>
+                <label>{{ selectedInforme.Nombre }}/{{ selectedInforme.rut }}</label>
+              </ng-template>
+            </div>
+            <div class="union">
+              <div class="title-part1">
+                <div class="title-class">
+                  <label class="paddingLeft"
+                    ><strong>Clasificación</strong> Bueno (B) Regular (R) Malo
+                    (M)</label
+                  >
+                </div>
+                <div class="form-item">
+                  <label class="center"><strong>ITEM</strong></label>
+                  <label class="center"><strong>Traslación (puente)</strong></label>
+                  <label class="center"><strong>Dirección (carro)</strong></label>
+                  <label class="center"><strong>Izaje (gancho)</strong></label>
+                </div>
+              </div>
+              <div class="title-part2">
+                <label class="center"
+                  ><strong>Carga de prueba aplicada >= 100% <= 125%</strong></label
+                >
+                <label class="center"
+                  ><strong>SWL (Carga segura de trabajo)</strong></label
+                >
+              </div>
+            </div>
+            <!-- Polipasto 1 -->
+            <div class="form-row form-row-clasificacion">
+              <label><strong>Polipasto 1</strong></label>
+              <ng-container *ngIf="isEditingFormH; else viewModePolipasto1">
+                <select formControlName="poliUnoTraslacion">
+                  <option value="B">B</option>
+                  <option value="R">R</option>
+                  <option value="M">M</option>
+                  <option value="N/A">N/A</option>
+                </select>
+                <select formControlName="poliUnoDireccion">
+                  <option value="B">B</option>
+                  <option value="R">R</option>
+                  <option value="M">M</option>
+                  <option value="N/A">N/A</option>
+                </select>
+                <select formControlName="poliUnoIzaje">
+                  <option value="B">B</option>
+                  <option value="R">R</option>
+                  <option value="M">M</option>
+                  <option value="N/A">N/A</option>
+                </select>
+                <label>{{ formH.get("cargaPruebaPoli1")?.value }}.000</label>
+                <label>kg</label>
+                <label>{{ formH.get("cargaSeguraPoli1")?.value }}.000</label>
+                <label>kg</label>
+              </ng-container>
+              <ng-template #viewModePolipasto1>
+                <label>{{ formHData?.poliUnoTraslacion }}</label>
+                <label>{{ formHData?.poliUnoDireccion }}</label>
+                <label>{{ formHData?.poliUnoIzaje }}</label>
+                <label>{{ formHData?.cargaPruebaPoli1 }}.000</label>
+                <label>kg</label>
+                <label>{{ formHData?.cargaSeguraPoli1 }}.000</label>
+                <label>kg</label>
+              </ng-template>
+            </div>
+            <!-- Polipasto 2 -->
+            <div class="form-row form-row-clasificacion">
+              <label><strong>Polipasto 2</strong></label>
+              <ng-container *ngIf="isEditingFormH; else viewModePolipasto2">
+                <select formControlName="poliDosTraslacion">
+                  <option value="B">B</option>
+                  <option value="R">R</option>
+                  <option value="M">M</option>
+                  <option value="N/A">N/A</option>
+                </select>
+                <select formControlName="poliDosDireccion">
+                  <option value="B">B</option>
+                  <option value="R">R</option>
+                  <option value="M">M</option>
+                  <option value="N/A">N/A</option>
+                </select>
+                <select formControlName="poliDosIzaje">
+                  <option value="B">B</option>
+                  <option value="R">R</option>
+                  <option value="M">M</option>
+                  <option value="N/A">N/A</option>
+                </select>
+                <label>{{ formH.get("cargaPruebaPoli2")?.value }}.000</label>
+                <label>kg</label>
+                <label>{{ formH.get("cargaSeguraPoli2")?.value }}.000</label>
+                <label>kg</label>
+              </ng-container>
+              <ng-template #viewModePolipasto2>
+                <label>{{ formHData?.poliDosTraslacion }}</label>
+                <label>{{ formHData?.poliDosDireccion }}</label>
+                <label>{{ formHData?.poliDosIzaje }}</label>
+                <label>{{ formHData?.cargaPruebaPoli2 }}.000</label>
+                <label>kg</label>
+                <label>{{ formHData?.cargaSeguraPoli2 }}.000</label>
+                <label>kg</label>
+              </ng-template>
+            </div>
+            <!-- Polipasto 3 -->
+            <div class="form-row form-row-clasificacion">
+              <label><strong>Polipasto 3</strong></label>
+              <ng-container *ngIf="isEditingFormH; else viewModePolipasto3">
+                <select formControlName="poliTresTraslacion">
+                  <option value="B">B</option>
+                  <option value="R">R</option>
+                  <option value="M">M</option>
+                  <option value="N/A">N/A</option>
+                </select>
+                <select formControlName="poliTresDireccion">
+                  <option value="B">B</option>
+                  <option value="R">R</option>
+                  <option value="M">M</option>
+                  <option value="N/A">N/A</option>
+                </select>
+                <select formControlName="poliTresIzaje">
+                  <option value="B">B</option>
+                  <option value="R">R</option>
+                  <option value="M">M</option>
+                  <option value="N/A">N/A</option>
+                </select>
+                <label>{{
+                  formH.get("cargaPruebaPoli3")?.value !== 0
+                    ? formH.get("cargaPruebaPoli3")?.value + ".000"
+                    : "N/A"
+                }}</label>
+                <label>kg</label>
+                <label>{{
+                  formH.get("cargaSeguraPoli3")?.value !== 0
+                    ? formH.get("cargaSeguraPoli3")?.value + ".000"
+                    : "N/A"
+                }}</label>
+                <label>kg</label>
+              </ng-container>
+              <ng-template #viewModePolipasto3>
+                <label>{{
+                  formHData?.poliTresTraslacion !== 0
+                    ? formHData?.poliTresTraslacion
+                    : "N/A"
+                }}</label>
+                <label>{{
+                  formHData?.poliTresDireccion !== 0
+                    ? formHData?.poliTresDireccion
+                    : "N/A"
+                }}</label>
+                <label>{{
+                  formHData?.poliTresIzaje !== 0 ? formHData?.poliTresIzaje : "N/A"
+                }}</label>
+                <label>{{
+                  formHData?.cargaPruebaPoli3 !== 0
+                    ? formHData?.cargaPruebaPoli3
+                    : "N/A"
+                }}</label>
+                <label>kg</label>
+                <label>{{
+                  formHData?.cargaSeguraPoli3 !== 0
+                    ? formHData?.cargaSeguraPoli3
+                    : "N/A"
+                }}</label>
+                <label>kg</label>
+              </ng-template>
+            </div>
+            <!-- Resultado Prueba de Carga -->
+            <div class="form-row">
+              <label class="text-right"
+                ><strong>RESULTADO PRUEBA DE CARGA:</strong></label
+              >
+              <ng-container *ngIf="isEditingFormH; else viewModeResulPruebaCarga">
+                <select formControlName="resulPruebaCarga" class="inline-input">
+                  <option value="satisfactorio">SATISFACTORIO</option>
+                  <option value="insatisfactorio">INSATISFACTORIO</option>
+                </select>
+              </ng-container>
+              <ng-template #viewModeResulPruebaCarga>
+                <label class="upper paddingLeft">
+                  <strong>{{ formHData?.resulPruebaCarga }}</strong>
+                </label>
+              </ng-template>
+            </div>
+            <!-- Comentarios -->
+            <div class="form-row">
+              <label class="upper comentario"><strong>COMENTARIOS:</strong></label>
+              <ng-container *ngIf="isEditingFormH; else viewModeComentarios">
+                <textarea
+                  formControlName="comentarios"
+                  rows="2"
+                  maxlength="500"
+                  class="inline-textarea"
+                ></textarea>
+              </ng-container>
+              <ng-template #viewModeComentarios>
+                <label class="upper comentario">
+                  <strong>{{ formHData?.comentarios }}</strong>
+                </label>
+              </ng-template>
+            </div>
+          </form>
+          <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+            <strong>{{ tituloForm[8].nombre }}</strong>
+          </h2>
+          <div *ngIf="!isPreviewMode">
+            <button (click)="toggleEditFormH1()">
+              {{ isEditingFormH1 ? "Guardar" : "Editar" }}
+            </button>
+          </div>
+          <div class="titulo-h1 center">
+            <label><strong>Medición</strong></label>
+            <label><strong>Antes</strong></label>
+            <label><strong>Después</strong></label>
+            <label><strong>Hora inicio</strong></label>
+            <label><strong>Hora término</strong></label>
+            <label><strong>Resultado</strong></label>
+          </div>
+          <form class="padding-none" [formGroup]="formH1">
+            <div class="datos-h1 center">
+              <label><strong>Polipasto #1</strong></label>
+              <ng-container *ngIf="isEditingFormH1; else viewModeH1">
+                <div class="editInputFormH1">
+                  <input type="number" formControlName="poliUnoAntes" />
+                  <label>cm</label>
+                  <input type="number" formControlName="poliUnoDespues" />
+                  <label>cm</label>
+                </div>
+                <input
+                  type="number"
+                  formControlName="poliUnoHInicio"
+                  min="0"
+                  max="24"
+                  placeholder="00-24"
+                />
+                <input
+                  type="number"
+                  formControlName="poliUnoHTermino"
+                  min="0"
+                  max="24"
+                  placeholder="00-24"
+                />
+                <select formControlName="poliUnoResultado">
+                  <option value="SI">SATISFACTORIO</option>
+                  <option value="NO">INSATISFACTORIO</option>
+                </select>
+              </ng-container>
+              <ng-template #viewModeH1>
+                <label>{{ formH1.get("poliUnoAntes")?.value }}</label>
+                <label>cm</label>
+                <label>{{ formH1.get("poliUnoDespues")?.value }}</label>
+                <label>cm</label>
+                <label>{{ formH1.get("poliUnoHInicio")?.value }}:00</label>
+                <label>{{ formH1.get("poliUnoHTermino")?.value }}:00</label>
+                <label
+                  >{{
+                    formH1.get("poliUnoResultado")?.value === "SI"
+                      ? "SATISFACTORIO"
+                      : formH1.get("poliUnoResultado")?.value === "NO"
+                      ? "INSATISFACTORIO"
+                      : "N/A"
+                  }}
+                </label>
+              </ng-template>
+            </div>
+            <div class="datos-h1 center">
+              <label><strong>Polipasto #2</strong></label>
+              <ng-container *ngIf="isEditingFormH1; else viewModeH2">
+                <div class="editInputFormH1">
+                  <input type="number" formControlName="poliDosAntes" />
+                  <label>cm</label>
+                  <input type="number" formControlName="poliDosDespues" />
+                  <label>cm</label>
+                </div>
+                <input
+                  type="number"
+                  formControlName="poliDosHInicio"
+                  min="0"
+                  max="24"
+                  placeholder="00-24"
+                />
+                <input
+                  type="number"
+                  formControlName="poliDosHTermino"
+                  min="0"
+                  max="24"
+                  placeholder="00-24"
+                />
+                <select formControlName="poliDosResultado">
+                  <option value="SI">SATISFACTORIO</option>
+                  <option value="NO">INSATISFACTORIO</option>
+                </select>
+              </ng-container>
+              <ng-template #viewModeH2>
+                <label>{{ formH1.get("poliDosAntes")?.value }}</label>
+                <label>cm</label>
+                <label>{{ formH1.get("poliDosDespues")?.value }}</label>
+                <label>cm</label>
+                <label>{{ formH1.get("poliDosHInicio")?.value }}:00</label>
+                <label>{{ formH1.get("poliDosHTermino")?.value }}:00</label>
+                <label
+                  >{{
+                    formH1.get("poliDosResultado")?.value === "SI"
+                      ? "SATISFACTORIO"
+                      : formH1.get("poliDosResultado")?.value === "NO"
+                      ? "INSATISFACTORIO"
+                      : "N/A"
+                  }}
+                </label>
+              </ng-template>
+            </div>
+            <div class="datos-h1 center">
+              <label><strong>Polipasto #3</strong></label>
+              <ng-container
+                *ngIf="
+                  isEditingFormH1 && formH1.get('poliTresAntes')?.value !== 0;
+                  else viewModeH3
+                "
+              >
+                <div class="editInputFormH1">
+                  <input type="number" formControlName="poliTresAntes" />
+                  <label>cm</label>
+                  <input type="number" formControlName="poliTresDespues" />
+                  <label>cm</label>
+                </div>
+                <input
+                  type="number"
+                  formControlName="poliTresHInicio"
+                  min="0"
+                  max="24"
+                  placeholder="00-24"
+                />
+                <input
+                  type="number"
+                  formControlName="poliTresHTermino"
+                  min="0"
+                  max="24"
+                  placeholder="00-24"
+                />
+                <select formControlName="poliTresResultado">
+                  <option value="SI">SATISFACTORIO</option>
+                  <option value="NO">INSATISFACTORIO</option>
+                </select>
+              </ng-container>
+              <ng-template #viewModeH3>
+                <label>{{
+                  formH1.get("poliTresAntes")?.value &&
+                  formH1.get("poliTresAntes")?.value !== 0
+                    ? formH1.get("poliTresAntes")?.value
+                    : "N/A"
+                }}</label>
+                <label>cm</label>
+                <label>{{
+                  formH1.get("poliTresDespues")?.value &&
+                  formH1.get("poliTresDespues")?.value !== 0
+                    ? formH1.get("poliTresDespues")?.value
+                    : "N/A"
+                }}</label>
+                <label>cm</label>
+                <label>{{
+                  formH1.get("poliTresHInicio")?.value &&
+                  formH1.get("poliTresHInicio")?.value !== 0
+                    ? formH1.get("poliTresHInicio")?.value + ":00"
+                    : "N/A"
+                }}</label>
+                <label>{{
+                  formH1.get("poliTresHTermino")?.value &&
+                  formH1.get("poliTresHTermino")?.value !== 0
+                    ? formH1.get("poliTresHTermino")?.value + ":00"
+                    : "N/A"
+                }}</label>
+                <label
+                  >{{
+                    formH1.get("poliTresResultado")?.value === "SI"
+                      ? "SATISFACTORIO"
+                      : formH1.get("poliTresResultado")?.value === "NO"
+                      ? "INSATISFACTORIO"
+                      : "N/A"
+                  }}
+                </label>
+              </ng-template>
+            </div>
+            <div
+              class="check"
+              [ngClass]="{ check: !isEditingFormH1, flex: isEditingFormH1 }"
+            >
+              <h4 class="center">Condición de frenos:</h4>
+              <ng-container *ngIf="isEditingFormH1; else viewModeFrenos">
+                <div class="editInputFormH1">
+                  <label class="cursor-pointer">
+                    <input
+                      type="radio"
+                      formControlName="condicionFrenos"
+                      [checked]="
+                        formH1.get('condicionFrenos')?.value === 'satisfactorio'
+                      "
+                      value="satisfactorio"
+                    />
+                    Satisfactorio
+                  </label>
+                  <label class="cursor-pointer">
+                    <input
+                      type="radio"
+                      formControlName="condicionFrenos"
+                      [checked]="
+                        formH1.get('condicionFrenos')?.value !== 'satisfactorio'
+                      "
+                      value="insatisfactorio"
+                    />
+                    Insatisfactorio
+                  </label>
+                </div>
+              </ng-container>
+              <ng-template #viewModeFrenos>
+                <span class="cuadrado2 center">
+                  <span
+                    *ngIf="formH1.get('condicionFrenos')?.value === 'satisfactorio'"
+                    >✖</span
+                  >
+                </span>
+                <h4 class="text-left">Satisfactorio</h4>
+                <span class="cuadrado2 center">
+                  <span
+                    *ngIf="formH1.get('condicionFrenos')?.value !== 'satisfactorio'"
+                    >✖</span
+                  >
+                </span>
+                <h4 class="text-left">Insatisfactorio</h4>
+              </ng-template>
+            </div>
+          </form>
+        </form>
+      </div>
+    </div>
+
+    <div class="page">
+      <div class="content">
+        <form class="H2-I">
+          <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+            <strong>{{ tituloForm[9].nombre }}</strong>
+          </h2>
+          <div *ngIf="!isPreviewMode">
+            <button (click)="toggleEditFormH2()">
+              {{ isEditingFormH2 ? "Guardar" : "Editar" }}
+            </button>
+          </div>
+          <form class="padding-none" [formGroup]="formH2">
+            <div class="unionH2">
+              <div class="title-part4">
+                <div class="title-part3">
+                  <label class="paddingLeft"><strong>GANCHO DOBLE</strong></label>
+                  <label class="center justifyCenter"
+                    ><strong>Antes de la prueba</strong></label
+                  >
+                  <label class="center justifyCenter"
+                    ><strong>Después de la prueba</strong></label
+                  >
+                </div>
+                <div class="form-row datos-h2">
+                  <label class="paddingLeft"><strong>Longitud A-B</strong></label>
+                  <ng-container *ngIf="isEditingFormH2; else viewModeAB">
+                    <input type="number" formControlName="longitudUABAntes" />
+                    <label class="center">cm</label>
+                    <input type="number" formControlName="longitudUABDesp" />
+                    <label class="center">cm</label>
+                  </ng-container>
+                  <ng-template #viewModeAB>
+                    <label class="center">{{
+                      formH2.get("longitudUABAntes")?.value
+                    }}</label>
+                    <label class="center">cm</label>
+                    <label class="center">{{
+                      formH2.get("longitudUABDesp")?.value
+                    }}</label>
+                    <label class="center">cm</label>
+                  </ng-template>
+                </div>
+                <div class="form-row datos-h2">
+                  <label class="paddingLeft"><strong>Longitud B-C</strong></label>
+                  <ng-container *ngIf="isEditingFormH2; else viewModeBC">
+                    <input type="number" formControlName="longitudDBCAntes" />
+                    <label class="center">cm</label>
+                    <input type="number" formControlName="longitudDBCDesp" />
+                    <label class="center">cm</label>
+                  </ng-container>
+                  <ng-template #viewModeBC>
+                    <label class="center">{{
+                      formH2.get("longitudDBCAntes")?.value
+                    }}</label>
+                    <label class="center">cm</label>
+                    <label class="center">{{
+                      formH2.get("longitudDBCDesp")?.value
+                    }}</label>
+                    <label class="center">cm</label>
+                  </ng-template>
+                </div>
+                <div class="form-row datos-h2">
+                  <label class="paddingLeft"><strong>Longitud A-B'</strong></label>
+                  <ng-container *ngIf="isEditingFormH2; else viewModeABp">
+                    <input type="number" formControlName="longitudTABAntes" />
+                    <label class="center">cm</label>
+                    <input type="number" formControlName="longitudTABDesp" />
+                    <label class="center">cm</label>
+                  </ng-container>
+                  <ng-template #viewModeABp>
+                    <label class="center">{{
+                      formH2.get("longitudTABAntes")?.value
+                    }}</label>
+                    <label class="center">cm</label>
+                    <label class="center">{{
+                      formH2.get("longitudTABDesp")?.value
+                    }}</label>
+                    <label class="center">cm</label>
+                  </ng-template>
+                </div>
+                <div class="form-row datos-h2">
+                  <label class="paddingLeft"><strong>Longitud B-C'</strong></label>
+                  <ng-container *ngIf="isEditingFormH2; else viewModeBCp">
+                    <input type="number" formControlName="longitudCBCAntes" />
+                    <label class="center">cm</label>
+                    <input type="number" formControlName="longitudCBCDesp" />
+                    <label class="center">cm</label>
+                  </ng-container>
+                  <ng-template #viewModeBCp>
+                    <label class="center">{{
+                      formH2.get("longitudCBCAntes")?.value
+                    }}</label>
+                    <label class="center">cm</label>
+                    <label class="center">{{
+                      formH2.get("longitudCBCDesp")?.value
+                    }}</label>
+                    <label class="center">cm</label>
+                  </ng-template>
+                </div>
+              </div>
+              <label>
+                <div class="imgH2">
+                  <img
+                    src="assets/formulario_puente/tipo_doble.jpg"
+                    alt="Tipo doble"
+                  />
+                </div>
+              </label>
+            </div>
+            <div
+              class="form-row"
+              [ngClass]="{ resultadoH2: !isEditingFormH2, flex: isEditingFormH2 }"
+            >
+              <label class="text-right"><strong>Resultado (X)</strong></label>
+              <ng-container *ngIf="isEditingFormH2; else viewModeResultDoble">
+                <label class="cursor-pointer">
+                  <input
+                    type="radio"
+                    formControlName="longitudResulDoble"
+                    [checked]="
+                      formH2.get('longitudResulDoble')?.value === 'satisfactorio'
+                    "
+                    value="satisfactorio"
+                  />
+                  Satisfactorio
+                </label>
+                <label class="cursor-pointer">
+                  <input
+                    type="radio"
+                    formControlName="longitudResulDoble"
+                    [checked]="
+                      formH2.get('longitudResulDoble')?.value === 'insatisfactorio'
+                    "
+                    value="insatisfactorio"
+                  />
+                  Insatisfactorio
+                </label>
+              </ng-container>
+              <ng-template #viewModeResultDoble>
+                <label class="text-right">Satisfactorio</label>
+                <label class="center">
+                  <span class="cuadradoH2">
+                    <span
+                      *ngIf="
+                        formH2.get('longitudResulDoble')?.value === 'satisfactorio'
+                      "
+                      >✖</span
+                    >
+                  </span>
+                </label>
+                <label class="text-right">Insatisfactorio</label>
+                <label class="center">
+                  <span class="cuadradoH2">
+                    <span
+                      *ngIf="
+                        formH2.get('longitudResulDoble')?.value === 'insatisfactorio'
+                      "
+                      >✖</span
+                    >
+                  </span>
+                </label>
+              </ng-template>
+            </div>
+            <div class="unionH2">
+              <div class="title-part4">
+                <div class="title-part3">
+                  <label class="paddingLeft"><strong>GANCHO SIMPLE</strong></label>
+                  <label class="center justifyCenter"
+                    ><strong>Antes de la prueba</strong></label
+                  >
+                  <label class="center justifyCenter"
+                    ><strong>Después de la prueba</strong></label
+                  >
+                </div>
+                <div class="form-row datos-h2">
+                  <label class="paddingLeft"><strong>Longitud A-B</strong></label>
+                  <ng-container *ngIf="isEditingFormH2; else viewModeSimpleAB">
+                    <input type="number" formControlName="longDABAntes" />
+                    <label class="center">cm</label>
+                    <input type="number" formControlName="longDABDesp" />
+                    <label class="center">cm</label>
+                  </ng-container>
+                  <ng-template #viewModeSimpleAB>
+                    <label class="center">{{
+                      formH2.get("longDABAntes")?.value
+                    }}</label>
+                    <label class="center">cm</label>
+                    <label class="center">{{
+                      formH2.get("longDABDesp")?.value
+                    }}</label>
+                    <label class="center">cm</label>
+                  </ng-template>
+                </div>
+                <div class="form-row datos-h2">
+                  <label class="paddingLeft"><strong>Longitud B-C</strong></label>
+                  <ng-container *ngIf="isEditingFormH2; else viewModeSimpleBC">
+                    <input type="number" formControlName="longDBCAntes" />
+                    <label class="center">cm</label>
+                    <input type="number" formControlName="longDBCDesp" />
+                    <label class="center">cm</label>
+                  </ng-container>
+                  <ng-template #viewModeSimpleBC>
+                    <label class="center">{{
+                      formH2.get("longDBCAntes")?.value
+                    }}</label>
+                    <label class="center">cm</label>
+                    <label class="center">{{
+                      formH2.get("longDBCDesp")?.value
+                    }}</label>
+                    <label class="center">cm</label>
+                  </ng-template>
+                </div>
+              </div>
+              <label>
+                <div class="imgH2">
+                  <img
+                    src="assets/formulario_puente/tipo_simple.jpg"
+                    alt="Tipo simple"
+                  />
+                </div>
+              </label>
+            </div>
+            <!-- Resultado para Gancho Simple -->
+            <div
+              class="form-row"
+              [ngClass]="{ resultadoH2: !isEditingFormH2, flex: isEditingFormH2 }"
+            >
+              <label class="text-right"><strong>Resultado (X)</strong></label>
+              <ng-container *ngIf="isEditingFormH2; else viewModeResultSimple">
+                <label class="cursor-pointer">
+                  <input
+                    type="radio"
+                    formControlName="longResulSimple"
+                    [checked]="
+                      formH2.get('longResulSimple')?.value === 'satisfactorio'
+                    "
+                    value="satisfactorio"
+                  />
+                  Satisfactorio
+                </label>
+                <label class="cursor-pointer">
+                  <input
+                    type="radio"
+                    formControlName="longResulSimple"
+                    [checked]="
+                      formH2.get('longResulSimple')?.value === 'insatisfactorio'
+                    "
+                    value="insatisfactorio"
+                  />
+                  Insatisfactorio
+                </label>
+              </ng-container>
+              <ng-template #viewModeResultSimple>
+                <label class="text-right">Satisfactorio</label>
+                <label class="center">
+                  <span class="cuadradoH2">
+                    <span
+                      *ngIf="formH2.get('longResulSimple')?.value === 'satisfactorio'"
+                      >✖</span
+                    >
+                  </span>
+                </label>
+                <label class="text-right">Insatisfactorio</label>
+                <label class="center">
+                  <span class="cuadradoH2">
+                    <span
+                      *ngIf="
+                        formH2.get('longResulSimple')?.value === 'insatisfactorio'
+                      "
+                      >✖</span
+                    >
+                  </span>
+                </label>
+              </ng-template>
+            </div>
+            <div class="unionH2">
+              <div class="title-part4">
+                <div class="title-part3">
+                  <label class="paddingLeft"><strong>GANCHO SIMPLE</strong></label>
+                  <label class="center justifyCenter"
+                    ><strong>Antes de la prueba</strong></label
+                  >
+                  <label class="center justifyCenter"
+                    ><strong>Después de la prueba</strong></label
+                  >
+                </div>
+                <!-- Longitud A-B -->
+                <div class="form-row datos-h2">
+                  <label class="paddingLeft"><strong>Longitud A-B</strong></label>
+                  <ng-container
+                    *ngIf="
+                      isEditingFormH2 && formH2Data?.longGSABAntes !== 0;
+                      else viewModeGSAB
+                    "
+                  >
+                    <input type="number" formControlName="longGSABAntes" />
+                    <label class="center">cm</label>
+                    <input type="number" formControlName="longGSABDesp" />
+                    <label class="center">cm</label>
+                  </ng-container>
+                  <ng-template #viewModeGSAB>
+                    <label class="center">{{
+                      formH2Data?.longGSABAntes === 0
+                        ? "N/A"
+                        : formH2Data?.longGSABAntes
+                    }}</label>
+                    <label class="center">cm</label>
+                    <label class="center">{{
+                      formH2Data?.longGSABDesp === 0
+                        ? "N/A"
+                        : formH2Data?.longGSABDesp
+                    }}</label>
+                    <label class="center">cm</label>
+                  </ng-template>
+                </div>
+                <!-- Longitud B-C -->
+                <div class="form-row datos-h2">
+                  <label class="paddingLeft"><strong>Longitud B-C</strong></label>
+                  <ng-container
+                    *ngIf="
+                      isEditingFormH2 && formH2Data?.longGSBCAntes !== 0;
+                      else viewModeGSBC
+                    "
+                  >
+                    <input type="number" formControlName="longGSBCAntes" />
+                    <label class="center">cm</label>
+                    <input type="number" formControlName="longGSBCDesp" />
+                    <label class="center">cm</label>
+                  </ng-container>
+                  <ng-template #viewModeGSBC>
+                    <label class="center">{{
+                      formH2Data?.longGSBCAntes === 0
+                        ? "N/A"
+                        : formH2Data?.longGSBCAntes
+                    }}</label>
+                    <label class="center">cm</label>
+                    <label class="center">{{
+                      formH2Data?.longGSBCDesp === 0
+                        ? "N/A"
+                        : formH2Data?.longGSBCDesp
+                    }}</label>
+                    <label class="center">cm</label>
+                  </ng-template>
+                </div>
+              </div>
+              <label>
+                <div class="imgH2">
+                  <img
+                    src="assets/formulario_puente/tipo_simple.jpg"
+                    alt="Tipo simple"
+                  />
+                </div>
+              </label>
+            </div>
+            <!-- Resultado para Gancho Simple -->
+            <div
+              class="form-row"
+              [ngClass]="{ resultadoH2: !isEditingFormH2, flex: isEditingFormH2 }"
+            >
+              <label class="text-right"><strong>Resultado (X)</strong></label>
+              <ng-container
+                *ngIf="
+                  isEditingFormH2 && formH2Data?.longResulSimpleDos !== 'N/A';
+                  else viewModeResultSimpleDos
+                "
+              >
+                <label class="cursor-pointer">
+                  <input
+                    type="radio"
+                    formControlName="longResulSimpleDos"
+                    [checked]="formH2Data?.longResulSimpleDos === 'satisfactorio'"
+                    value="satisfactorio"
+                  />
+                  Satisfactorio
+                </label>
+                <label class="cursor-pointer">
+                  <input
+                    type="radio"
+                    formControlName="longResulSimpleDos"
+                    [checked]="formH2Data?.longResulSimpleDos === 'insatisfactorio'"
+                    value="insatisfactorio"
+                  />
+                  Insatisfactorio
+                </label>
+              </ng-container>
+              <ng-template #viewModeResultSimpleDos>
+                <label class="text-right">Satisfactorio</label>
+                <label class="center">
+                  <span class="cuadradoH2">
+                    <span *ngIf="formH2Data?.longResulSimpleDos === 'satisfactorio'"
+                      >✖</span
+                    >
+                  </span>
+                </label>
+                <label class="text-right">Insatisfactorio</label>
+                <label class="center">
+                  <span class="cuadradoH2">
+                    <span *ngIf="formH2Data?.longResulSimpleDos === 'insatisfactorio'"
+                      >✖</span
+                    >
+                  </span>
+                </label>
+              </ng-template>
+            </div>
+            <div class="unionH2">
+              <div class="title-part4">
+                <div class="title-part3">
+                  <label class="paddingLeft"
+                    ><strong>GANCHO SIMPLE TRES</strong></label
+                  >
+                  <label class="center justifyCenter"
+                    ><strong>Antes de la prueba</strong></label
+                  >
+                  <label class="center justifyCenter"
+                    ><strong>Después de la prueba</strong></label
+                  >
+                </div>
+                <!-- Longitud A-B -->
+                <div class="form-row datos-h2">
+                  <label class="paddingLeft"><strong>Longitud A-B</strong></label>
+                  <ng-container
+                    *ngIf="
+                      isEditingFormH2 && formH2Data?.longGSATBAntes !== 0;
+                      else viewModeGSATB
+                    "
+                  >
+                    <input type="number" formControlName="longGSATBAntes" />
+                    <label class="center">cm</label>
+                    <input type="number" formControlName="longGSATBDesp" />
+                    <label class="center">cm</label>
+                  </ng-container>
+                  <ng-template #viewModeGSATB>
+                    <label class="center">{{
+                      formH2Data?.longGSATBAntes === 0
+                        ? "N/A"
+                        : formH2Data?.longGSATBAntes
+                    }}</label>
+                    <label class="center">cm</label>
+                    <label class="center">{{
+                      formH2Data?.longGSATBDesp === 0
+                        ? "N/A"
+                        : formH2Data?.longGSATBDesp
+                    }}</label>
+                    <label class="center">cm</label>
+                  </ng-template>
+                </div>
+                <!-- Longitud B-C -->
+                <div class="form-row datos-h2">
+                  <label class="paddingLeft"><strong>Longitud B-C</strong></label>
+                  <ng-container
+                    *ngIf="
+                      isEditingFormH2 && formH2Data?.longGSBTCAntes !== 0;
+                      else viewModeGSBTC
+                    "
+                  >
+                    <input type="number" formControlName="longGSBTCAntes" />
+                    <label class="center">cm</label>
+                    <input type="number" formControlName="longGSBTCDesp" />
+                    <label class="center">cm</label>
+                  </ng-container>
+                  <ng-template #viewModeGSBTC>
+                    <label class="center">{{
+                      formH2Data?.longGSBTCAntes === 0
+                        ? "N/A"
+                        : formH2Data?.longGSBTCAntes
+                    }}</label>
+                    <label class="center">cm</label>
+                    <label class="center">{{
+                      formH2Data?.longGSBTCDesp === 0
+                        ? "N/A"
+                        : formH2Data?.longGSBTCDesp
+                    }}</label>
+                    <label class="center">cm</label>
+                  </ng-template>
+                </div>
+              </div>
+              <label>
+                <div class="imgH2">
+                  <img
+                    src="assets/formulario_puente/tipo_simple.jpg"
+                    alt="Tipo simple tres"
+                  />
+                </div>
+              </label>
+            </div>
+            <!-- Resultado para Gancho Simple Tres -->
+            <div
+              class="form-row"
+              [ngClass]="{ resultadoH2: !isEditingFormH2, flex: isEditingFormH2 }"
+            >
+              <label class="text-right"><strong>Resultado (X)</strong></label>
+              <ng-container
+                *ngIf="
+                  isEditingFormH2 && formH2Data?.longResulSimpleTres !== 'N/A';
+                  else viewModeResultSimpleTres
+                "
+              >
+                <label class="cursor-pointer">
+                  <input
+                    type="radio"
+                    formControlName="longResulSimpleTres"
+                    [checked]="formH2Data?.longResulSimpleTres === 'satisfactorio'"
+                    value="satisfactorio"
+                  />
+                  Satisfactorio
+                </label>
+                <label class="cursor-pointer">
+                  <input
+                    type="radio"
+                    formControlName="longResulSimpleTres"
+                    [checked]="formH2Data?.longResulSimpleTres === 'insatisfactorio'"
+                    value="insatisfactorio"
+                  />
+                  Insatisfactorio
+                </label>
+              </ng-container>
+              <ng-template #viewModeResultSimpleTres>
+                <label class="text-right">Satisfactorio</label>
+                <label class="center">
+                  <span class="cuadradoH2">
+                    <span *ngIf="formH2Data?.longResulSimpleTres === 'satisfactorio'"
+                      >✖</span
+                    >
+                  </span>
+                </label>
+                <label class="text-right">Insatisfactorio</label>
+                <label class="center">
+                  <span class="cuadradoH2">
+                    <span
+                      *ngIf="formH2Data?.longResulSimpleTres === 'insatisfactorio'"
+                      >✖</span
+                    >
+                  </span>
+                </label>
+              </ng-template>
+            </div>
+          </form>
+          <br />
+          <br />
+          <br />
+          <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+            {{ tituloForm[10].nombre }}
+          </h2>
+          <div *ngIf="!isPreviewMode">
+            <button (click)="toggleEditFormI()">
+              {{ isEditingFormI ? "Guardar" : "Editar" }}
+            </button>
+          </div>
+          <form class="padding-none" [formGroup]="informeForm">
+            <div class="resultGeneral">
+              <h3 class="justifySelfEnd">INDICACIÓN (✖)</h3>
+              <h3>SI</h3>
+              <h3>NO</h3>
+            </div>
+            <div class="form-row resultGeneral">
+              <label class="font-size-20"
+                ><strong
+                  >Conforme a la inspección y prueba de carga, la grúa puente se
+                  encuentra aprobada y puede ser operada de manera segura para la
+                  capacidad indicada.</strong
+                ></label
+              >
+              <!-- Modo Edición -->
+              <ng-container *ngIf="isEditingFormI; else viewModeResultGeneral">
+                <label class="center cursor-pointer">
+                  <input type="radio" formControlName="idResul" [value]="1" /> SI
+                </label>
+                <label class="center cursor-pointer">
+                  <input type="radio" formControlName="idResul" [value]="2" /> NO
+                </label>
+              </ng-container>
+              <!-- Modo Visualización -->
+              <ng-template #viewModeResultGeneral>
+                <label class="center">
+                  <span class="cuadradoH2">{{
+                    selectedInforme.idResul === 1 ? "✖" : ""
+                  }}</span>
+                </label>
+                <label class="center">
+                  <span class="cuadradoH2">{{
+                    selectedInforme.idResul === 2 ? "✖" : ""
+                  }}</span>
+                </label>
+              </ng-template>
+            </div>
+          </form>
+          <h3 class="custom-h3 font-size-30">
+            Documento asociado: Certificado de Inspección y Prueba de Carga (Solo en
+            caso de pasar satisfactoriamente inspección). GRC-2311-0441 C
+          </h3>
+        </form>
+      </div>
+    </div>
+
+    <br /><br /><br /><br /><br /><br />
+
+    <div class="page">
+      <div class="content">
+        <div class="center justifyCenter">
+          <h3 class="custom-h3 font-size-25">
+            Este informe se realizó sin prejuicio de ningún tipo y para el interés
+            de quien <br />concierna.
+          </h3>
+        </div>
+        <br /><br /><br /><br /><br /><br />
+        <h4 class="center justifyCenter">
+          Nombre y firma <br />INSPECTOR <br />ALS Inspection Chile SPA
+        </h4>
+      </div>
+    </div>
+
+    <br /><br /><br /><br /><br /><br />
+
+    <div class="page">
+      <div class="content">
+        <form class="J">
+          <h2
+            class="center justifyCenter font-size-xxxlarge"
+            *ngIf="tituloForm.length > 0"
+          >
+            <strong>{{ tituloForm[11].nombre }}</strong>
+          </h2>
+          <div class="photo-grid">
+            <div *ngFor="let photo of photos" class="photo-item">
+              <img
+                [src]="'data:image/png;base64,' + photo.data"
+                [alt]="photo.descripcionSF"
+              />
+              <span>{{ photo.descripcionSF }}</span>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div class="form-row-nominal">
-        <label class="paddingLeft"
-          ><strong>Capacidad nominal puente (SWL)</strong></label
-        >
-
-        <label><strong>Polipasto 1</strong></label>
-        <ng-container *ngIf="isEditingFormH; else viewModePoli1">
-          <select formControlName="cargaSeguraPoli1">
-            <option *ngFor="let num of range99" [value]="num">{{ num }}</option>
-          </select>
-        </ng-container>
-        <ng-template #viewModePoli1>
-          <label>{{ formHData?.cargaSeguraPoli1 }}.000</label>
-        </ng-template>
-        <label>kg</label>
-
-        <label><strong>Polipasto 2</strong></label>
-        <ng-container *ngIf="isEditingFormH; else viewModePoli2">
-          <select formControlName="cargaSeguraPoli2">
-            <option *ngFor="let num of range99" [value]="num">{{ num }}</option>
-          </select>
-        </ng-container>
-        <ng-template #viewModePoli2>
-          <label>{{ formHData?.cargaSeguraPoli2 }}.000</label>
-        </ng-template>
-        <label>kg</label>
-
-        <label><strong>Polipasto 3</strong></label>
-        <ng-container *ngIf="isEditingFormH; else viewModePoli3">
-          <select formControlName="cargaSeguraPoli3">
-            <option *ngFor="let num of range99" [value]="num">{{ num }}</option>
-          </select>
-        </ng-container>
-        <ng-template #viewModePoli3>
-          <label>{{
-            formHData?.cargaSeguraPoli3 !== 0
-              ? formHData?.cargaSeguraPoli3
-              : "N/A"
-          }}</label>
-        </ng-template>
-        <label>kg</label>
-      </div>
-
-      <!-- Campo para Operador (NOMBRE/RUT) -->
-      <div class="form-row-single">
-        <label class="paddingLeft"
-          ><strong>Operador (NOMBRE/RUT)</strong></label
-        >
-
-        <!-- Modo de edición -->
-        <ng-container *ngIf="isEditingFormH; else viewModeOperador">
-          <input
-            formControlName="operador"
-            placeholder="Ingrese nombre y RUT del operador"
-            [class.error-input]="
-              operadorControl?.invalid || !operadorControl?.value
-            "
-          />
-          <!-- Mensaje de error si el campo es inválido o está vacío -->
-          <div
-            *ngIf="
-              (operadorControl?.invalid || !operadorControl?.value) &&
-              operadorControl?.touched
-            "
-            class="error-message"
-          >
-            Este campo es obligatorio. Por favor, ingrese el nombre y RUT del
-            operador.
-          </div>
-        </ng-container>
-
-        <!-- Modo de visualización -->
-        <ng-template #viewModeOperador>
-          <label [class.missing-data]="!formH.get('operador')?.value">
-            {{
-              formH.get("operador")?.value ||
-                "Dato faltante: Ingrese nombre y RUT del operador"
-            }}
-          </label>
-        </ng-template>
-      </div>
-
-      <!-- Campo para Inspector ALS (NOMBRE/RUT) -->
-      <div class="form-row-single">
-        <label class="paddingLeft"
-          ><strong>Inspector ALS (NOMBRE/RUT)</strong></label
-        >
-        <ng-container *ngIf="isEditingFormH; else viewModeInspector">
-          <div class="input-group">
-            <input
-              formControlName="Nombre"
-              [value]="selectedInforme.Nombre"
-              placeholder="Nombre del Inspector"
-            />
-            <input
-              formControlName="rut"
-              [value]="selectedInforme.rut"
-              placeholder="RUT del Inspector"
-            />
-          </div>
-        </ng-container>
-        <ng-template #viewModeInspector>
-          <label>{{ selectedInforme.Nombre }}/{{ selectedInforme.rut }}</label>
-        </ng-template>
-      </div>
-
-      <div class="union">
-        <div class="title-part1">
-          <div class="title-class">
-            <label class="paddingLeft"
-              ><strong>Clasificación</strong> Bueno (B) Regular (R) Malo
-              (M)</label
-            >
-          </div>
-          <div class="form-item">
-            <label class="center"><strong>ITEM</strong></label>
-            <label class="center"><strong>Traslación (puente)</strong></label>
-            <label class="center"><strong>Dirección (carro)</strong></label>
-            <label class="center"><strong>Izaje (gancho)</strong></label>
-          </div>
-        </div>
-        <div class="title-part2">
-          <label class="center"
-            ><strong>Carga de prueba aplicada >= 100% <= 125%</strong></label
-          >
-          <label class="center"
-            ><strong>SWL (Carga segura de trabajo)</strong></label
-          >
-        </div>
-      </div>
-
-      <!-- Polipasto 1 -->
-      <div class="form-row form-row-clasificacion">
-        <label><strong>Polipasto 1</strong></label>
-        <ng-container *ngIf="isEditingFormH; else viewModePolipasto1">
-          <select formControlName="poliUnoTraslacion">
-            <option value="B">B</option>
-            <option value="R">R</option>
-            <option value="M">M</option>
-            <option value="N/A">N/A</option>
-          </select>
-          <select formControlName="poliUnoDireccion">
-            <option value="B">B</option>
-            <option value="R">R</option>
-            <option value="M">M</option>
-            <option value="N/A">N/A</option>
-          </select>
-          <select formControlName="poliUnoIzaje">
-            <option value="B">B</option>
-            <option value="R">R</option>
-            <option value="M">M</option>
-            <option value="N/A">N/A</option>
-          </select>
-          <label>{{ formH.get("cargaPruebaPoli1")?.value }}.000</label>
-          <label>kg</label>
-          <label>{{ formH.get("cargaSeguraPoli1")?.value }}.000</label>
-          <label>kg</label>
-        </ng-container>
-        <ng-template #viewModePolipasto1>
-          <label>{{ formHData?.poliUnoTraslacion }}</label>
-          <label>{{ formHData?.poliUnoDireccion }}</label>
-          <label>{{ formHData?.poliUnoIzaje }}</label>
-          <label>{{ formHData?.cargaPruebaPoli1 }}.000</label>
-          <label>kg</label>
-          <label>{{ formHData?.cargaSeguraPoli1 }}.000</label>
-          <label>kg</label>
-        </ng-template>
-      </div>
-
-      <!-- Polipasto 2 -->
-      <div class="form-row form-row-clasificacion">
-        <label><strong>Polipasto 2</strong></label>
-        <ng-container *ngIf="isEditingFormH; else viewModePolipasto2">
-          <select formControlName="poliDosTraslacion">
-            <option value="B">B</option>
-            <option value="R">R</option>
-            <option value="M">M</option>
-            <option value="N/A">N/A</option>
-          </select>
-          <select formControlName="poliDosDireccion">
-            <option value="B">B</option>
-            <option value="R">R</option>
-            <option value="M">M</option>
-            <option value="N/A">N/A</option>
-          </select>
-          <select formControlName="poliDosIzaje">
-            <option value="B">B</option>
-            <option value="R">R</option>
-            <option value="M">M</option>
-            <option value="N/A">N/A</option>
-          </select>
-          <label>{{ formH.get("cargaPruebaPoli2")?.value }}.000</label>
-          <label>kg</label>
-          <label>{{ formH.get("cargaSeguraPoli2")?.value }}.000</label>
-          <label>kg</label>
-        </ng-container>
-        <ng-template #viewModePolipasto2>
-          <label>{{ formHData?.poliDosTraslacion }}</label>
-          <label>{{ formHData?.poliDosDireccion }}</label>
-          <label>{{ formHData?.poliDosIzaje }}</label>
-          <label>{{ formHData?.cargaPruebaPoli2 }}.000</label>
-          <label>kg</label>
-          <label>{{ formHData?.cargaSeguraPoli2 }}.000</label>
-          <label>kg</label>
-        </ng-template>
-      </div>
-
-      <!-- Polipasto 3 -->
-      <div class="form-row form-row-clasificacion">
-        <label><strong>Polipasto 3</strong></label>
-        <ng-container *ngIf="isEditingFormH; else viewModePolipasto3">
-          <select formControlName="poliTresTraslacion">
-            <option value="B">B</option>
-            <option value="R">R</option>
-            <option value="M">M</option>
-            <option value="N/A">N/A</option>
-          </select>
-          <select formControlName="poliTresDireccion">
-            <option value="B">B</option>
-            <option value="R">R</option>
-            <option value="M">M</option>
-            <option value="N/A">N/A</option>
-          </select>
-          <select formControlName="poliTresIzaje">
-            <option value="B">B</option>
-            <option value="R">R</option>
-            <option value="M">M</option>
-            <option value="N/A">N/A</option>
-          </select>
-          <label>{{
-            formH.get("cargaPruebaPoli3")?.value !== 0
-              ? formH.get("cargaPruebaPoli3")?.value + ".000"
-              : "N/A"
-          }}</label>
-          <label>kg</label>
-          <label>{{
-            formH.get("cargaSeguraPoli3")?.value !== 0
-              ? formH.get("cargaSeguraPoli3")?.value + ".000"
-              : "N/A"
-          }}</label>
-          <label>kg</label>
-        </ng-container>
-        <ng-template #viewModePolipasto3>
-          <label>{{
-            formHData?.poliTresTraslacion !== 0
-              ? formHData?.poliTresTraslacion
-              : "N/A"
-          }}</label>
-          <label>{{
-            formHData?.poliTresDireccion !== 0
-              ? formHData?.poliTresDireccion
-              : "N/A"
-          }}</label>
-          <label>{{
-            formHData?.poliTresIzaje !== 0 ? formHData?.poliTresIzaje : "N/A"
-          }}</label>
-          <label>{{
-            formHData?.cargaPruebaPoli3 !== 0
-              ? formHData?.cargaPruebaPoli3
-              : "N/A"
-          }}</label>
-          <label>kg</label>
-          <label>{{
-            formHData?.cargaSeguraPoli3 !== 0
-              ? formHData?.cargaSeguraPoli3
-              : "N/A"
-          }}</label>
-          <label>kg</label>
-        </ng-template>
-      </div>
-
-      <!-- Resultado Prueba de Carga -->
-      <div class="form-row">
-        <label class="text-right"
-          ><strong>RESULTADO PRUEBA DE CARGA:</strong></label
-        >
-        <ng-container *ngIf="isEditingFormH; else viewModeResulPruebaCarga">
-          <select formControlName="resulPruebaCarga" class="inline-input">
-            <option value="satisfactorio">SATISFACTORIO</option>
-            <option value="insatisfactorio">INSATISFACTORIO</option>
-          </select>
-        </ng-container>
-        <ng-template #viewModeResulPruebaCarga>
-          <label class="upper paddingLeft">
-            <strong>{{ formHData?.resulPruebaCarga }}</strong>
-          </label>
-        </ng-template>
-      </div>
-
-      <!-- Comentarios -->
-      <div class="form-row">
-        <label class="upper comentario"><strong>COMENTARIOS:</strong></label>
-        <ng-container *ngIf="isEditingFormH; else viewModeComentarios">
-          <textarea
-            formControlName="comentarios"
-            rows="2"
-            maxlength="500"
-            class="inline-textarea"
-          ></textarea>
-        </ng-container>
-        <ng-template #viewModeComentarios>
-          <label class="upper comentario">
-            <strong>{{ formHData?.comentarios }}</strong>
-          </label>
-        </ng-template>
-      </div>
-    </form>
-
-    <h2 class="subtitle" *ngIf="tituloForm.length > 0">
-      <strong>{{ tituloForm[8].nombre }}</strong>
-    </h2>
-    <div *ngIf="!isPreviewMode">
-      <button (click)="toggleEditFormH1()">
-        {{ isEditingFormH1 ? "Guardar" : "Editar" }}
-      </button>
-    </div>
-
-    <div class="titulo-h1 center">
-      <label><strong>Medición</strong></label>
-      <label><strong>Antes</strong></label>
-      <label><strong>Después</strong></label>
-      <label><strong>Hora inicio</strong></label>
-      <label><strong>Hora término</strong></label>
-      <label><strong>Resultado</strong></label>
-    </div>
-    <form class="padding-none" [formGroup]="formH1">
-      <div class="datos-h1 center">
-        <label><strong>Polipasto #1</strong></label>
-
-        <ng-container *ngIf="isEditingFormH1; else viewModeH1">
-          <div class="editInputFormH1">
-            <input type="number" formControlName="poliUnoAntes" />
-            <label>cm</label>
-
-            <input type="number" formControlName="poliUnoDespues" />
-            <label>cm</label>
-          </div>
-
-          <input
-            type="number"
-            formControlName="poliUnoHInicio"
-            min="0"
-            max="24"
-            placeholder="00-24"
-          />
-
-          <input
-            type="number"
-            formControlName="poliUnoHTermino"
-            min="0"
-            max="24"
-            placeholder="00-24"
-          />
-
-          <select formControlName="poliUnoResultado">
-            <option value="SI">SATISFACTORIO</option>
-            <option value="NO">INSATISFACTORIO</option>
-          </select>
-        </ng-container>
-
-        <ng-template #viewModeH1>
-          <label>{{ formH1.get("poliUnoAntes")?.value }}</label>
-          <label>cm</label>
-
-          <label>{{ formH1.get("poliUnoDespues")?.value }}</label>
-          <label>cm</label>
-
-          <label>{{ formH1.get("poliUnoHInicio")?.value }}:00</label>
-          <label>{{ formH1.get("poliUnoHTermino")?.value }}:00</label>
-
-          <label
-            >{{
-              formH1.get("poliUnoResultado")?.value === "SI"
-                ? "SATISFACTORIO"
-                : formH1.get("poliUnoResultado")?.value === "NO"
-                ? "INSATISFACTORIO"
-                : "N/A"
-            }}
-          </label>
-        </ng-template>
-      </div>
-      <div class="datos-h1 center">
-        <label><strong>Polipasto #2</strong></label>
-
-        <ng-container *ngIf="isEditingFormH1; else viewModeH2">
-          <div class="editInputFormH1">
-            <input type="number" formControlName="poliDosAntes" />
-            <label>cm</label>
-
-            <input type="number" formControlName="poliDosDespues" />
-            <label>cm</label>
-          </div>
-
-          <input
-            type="number"
-            formControlName="poliDosHInicio"
-            min="0"
-            max="24"
-            placeholder="00-24"
-          />
-
-          <input
-            type="number"
-            formControlName="poliDosHTermino"
-            min="0"
-            max="24"
-            placeholder="00-24"
-          />
-
-          <select formControlName="poliDosResultado">
-            <option value="SI">SATISFACTORIO</option>
-            <option value="NO">INSATISFACTORIO</option>
-          </select>
-        </ng-container>
-
-        <ng-template #viewModeH2>
-          <label>{{ formH1.get("poliDosAntes")?.value }}</label>
-          <label>cm</label>
-
-          <label>{{ formH1.get("poliDosDespues")?.value }}</label>
-          <label>cm</label>
-
-          <label>{{ formH1.get("poliDosHInicio")?.value }}:00</label>
-          <label>{{ formH1.get("poliDosHTermino")?.value }}:00</label>
-
-          <label
-            >{{
-              formH1.get("poliDosResultado")?.value === "SI"
-                ? "SATISFACTORIO"
-                : formH1.get("poliDosResultado")?.value === "NO"
-                ? "INSATISFACTORIO"
-                : "N/A"
-            }}
-          </label>
-        </ng-template>
-      </div>
-
-      <div class="datos-h1 center">
-        <label><strong>Polipasto #3</strong></label>
-
-        <ng-container
-          *ngIf="
-            isEditingFormH1 && formH1.get('poliTresAntes')?.value !== 0;
-            else viewModeH3
-          "
-        >
-          <div class="editInputFormH1">
-            <input type="number" formControlName="poliTresAntes" />
-            <label>cm</label>
-
-            <input type="number" formControlName="poliTresDespues" />
-            <label>cm</label>
-          </div>
-
-          <input
-            type="number"
-            formControlName="poliTresHInicio"
-            min="0"
-            max="24"
-            placeholder="00-24"
-          />
-
-          <input
-            type="number"
-            formControlName="poliTresHTermino"
-            min="0"
-            max="24"
-            placeholder="00-24"
-          />
-
-          <select formControlName="poliTresResultado">
-            <option value="SI">SATISFACTORIO</option>
-            <option value="NO">INSATISFACTORIO</option>
-          </select>
-        </ng-container>
-
-        <ng-template #viewModeH3>
-          <label>{{
-            formH1.get("poliTresAntes")?.value &&
-            formH1.get("poliTresAntes")?.value !== 0
-              ? formH1.get("poliTresAntes")?.value
-              : "N/A"
-          }}</label>
-          <label>cm</label>
-
-          <label>{{
-            formH1.get("poliTresDespues")?.value &&
-            formH1.get("poliTresDespues")?.value !== 0
-              ? formH1.get("poliTresDespues")?.value
-              : "N/A"
-          }}</label>
-          <label>cm</label>
-
-          <label>{{
-            formH1.get("poliTresHInicio")?.value &&
-            formH1.get("poliTresHInicio")?.value !== 0
-              ? formH1.get("poliTresHInicio")?.value + ":00"
-              : "N/A"
-          }}</label>
-          <label>{{
-            formH1.get("poliTresHTermino")?.value &&
-            formH1.get("poliTresHTermino")?.value !== 0
-              ? formH1.get("poliTresHTermino")?.value + ":00"
-              : "N/A"
-          }}</label>
-
-          <label
-            >{{
-              formH1.get("poliTresResultado")?.value === "SI"
-                ? "SATISFACTORIO"
-                : formH1.get("poliTresResultado")?.value === "NO"
-                ? "INSATISFACTORIO"
-                : "N/A"
-            }}
-          </label>
-        </ng-template>
-      </div>
-
-      <div
-        class="check"
-        [ngClass]="{ check: !isEditingFormH1, flex: isEditingFormH1 }"
-      >
-        <h4 class="center">Condición de frenos:</h4>
-
-        <ng-container *ngIf="isEditingFormH1; else viewModeFrenos">
-          <div class="editInputFormH1">
-            <label class="cursor-pointer">
-              <input
-                type="radio"
-                formControlName="condicionFrenos"
-                [checked]="
-                  formH1.get('condicionFrenos')?.value === 'satisfactorio'
-                "
-                value="satisfactorio"
-              />
-              Satisfactorio
-            </label>
-            <label class="cursor-pointer">
-              <input
-                type="radio"
-                formControlName="condicionFrenos"
-                [checked]="
-                  formH1.get('condicionFrenos')?.value !== 'satisfactorio'
-                "
-                value="insatisfactorio"
-              />
-              Insatisfactorio
-            </label>
-          </div>
-        </ng-container>
-
-        <ng-template #viewModeFrenos>
-          <span class="cuadrado2 center">
-            <span
-              *ngIf="formH1.get('condicionFrenos')?.value === 'satisfactorio'"
-              >✖</span
-            >
-          </span>
-          <h4 class="text-left">Satisfactorio</h4>
-
-          <span class="cuadrado2 center">
-            <span
-              *ngIf="formH1.get('condicionFrenos')?.value !== 'satisfactorio'"
-              >✖</span
-            >
-          </span>
-          <h4 class="text-left">Insatisfactorio</h4>
-        </ng-template>
-      </div>
-    </form>
-
-    <h2 class="subtitle" *ngIf="tituloForm.length > 0">
-      <strong>{{ tituloForm[9].nombre }}</strong>
-    </h2>
-    <div *ngIf="!isPreviewMode">
-      <button (click)="toggleEditFormH2()">
-        {{ isEditingFormH2 ? "Guardar" : "Editar" }}
-      </button>
-    </div>
-    <form class="padding-none" [formGroup]="formH2">
-      <div class="unionH2">
-        <div class="title-part4">
-          <div class="title-part3">
-            <label class="paddingLeft"><strong>GANCHO DOBLE</strong></label>
-            <label class="center justifyCenter"
-              ><strong>Antes de la prueba</strong></label
-            >
-            <label class="center justifyCenter"
-              ><strong>Después de la prueba</strong></label
-            >
-          </div>
-          <div class="form-row datos-h2">
-            <label class="paddingLeft"><strong>Longitud A-B</strong></label>
-
-            <ng-container *ngIf="isEditingFormH2; else viewModeAB">
-              <input type="number" formControlName="longitudUABAntes" />
-              <label class="center">cm</label>
-
-              <input type="number" formControlName="longitudUABDesp" />
-              <label class="center">cm</label>
-            </ng-container>
-            <ng-template #viewModeAB>
-              <label class="center">{{
-                formH2.get("longitudUABAntes")?.value
-              }}</label>
-              <label class="center">cm</label>
-
-              <label class="center">{{
-                formH2.get("longitudUABDesp")?.value
-              }}</label>
-              <label class="center">cm</label>
-            </ng-template>
-          </div>
-          <div class="form-row datos-h2">
-            <label class="paddingLeft"><strong>Longitud B-C</strong></label>
-
-            <ng-container *ngIf="isEditingFormH2; else viewModeBC">
-              <input type="number" formControlName="longitudDBCAntes" />
-              <label class="center">cm</label>
-
-              <input type="number" formControlName="longitudDBCDesp" />
-              <label class="center">cm</label>
-            </ng-container>
-
-            <ng-template #viewModeBC>
-              <label class="center">{{
-                formH2.get("longitudDBCAntes")?.value
-              }}</label>
-              <label class="center">cm</label>
-
-              <label class="center">{{
-                formH2.get("longitudDBCDesp")?.value
-              }}</label>
-              <label class="center">cm</label>
-            </ng-template>
-          </div>
-          <div class="form-row datos-h2">
-            <label class="paddingLeft"><strong>Longitud A-B'</strong></label>
-
-            <ng-container *ngIf="isEditingFormH2; else viewModeABp">
-              <input type="number" formControlName="longitudTABAntes" />
-              <label class="center">cm</label>
-
-              <input type="number" formControlName="longitudTABDesp" />
-              <label class="center">cm</label>
-            </ng-container>
-
-            <ng-template #viewModeABp>
-              <label class="center">{{
-                formH2.get("longitudTABAntes")?.value
-              }}</label>
-              <label class="center">cm</label>
-
-              <label class="center">{{
-                formH2.get("longitudTABDesp")?.value
-              }}</label>
-              <label class="center">cm</label>
-            </ng-template>
-          </div>
-          <div class="form-row datos-h2">
-            <label class="paddingLeft"><strong>Longitud B-C'</strong></label>
-
-            <ng-container *ngIf="isEditingFormH2; else viewModeBCp">
-              <input type="number" formControlName="longitudCBCAntes" />
-              <label class="center">cm</label>
-
-              <input type="number" formControlName="longitudCBCDesp" />
-              <label class="center">cm</label>
-            </ng-container>
-
-            <ng-template #viewModeBCp>
-              <label class="center">{{
-                formH2.get("longitudCBCAntes")?.value
-              }}</label>
-              <label class="center">cm</label>
-
-              <label class="center">{{
-                formH2.get("longitudCBCDesp")?.value
-              }}</label>
-              <label class="center">cm</label>
-            </ng-template>
-          </div>
-        </div>
-        <label>
-          <div class="imgH2">
-            <img
-              src="assets/formulario_puente/tipo_doble.jpg"
-              alt="Tipo doble"
-            />
-          </div>
-        </label>
-      </div>
-
-      <div
-        class="form-row"
-        [ngClass]="{ resultadoH2: !isEditingFormH2, flex: isEditingFormH2 }"
-      >
-        <label class="text-right"><strong>Resultado (X)</strong></label>
-
-        <ng-container *ngIf="isEditingFormH2; else viewModeResultDoble">
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              formControlName="longitudResulDoble"
-              [checked]="
-                formH2.get('longitudResulDoble')?.value === 'satisfactorio'
-              "
-              value="satisfactorio"
-            />
-            Satisfactorio
-          </label>
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              formControlName="longitudResulDoble"
-              [checked]="
-                formH2.get('longitudResulDoble')?.value === 'insatisfactorio'
-              "
-              value="insatisfactorio"
-            />
-            Insatisfactorio
-          </label>
-        </ng-container>
-
-        <ng-template #viewModeResultDoble>
-          <label class="text-right">Satisfactorio</label>
-          <label class="center">
-            <span class="cuadradoH2">
-              <span
-                *ngIf="
-                  formH2.get('longitudResulDoble')?.value === 'satisfactorio'
-                "
-                >✖</span
-              >
-            </span>
-          </label>
-
-          <label class="text-right">Insatisfactorio</label>
-          <label class="center">
-            <span class="cuadradoH2">
-              <span
-                *ngIf="
-                  formH2.get('longitudResulDoble')?.value === 'insatisfactorio'
-                "
-                >✖</span
-              >
-            </span>
-          </label>
-        </ng-template>
-      </div>
-
-      <div class="unionH2">
-        <div class="title-part4">
-          <div class="title-part3">
-            <label class="paddingLeft"><strong>GANCHO SIMPLE</strong></label>
-            <label class="center justifyCenter"
-              ><strong>Antes de la prueba</strong></label
-            >
-            <label class="center justifyCenter"
-              ><strong>Después de la prueba</strong></label
-            >
-          </div>
-          <div class="form-row datos-h2">
-            <label class="paddingLeft"><strong>Longitud A-B</strong></label>
-
-            <ng-container *ngIf="isEditingFormH2; else viewModeSimpleAB">
-              <input type="number" formControlName="longDABAntes" />
-              <label class="center">cm</label>
-
-              <input type="number" formControlName="longDABDesp" />
-              <label class="center">cm</label>
-            </ng-container>
-            <ng-template #viewModeSimpleAB>
-              <label class="center">{{
-                formH2.get("longDABAntes")?.value
-              }}</label>
-              <label class="center">cm</label>
-
-              <label class="center">{{
-                formH2.get("longDABDesp")?.value
-              }}</label>
-              <label class="center">cm</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row datos-h2">
-            <label class="paddingLeft"><strong>Longitud B-C</strong></label>
-
-            <ng-container *ngIf="isEditingFormH2; else viewModeSimpleBC">
-              <input type="number" formControlName="longDBCAntes" />
-              <label class="center">cm</label>
-
-              <input type="number" formControlName="longDBCDesp" />
-              <label class="center">cm</label>
-            </ng-container>
-            <ng-template #viewModeSimpleBC>
-              <label class="center">{{
-                formH2.get("longDBCAntes")?.value
-              }}</label>
-              <label class="center">cm</label>
-
-              <label class="center">{{
-                formH2.get("longDBCDesp")?.value
-              }}</label>
-              <label class="center">cm</label>
-            </ng-template>
-          </div>
-        </div>
-        <label>
-          <div class="imgH2">
-            <img
-              src="assets/formulario_puente/tipo_simple.jpg"
-              alt="Tipo simple"
-            />
-          </div>
-        </label>
-      </div>
-
-      <!-- Resultado para Gancho Simple -->
-      <div
-        class="form-row"
-        [ngClass]="{ resultadoH2: !isEditingFormH2, flex: isEditingFormH2 }"
-      >
-        <label class="text-right"><strong>Resultado (X)</strong></label>
-
-        <ng-container *ngIf="isEditingFormH2; else viewModeResultSimple">
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              formControlName="longResulSimple"
-              [checked]="
-                formH2.get('longResulSimple')?.value === 'satisfactorio'
-              "
-              value="satisfactorio"
-            />
-            Satisfactorio
-          </label>
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              formControlName="longResulSimple"
-              [checked]="
-                formH2.get('longResulSimple')?.value === 'insatisfactorio'
-              "
-              value="insatisfactorio"
-            />
-            Insatisfactorio
-          </label>
-        </ng-container>
-
-        <ng-template #viewModeResultSimple>
-          <label class="text-right">Satisfactorio</label>
-          <label class="center">
-            <span class="cuadradoH2">
-              <span
-                *ngIf="formH2.get('longResulSimple')?.value === 'satisfactorio'"
-                >✖</span
-              >
-            </span>
-          </label>
-
-          <label class="text-right">Insatisfactorio</label>
-          <label class="center">
-            <span class="cuadradoH2">
-              <span
-                *ngIf="
-                  formH2.get('longResulSimple')?.value === 'insatisfactorio'
-                "
-                >✖</span
-              >
-            </span>
-          </label>
-        </ng-template>
-      </div>
-
-      <div class="unionH2">
-        <div class="title-part4">
-          <div class="title-part3">
-            <label class="paddingLeft"><strong>GANCHO SIMPLE</strong></label>
-            <label class="center justifyCenter"
-              ><strong>Antes de la prueba</strong></label
-            >
-            <label class="center justifyCenter"
-              ><strong>Después de la prueba</strong></label
-            >
-          </div>
-
-          <!-- Longitud A-B -->
-          <div class="form-row datos-h2">
-            <label class="paddingLeft"><strong>Longitud A-B</strong></label>
-
-            <ng-container
-              *ngIf="
-                isEditingFormH2 && formH2Data?.longGSABAntes !== 0;
-                else viewModeGSAB
-              "
-            >
-              <input type="number" formControlName="longGSABAntes" />
-              <label class="center">cm</label>
-
-              <input type="number" formControlName="longGSABDesp" />
-              <label class="center">cm</label>
-            </ng-container>
-            <ng-template #viewModeGSAB>
-              <label class="center">{{
-                formH2Data?.longGSABAntes === 0
-                  ? "N/A"
-                  : formH2Data?.longGSABAntes
-              }}</label>
-              <label class="center">cm</label>
-
-              <label class="center">{{
-                formH2Data?.longGSABDesp === 0
-                  ? "N/A"
-                  : formH2Data?.longGSABDesp
-              }}</label>
-              <label class="center">cm</label>
-            </ng-template>
-          </div>
-
-          <!-- Longitud B-C -->
-          <div class="form-row datos-h2">
-            <label class="paddingLeft"><strong>Longitud B-C</strong></label>
-
-            <ng-container
-              *ngIf="
-                isEditingFormH2 && formH2Data?.longGSBCAntes !== 0;
-                else viewModeGSBC
-              "
-            >
-              <input type="number" formControlName="longGSBCAntes" />
-              <label class="center">cm</label>
-
-              <input type="number" formControlName="longGSBCDesp" />
-              <label class="center">cm</label>
-            </ng-container>
-            <ng-template #viewModeGSBC>
-              <label class="center">{{
-                formH2Data?.longGSBCAntes === 0
-                  ? "N/A"
-                  : formH2Data?.longGSBCAntes
-              }}</label>
-              <label class="center">cm</label>
-
-              <label class="center">{{
-                formH2Data?.longGSBCDesp === 0
-                  ? "N/A"
-                  : formH2Data?.longGSBCDesp
-              }}</label>
-              <label class="center">cm</label>
-            </ng-template>
-          </div>
-        </div>
-
-        <label>
-          <div class="imgH2">
-            <img
-              src="assets/formulario_puente/tipo_simple.jpg"
-              alt="Tipo simple"
-            />
-          </div>
-        </label>
-      </div>
-
-      <!-- Resultado para Gancho Simple -->
-      <div
-        class="form-row"
-        [ngClass]="{ resultadoH2: !isEditingFormH2, flex: isEditingFormH2 }"
-      >
-        <label class="text-right"><strong>Resultado (X)</strong></label>
-
-        <ng-container
-          *ngIf="
-            isEditingFormH2 && formH2Data?.longResulSimpleDos !== 'N/A';
-            else viewModeResultSimpleDos
-          "
-        >
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              formControlName="longResulSimpleDos"
-              [checked]="formH2Data?.longResulSimpleDos === 'satisfactorio'"
-              value="satisfactorio"
-            />
-            Satisfactorio
-          </label>
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              formControlName="longResulSimpleDos"
-              [checked]="formH2Data?.longResulSimpleDos === 'insatisfactorio'"
-              value="insatisfactorio"
-            />
-            Insatisfactorio
-          </label>
-        </ng-container>
-
-        <ng-template #viewModeResultSimpleDos>
-          <label class="text-right">Satisfactorio</label>
-          <label class="center">
-            <span class="cuadradoH2">
-              <span *ngIf="formH2Data?.longResulSimpleDos === 'satisfactorio'"
-                >✖</span
-              >
-            </span>
-          </label>
-
-          <label class="text-right">Insatisfactorio</label>
-          <label class="center">
-            <span class="cuadradoH2">
-              <span *ngIf="formH2Data?.longResulSimpleDos === 'insatisfactorio'"
-                >✖</span
-              >
-            </span>
-          </label>
-        </ng-template>
-      </div>
-      <div class="unionH2">
-        <div class="title-part4">
-          <div class="title-part3">
-            <label class="paddingLeft"
-              ><strong>GANCHO SIMPLE TRES</strong></label
-            >
-            <label class="center justifyCenter"
-              ><strong>Antes de la prueba</strong></label
-            >
-            <label class="center justifyCenter"
-              ><strong>Después de la prueba</strong></label
-            >
-          </div>
-
-          <!-- Longitud A-B -->
-          <div class="form-row datos-h2">
-            <label class="paddingLeft"><strong>Longitud A-B</strong></label>
-
-            <ng-container
-              *ngIf="
-                isEditingFormH2 && formH2Data?.longGSATBAntes !== 0;
-                else viewModeGSATB
-              "
-            >
-              <input type="number" formControlName="longGSATBAntes" />
-              <label class="center">cm</label>
-
-              <input type="number" formControlName="longGSATBDesp" />
-              <label class="center">cm</label>
-            </ng-container>
-            <ng-template #viewModeGSATB>
-              <label class="center">{{
-                formH2Data?.longGSATBAntes === 0
-                  ? "N/A"
-                  : formH2Data?.longGSATBAntes
-              }}</label>
-              <label class="center">cm</label>
-
-              <label class="center">{{
-                formH2Data?.longGSATBDesp === 0
-                  ? "N/A"
-                  : formH2Data?.longGSATBDesp
-              }}</label>
-              <label class="center">cm</label>
-            </ng-template>
-          </div>
-
-          <!-- Longitud B-C -->
-          <div class="form-row datos-h2">
-            <label class="paddingLeft"><strong>Longitud B-C</strong></label>
-
-            <ng-container
-              *ngIf="
-                isEditingFormH2 && formH2Data?.longGSBTCAntes !== 0;
-                else viewModeGSBTC
-              "
-            >
-              <input type="number" formControlName="longGSBTCAntes" />
-              <label class="center">cm</label>
-
-              <input type="number" formControlName="longGSBTCDesp" />
-              <label class="center">cm</label>
-            </ng-container>
-            <ng-template #viewModeGSBTC>
-              <label class="center">{{
-                formH2Data?.longGSBTCAntes === 0
-                  ? "N/A"
-                  : formH2Data?.longGSBTCAntes
-              }}</label>
-              <label class="center">cm</label>
-
-              <label class="center">{{
-                formH2Data?.longGSBTCDesp === 0
-                  ? "N/A"
-                  : formH2Data?.longGSBTCDesp
-              }}</label>
-              <label class="center">cm</label>
-            </ng-template>
-          </div>
-        </div>
-
-        <label>
-          <div class="imgH2">
-            <img
-              src="assets/formulario_puente/tipo_simple.jpg"
-              alt="Tipo simple tres"
-            />
-          </div>
-        </label>
-      </div>
-
-      <!-- Resultado para Gancho Simple Tres -->
-      <div
-        class="form-row"
-        [ngClass]="{ resultadoH2: !isEditingFormH2, flex: isEditingFormH2 }"
-      >
-        <label class="text-right"><strong>Resultado (X)</strong></label>
-
-        <ng-container
-          *ngIf="
-            isEditingFormH2 && formH2Data?.longResulSimpleTres !== 'N/A';
-            else viewModeResultSimpleTres
-          "
-        >
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              formControlName="longResulSimpleTres"
-              [checked]="formH2Data?.longResulSimpleTres === 'satisfactorio'"
-              value="satisfactorio"
-            />
-            Satisfactorio
-          </label>
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              formControlName="longResulSimpleTres"
-              [checked]="formH2Data?.longResulSimpleTres === 'insatisfactorio'"
-              value="insatisfactorio"
-            />
-            Insatisfactorio
-          </label>
-        </ng-container>
-
-        <ng-template #viewModeResultSimpleTres>
-          <label class="text-right">Satisfactorio</label>
-          <label class="center">
-            <span class="cuadradoH2">
-              <span *ngIf="formH2Data?.longResulSimpleTres === 'satisfactorio'"
-                >✖</span
-              >
-            </span>
-          </label>
-
-          <label class="text-right">Insatisfactorio</label>
-          <label class="center">
-            <span class="cuadradoH2">
-              <span
-                *ngIf="formH2Data?.longResulSimpleTres === 'insatisfactorio'"
-                >✖</span
-              >
-            </span>
-          </label>
-        </ng-template>
-      </div>
-    </form>
-
-    <br />
-    <br />
-    <br />
-
-    <h2 class="subtitle" *ngIf="tituloForm.length > 0">
-      {{ tituloForm[10].nombre }}
-    </h2>
-    <div *ngIf="!isPreviewMode">
-      <button (click)="toggleEditFormI()">
-        {{ isEditingFormI ? "Guardar" : "Editar" }}
-      </button>
-    </div>
-    <form class="padding-none" [formGroup]="informeForm">
-      <div class="resultGeneral">
-        <h3 class="justifySelfEnd">INDICACIÓN (✖)</h3>
-        <h3>SI</h3>
-        <h3>NO</h3>
-      </div>
-      <div class="form-row resultGeneral">
-        <label class="font-size-20"
-          ><strong
-            >Conforme a la inspección y prueba de carga, la grúa puente se
-            encuentra aprobada y puede ser operada de manera segura para la
-            capacidad indicada.</strong
-          ></label
-        >
-        <!-- Modo Edición -->
-        <ng-container *ngIf="isEditingFormI; else viewModeResultGeneral">
-          <label class="center cursor-pointer">
-            <input type="radio" formControlName="idResul" [value]="1" /> SI
-          </label>
-          <label class="center cursor-pointer">
-            <input type="radio" formControlName="idResul" [value]="2" /> NO
-          </label>
-        </ng-container>
-        <!-- Modo Visualización -->
-        <ng-template #viewModeResultGeneral>
-          <label class="center">
-            <span class="cuadradoH2">{{
-              selectedInforme.idResul === 1 ? "✖" : ""
-            }}</span>
-          </label>
-          <label class="center">
-            <span class="cuadradoH2">{{
-              selectedInforme.idResul === 2 ? "✖" : ""
-            }}</span>
-          </label>
-        </ng-template>
-      </div>
-    </form>
-    <h3 class="custom-h3 font-size-30">
-      Documento asociado: Certificado de Inspección y Prueba de Carga (Solo en
-      caso de pasar satisfactoriamente inspección). GRC-2311-0441 C
-    </h3>
-    <br /><br /><br /><br /><br /><br />
-    <div class="center justifyCenter">
-      <h3 class="custom-h3 font-size-25">
-        Este informe se realizó sin prejuicio de ningún tipo y para el interés
-        de quien <br />concierna.
-      </h3>
-    </div>
-    <br /><br /><br /><br /><br /><br />
-    <h4 class="center justifyCenter">
-      Nombre y firma <br />INSPECTOR <br />ALS Inspection Chile SPA
-    </h4>
-    <br /><br /><br /><br /><br /><br />
-    <h2
-      class="center justifyCenter font-size-xxxlarge"
-      *ngIf="tituloForm.length > 0"
-    >
-      <strong>{{ tituloForm[11].nombre }}</strong>
-    </h2>
-    <div class="photo-grid">
-      <div *ngFor="let photo of photos" class="photo-item">
-        <img
-          [src]="'data:image/png;base64,' + photo.data"
-          [alt]="photo.descripcionSF"
-        />
-        <span>{{ photo.descripcionSF }}</span>
+        </form>
       </div>
     </div>
-  </form>
+
+    <div class="footer">
+      <app-footer></app-footer>
+    </div>
+
+  </div>
 </div>
