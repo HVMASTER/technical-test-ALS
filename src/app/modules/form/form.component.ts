@@ -42,6 +42,8 @@ export class FormComponent implements OnInit, OnDestroy {
   isEditingFormH1 = false;
   isEditingFormH2 = false;
   isEditingFormI = false;
+  showHeaderFooter = false;
+  isLoading = false;
   optionStatus = [
     { idStatus: 1, alias: 'CU' },
     { idStatus: 2, alias: 'N/C' },
@@ -480,27 +482,51 @@ export class FormComponent implements OnInit, OnDestroy {
     switch (tabla) {
       case 'A':
         this.isEditingStatusA = !this.isEditingStatusA;
-        if (!this.isEditingStatusA) this.saveStatusChanges('A');
+        if (!this.isEditingStatusA) {
+          this.informeForm.get('A')?.disable(); // Deshabilita la sección A si se cancela la edición
+        } else {
+          this.informeForm.get('A')?.enable(); // Habilita la sección A si se activa la edición
+        }
         break;
       case 'B':
         this.isEditingStatusB = !this.isEditingStatusB;
-        if (!this.isEditingStatusB) this.saveStatusChanges('B');
+        if (!this.isEditingStatusB) {
+          this.informeForm.get('B')?.disable();
+        } else {
+          this.informeForm.get('B')?.enable();
+        }
         break;
       case 'C':
         this.isEditingStatusC = !this.isEditingStatusC;
-        if (!this.isEditingStatusC) this.saveStatusChanges('C');
+        if (!this.isEditingStatusC) {
+          this.informeForm.get('C')?.disable();
+        } else {
+          this.informeForm.get('C')?.enable();
+        }
         break;
       case 'D':
         this.isEditingStatusD = !this.isEditingStatusD;
-        if (!this.isEditingStatusD) this.saveStatusChanges('D');
+        if (!this.isEditingStatusD) {
+          this.informeForm.get('D')?.disable();
+        } else {
+          this.informeForm.get('D')?.enable();
+        }
         break;
       case 'E':
         this.isEditingStatusE = !this.isEditingStatusE;
-        if (!this.isEditingStatusE) this.saveStatusChanges('E');
+        if (!this.isEditingStatusE) {
+          this.informeForm.get('E')?.disable();
+        } else {
+          this.informeForm.get('E')?.enable();
+        }
         break;
       case 'F':
         this.isEditingStatusF = !this.isEditingStatusF;
-        if (!this.isEditingStatusF) this.saveStatusChanges('F');
+        if (!this.isEditingStatusF) {
+          this.informeForm.get('F')?.disable();
+        } else {
+          this.informeForm.get('F')?.enable();
+        }
         break;
     }
   }
@@ -508,78 +534,78 @@ export class FormComponent implements OnInit, OnDestroy {
   toggleEditFormG() {
     this.isEditingFormG = !this.isEditingFormG;
     if (!this.isEditingFormG) {
-      this.saveFormGChanges();
+      this.informeForm.get('G')?.disable(); // Deshabilita la sección G si se cancela la edición
+    } else {
+      this.informeForm.get('G')?.enable(); // Habilita la sección G si se activa la edición
     }
   }
 
   toggleEditFormH() {
     this.isEditingFormH = !this.isEditingFormH;
-    if (!this.isEditingFormH) {
-      this.saveFormHChanges();
-    } else {
-      this.formH.patchValue(this.formHData); // Cargamos los valores actuales en el formulario al entrar en modo edición
+    if (this.isEditingFormH) {
+      // Cargamos los valores actuales en el formulario al entrar en modo edición
+      this.formH.patchValue(this.formHData);
     }
   }
 
   toggleEditFormH1() {
     this.isEditingFormH1 = !this.isEditingFormH1;
 
-    if (!this.isEditingFormH1) {
-      // Guardamos los cambios en formH1Data
-      if (this.formH1.valid) {
-        this.formH1Data = this.formH1.value;
-        console.log('Datos actualizados de H1:', this.formH1Data);
-      }
-    } else {
-      // Cargamos los valores actuales en el formulario al entrar en modo edición
-      this.formH1.patchValue({
-        poliUnoAntes: this.formH1Data.poliUnoAntes,
-        poliUnoDespues: this.formH1Data.poliUnoDespues,
-        poliUnoHInicio: this.formH1Data.poliUnoHInicio,
-        poliUnoHTermino: this.formH1Data.poliUnoHTermino,
-        poliUnoResultado: this.formH1Data.poliUnoResultado,
-        poliDosAntes: this.formH1Data.poliDosAntes,
-        poliDosDespues: this.formH1Data.poliDosDespues,
-        poliDosHInicio: this.formH1Data.poliDosHInicio,
-        poliDosHTermino: this.formH1Data.poliDosHTermino,
-        poliDosResultado: this.formH1Data.poliDosResultado,
-      });
+    if (this.isEditingFormH1) {
+        // Cargamos los valores actuales en el formulario al entrar en modo edición
+        this.formH1.patchValue({
+            poliUnoAntes: this.formH1Data.poliUnoAntes,
+            poliUnoDespues: this.formH1Data.poliUnoDespues,
+            poliUnoHInicio: this.formH1Data.poliUnoHInicio,
+            poliUnoHTermino: this.formH1Data.poliUnoHTermino,
+            poliUnoResultado: this.formH1Data.poliUnoResultado,
+            poliDosAntes: this.formH1Data.poliDosAntes,
+            poliDosDespues: this.formH1Data.poliDosDespues,
+            poliDosHInicio: this.formH1Data.poliDosHInicio,
+            poliDosHTermino: this.formH1Data.poliDosHTermino,
+            poliDosResultado: this.formH1Data.poliDosResultado,
+        });
     }
-  }
+}
 
   toggleEditFormH2() {
     this.isEditingFormH2 = !this.isEditingFormH2;
+
     if (!this.isEditingFormH2) {
-      this.saveFormH2Changes();
+        // Guardar cambios al salir del modo de edición
+        this.saveFormH2Changes();
+    } else if (this.formH2Data) {
+        // Cargar los datos existentes en el formulario al entrar en modo edición
+        this.formH2.patchValue({
+            longitudUABAntes: this.formH2Data.longitudUABAntes,
+            longitudUABDesp: this.formH2Data.longitudUABDesp,
+            longitudDBCAntes: this.formH2Data.longitudDBCAntes,
+            longitudDBCDesp: this.formH2Data.longitudDBCDesp,
+            longitudTABAntes: this.formH2Data.longitudTABAntes,
+            longitudTABDesp: this.formH2Data.longitudTABDesp,
+            longitudCBCAntes: this.formH2Data.longitudCBCAntes,
+            longitudCBCDesp: this.formH2Data.longitudCBCDesp,
+            longitudResulDoble: this.formH2Data.longitudResulDoble,
+            longDABAntes: this.formH2Data.longDABAntes,
+            longDABDesp: this.formH2Data.longDABDesp,
+            longDBCAntes: this.formH2Data.longDBCAntes,
+            longDBCDesp: this.formH2Data.longDBCDesp,
+            longResulSimple: this.formH2Data.longResulSimple,
+            longGSABAntes: this.formH2Data.longGSABAntes,
+            longGSABDesp: this.formH2Data.longGSABDesp,
+            longGSBCAntes: this.formH2Data.longGSBCAntes,
+            longGSBCDesp: this.formH2Data.longGSBCDesp,
+            longResulSimpleDos: this.formH2Data.longResulSimpleDos,
+            longGSATBAntes: this.formH2Data.longGSATBAntes,
+            longGSATBDesp: this.formH2Data.longGSATBDesp,
+            longGSBTCAntes: this.formH2Data.longGSBTCAntes,
+            longGSBTCDesp: this.formH2Data.longGSBTCDesp,
+            longResulSimpleTres: this.formH2Data.longResulSimpleTres,
+        });
     } else {
-      this.formH2.patchValue({
-        longitudUABAntes: this.formH2Data.longitudUABAntes,
-        longitudUABDesp: this.formH2Data.longitudUABDesp,
-        longitudDBCAntes: this.formH2Data.longitudDBCAntes,
-        longitudDBCDesp: this.formH2Data.longitudDBCDesp,
-        longitudTABAntes: this.formH2Data.longitudTABAntes,
-        longitudTABDesp: this.formH2Data.longitudTABDesp,
-        longitudCBCAntes: this.formH2Data.longitudCBCAntes,
-        longitudCBCDesp: this.formH2Data.longitudCBCDesp,
-        longitudResulDoble: this.formH2Data.longitudResulDoble,
-        longDABAntes: this.formH2Data.longDABAntes,
-        longDABDesp: this.formH2Data.longDABDesp,
-        longDBCAntes: this.formH2Data.longDBCAntes,
-        longDBCDesp: this.formH2Data.longDBCDesp,
-        longResulSimple: this.formH2Data.longResulSimple,
-        longGSABAntes: this.formH2Data.longGSABAntes,
-        longGSABDesp: this.formH2Data.longGSABDesp,
-        longGSBCAntes: this.formH2Data.longGSBCAntes,
-        longGSBCDesp: this.formH2Data.longGSBCDesp,
-        longResulSimpleDos: this.formH2Data.longResulSimpleDos,
-        longGSATBAntes: this.formH2Data.longGSATBAntes,
-        longGSATBDesp: this.formH2Data.longGSATBDesp,
-        longGSBTCAntes: this.formH2Data.longGSBTCAntes,
-        longGSBTCDesp: this.formH2Data.longGSBTCDesp,
-        longResulSimpleTres: this.formH2Data.longResulSimpleTres,
-      });
+        alert('No se pueden cargar los datos para la edición.'); // Opcional, manejo de errores
     }
-  }
+}
 
   toggleEditFormI() {
     this.isEditingFormI = !this.isEditingFormI;
@@ -626,6 +652,42 @@ export class FormComponent implements OnInit, OnDestroy {
     console.log(`Guardando cambios en la tabla ${tabla}`);
   }
 
+  saveChangesStatus(tabla: string) {
+  switch (tabla) {
+    case 'A':
+      this.saveStatusChanges('A'); // Llama al método original para guardar los cambios
+      this.isEditingStatusA = false;
+      this.informeForm.get('A')?.disable(); // Deshabilita la sección A después de guardar
+      break;
+    case 'B':
+      this.saveStatusChanges('B');
+      this.isEditingStatusB = false;
+      this.informeForm.get('B')?.disable();
+      break;
+    case 'C':
+      this.saveStatusChanges('C');
+      this.isEditingStatusC = false;
+      this.informeForm.get('C')?.disable();
+      break;
+    case 'D':
+      this.saveStatusChanges('D');
+      this.isEditingStatusD = false;
+      this.informeForm.get('D')?.disable();
+      break;
+    case 'E':
+      this.saveStatusChanges('E');
+      this.isEditingStatusE = false;
+      this.informeForm.get('E')?.disable();
+      break;
+    case 'F':
+      this.saveStatusChanges('F');
+      this.isEditingStatusF = false;
+      this.informeForm.get('F')?.disable();
+      break;
+  }
+}
+
+
   saveFormHChanges() {
     if (this.formH.valid && this.selectedInforme) {
       const formHData = this.formH.value;
@@ -655,15 +717,36 @@ export class FormComponent implements OnInit, OnDestroy {
     console.log('Descripción modificada:', this.descripcionItems);
   }
 
+  saveChangesFormG() {
+    this.saveFormGChanges(); // Llama al método original para guardar los cambios
+    this.isEditingFormG = false;
+    this.informeForm.get('G')?.disable(); // Deshabilita la sección G después de guardar
+  }
+
   saveFormH1Changes() {
     if (this.formH1.valid) {
-      console.log('Datos del Formulario H1 guardados:', this.formH1.value);
+        console.log('Datos del Formulario H1 guardados:', this.formH1.value);
+        this.formH1Data = this.formH1.value; // Actualizamos los datos guardados
+        this.isEditingFormH1 = false; // Salimos del modo de edición
+    } else {
+        alert('Por favor, revisa los datos antes de guardar.');
     }
-  }
+}
 
   saveFormH2Changes() {
     if (this.formH2.valid) {
       console.log('Datos del Formulario H2 guardados:', this.formH2.value);
+    }
+  }
+
+  saveFormIChanges() {
+    if (this.informeForm.get('idResul')?.valid && this.selectedInforme) {
+      const newValue = this.informeForm.get('idResul')?.value;
+      this.selectedInforme.idResul = newValue;
+      console.log('Nuevo valor de idResul:', this.selectedInforme.idResul);
+      this.isEditingFormI = false;
+    } else {
+      alert('Por favor, revisa los datos antes de guardar.');
     }
   }
 
@@ -683,20 +766,48 @@ export class FormComponent implements OnInit, OnDestroy {
 
   togglePreview() {
     this.isPreviewMode = !this.isPreviewMode;
+    this.showHeaderFooter = this.isPreviewMode;
+    const contentContainer = document.getElementById('contentToConvert');
+    
     if (this.isPreviewMode) {
-      // Deshabilitar el formulario cuando se visualiza la vista previa
       this.informeForm.disable();
+      this.hideButtonsForPreview(true);
+      contentContainer?.classList.add('preview-mode');
     } else {
-      // Habilitar el formulario si se sale de la vista previa
       if (!this.isEditing) {
-        this.informeForm.disable(); // Mantener deshabilitado si no está en modo edición
+        this.informeForm.disable();
       } else {
-        this.informeForm.enable(); // Habilitar si está en modo edición
+        this.informeForm.enable();
       }
+      this.hideButtonsForPreview(false);
+      contentContainer?.classList.remove('preview-mode');
     }
   }
 
-  generatePDF() {
-    this.pdfService.generatePDF('contentToConvert');
+  // Ocultar o mostrar los botones de edición y guardar según el modo de vista previa
+  hideButtonsForPreview(hide: boolean) {
+    const buttons = document.querySelectorAll('.edit-save-buttons');
+    buttons.forEach((button: Element) => {
+      (button as HTMLElement).style.display = hide ? 'none' : 'block';
+    });
   }
+
+  generatePDF() {
+    this.isLoading = true;  // Mostrar la barra de carga
+
+    // Ocultar botones antes de generar el PDF
+    this.isPreviewMode = true;
+    this.showHeaderFooter = true;
+
+    setTimeout(async () => {
+    // Generar el PDF
+      await this.pdfService.generatePDF('contentToConvert');
+
+      // Restaurar el estado después de la generación del PDF
+      this.isLoading = false; // Ocultar la barra de carga
+      this.isPreviewMode = false;
+      this.showHeaderFooter = false;
+    }, 0);
+  }
+
 }

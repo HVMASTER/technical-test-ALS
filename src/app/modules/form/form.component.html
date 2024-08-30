@@ -11,9 +11,13 @@
 <button (click)="togglePreview()">Vista Previa</button>
 <button (click)="generatePDF()">Exportar a PDF</button>
 <div *ngIf="selectedInforme" class="form-container">
+  <div *ngIf="isLoading" class="loading-bar">
+    <p>Generando PDF, por favor espere...</p>
+    <div class="spinner"></div>
+  </div>
   <div id="contentToConvert">
 
-    <div class="header">
+    <div *ngIf="showHeaderFooter" class="header">
       <app-header></app-header>
     </div>
 
@@ -26,12 +30,13 @@
     <div class="page">
       <div class="content">
         <form [formGroup]="informeForm" class="A-C">
-          <div *ngIf="!isPreviewMode">
+          <div *ngIf="!isPreviewMode" class="edit-save-buttons">
             <button (click)="toggleEdit()">
               {{ isEditing ? "Cancelar" : "Editar" }}
             </button>
+            <button *ngIf="isEditing" (click)="saveChanges()">Guardar</button>
           </div>
-          <button *ngIf="isEditing" (click)="saveChanges()">Guardar</button>
+          
           <div class="form-row">
             <div class="title">
               <label>Informe N°</label>
@@ -237,10 +242,11 @@
           <h2 class="subtitle" *ngIf="tituloForm.length > 0">
             {{ tituloForm[0]?.nombre }}
           </h2>
-          <div *ngIf="!isPreviewMode">
+          <div *ngIf="!isPreviewMode" class="edit-save-buttons">
             <button (click)="toggleEditStatus('A')">
-              {{ isEditingStatusA ? "Guardar" : "Editar" }}
+              {{ isEditingStatusA ? "Cancelar" : "Editar" }}
             </button>
+            <button *ngIf="isEditingStatusA" (click)="saveChangesStatus('A')">Guardar</button>
           </div>
           <div class="form-row-A-F">
             <strong class="center">Item</strong>
@@ -320,8 +326,9 @@
           </h2>
           <div *ngIf="!isPreviewMode">
             <button (click)="toggleEditStatus('B')">
-              {{ isEditingStatusB ? "Guardar" : "Editar" }}
+              {{ isEditingStatusB ? "Cancelar" : "Editar" }}
             </button>
+            <button *ngIf="isEditingStatusB" (click)="saveChangesStatus('B')">Guardar</button>
           </div>
           <div class="form-row-A-F">
             <strong class="center">Item</strong>
@@ -401,8 +408,9 @@
           </h2>
           <div *ngIf="!isPreviewMode">
             <button (click)="toggleEditStatus('C')">
-              {{ isEditingStatusC ? "Guardar" : "Editar" }}
+              {{ isEditingStatusC ? "Cancelar" : "Editar" }}
             </button>
+            <button *ngIf="isEditingStatusC" (click)="saveChangesStatus('C')">Guardar</button>
           </div>
           <div class="form-row-A-F">
             <strong class="center">Item</strong>
@@ -487,10 +495,11 @@
           <h2 class="subtitle" *ngIf="tituloForm.length > 0">
             {{ tituloForm[3].nombre }}
           </h2>
-          <div *ngIf="!isPreviewMode">
-            <button (click)="toggleEditStatus('D')">
-              {{ isEditingStatusD ? "Guardar" : "Editar" }}
+          <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <button type="button" (click)="toggleEditStatus('D')">
+              {{ isEditingStatusD ? "Cancelar" : "Editar" }}
             </button>
+            <button type="button" *ngIf="isEditingStatusD" (click)="saveChangesStatus('D')">Guardar</button>
           </div>
           <div class="form-row-A-F">
             <strong class="center">Item</strong>
@@ -568,10 +577,11 @@
           <h2 class="subtitle" *ngIf="tituloForm.length > 0">
             {{ tituloForm[4].nombre }}
           </h2>
-          <div *ngIf="!isPreviewMode">
-            <button (click)="toggleEditStatus('E')">
-              {{ isEditingStatusE ? "Guardar" : "Editar" }}
+          <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <button type="button" (click)="toggleEditStatus('E')">
+              {{ isEditingStatusE ? "Cancelar" : "Editar" }}
             </button>
+            <button type="button" *ngIf="isEditingStatusE" (click)="saveChangesStatus('E')">Guardar</button>
           </div>
           <div class="form-row-A-F">
             <strong class="center">Item</strong>
@@ -656,10 +666,11 @@
           <h2 class="subtitle" *ngIf="tituloForm.length > 0">
             {{ tituloForm[5].nombre }}
           </h2>
-          <div *ngIf="!isPreviewMode">
-            <button (click)="toggleEditStatus('F')">
-              {{ isEditingStatusF ? "Guardar" : "Editar" }}
+          <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <button type="button" (click)="toggleEditStatus('F')">
+              {{ isEditingStatusF ? "Cancelar" : "Editar" }}
             </button>
+            <button type="button" *ngIf="isEditingStatusF" (click)="saveChangesStatus('F')">Guardar</button>
           </div>
           <div class="gancho">
             <label class="gancho-label">Gancho 1</label>
@@ -748,10 +759,11 @@
           <h2 class="subtitle" *ngIf="tituloForm.length > 0">
             {{ tituloForm[6].nombre }}
           </h2>
-          <div *ngIf="!isPreviewMode">
-            <button (click)="toggleEditFormG()">
-              {{ isEditingFormG ? "Guardar" : "Editar" }}
+          <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <button type="button" (click)="toggleEditFormG()">
+              {{ isEditingFormG ? "Cancelar" : "Editar" }}
             </button>
+            <button type="button" *ngIf="isEditingFormG" (click)="saveChangesFormG()">Guardar</button>
           </div>
           <form class="padding-none">
             <div class="form-row-G">
@@ -814,12 +826,12 @@
           <h2 class="subtitle" *ngIf="tituloForm.length > 0">
             {{ tituloForm[7].nombre }}
           </h2>
-          <div *ngIf="!isPreviewMode">
-            <button (click)="toggleEditFormH()">
+          <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <button type="button" (click)="toggleEditFormH()">
               {{ isEditingFormH ? "Cancelar" : "Editar" }}
             </button>
+            <button type="button" *ngIf="isEditingFormH" (click)="saveFormHChanges()">Guardar</button>
           </div>
-          <button *ngIf="isEditingFormH" (click)="saveFormHChanges()">Guardar</button>
           <form class="padding-none" [formGroup]="formH">
             <div class="form-row-H">
               <label class="paddingLeft"
@@ -1420,10 +1432,11 @@
           <h2 class="subtitle" *ngIf="tituloForm.length > 0">
             <strong>{{ tituloForm[8].nombre }}</strong>
           </h2>
-          <div *ngIf="!isPreviewMode">
-            <button (click)="toggleEditFormH1()">
-              {{ isEditingFormH1 ? "Guardar" : "Editar" }}
+          <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <button type="button" (click)="toggleEditFormH1()">
+              {{ isEditingFormH1 ? "Cancelar" : "Editar" }}
             </button>
+            <button type="button" *ngIf="isEditingFormH1" (click)="saveFormH1Changes()">Guardar</button>
           </div>
           <div class="titulo-h1 center">
             <label><strong>Medición</strong></label>
@@ -1656,10 +1669,11 @@
           <h2 class="subtitle" *ngIf="tituloForm.length > 0">
             <strong>{{ tituloForm[9].nombre }}</strong>
           </h2>
-          <div *ngIf="!isPreviewMode">
-            <button (click)="toggleEditFormH2()">
-              {{ isEditingFormH2 ? "Guardar" : "Editar" }}
+          <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <button type="button" (click)="toggleEditFormH2()">
+              {{ isEditingFormH2 ? "Cancelar" : "Editar" }}
             </button>
+            <button type="button" *ngIf="isEditingFormH2" (click)="saveFormH2Changes()">Guardar</button>
           </div>
           <form class="padding-none" [formGroup]="formH2">
             <div class="unionH2">
@@ -2193,10 +2207,11 @@
           <h2 class="subtitle" *ngIf="tituloForm.length > 0">
             {{ tituloForm[10].nombre }}
           </h2>
-          <div *ngIf="!isPreviewMode">
-            <button (click)="toggleEditFormI()">
-              {{ isEditingFormI ? "Guardar" : "Editar" }}
+          <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <button type="button" (click)="toggleEditFormI()" >
+              {{ isEditingFormI ? "Cancelar" : "Editar" }}
             </button>
+            <button type="button" *ngIf="isEditingFormI" (click)="saveFormIChanges()">Guardar</button>
           </div>
           <form class="padding-none" [formGroup]="informeForm">
             <div class="resultGeneral">
@@ -2285,7 +2300,7 @@
       </div>
     </div>
 
-    <div class="footer">
+    <div *ngIf="showHeaderFooter" class="footer">
       <app-footer></app-footer>
     </div>
 
