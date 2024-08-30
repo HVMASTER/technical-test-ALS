@@ -11,10 +11,12 @@
 <button (click)="togglePreview()">Vista Previa</button>
 <button (click)="generatePDF()">Exportar a PDF</button>
 <div *ngIf="selectedInforme" class="form-container">
+
   <div *ngIf="isLoading" class="loading-bar">
     <p>Generando PDF, por favor espere...</p>
     <div class="spinner"></div>
   </div>
+
   <div id="contentToConvert">
 
     <div *ngIf="showHeaderFooter" class="header">
@@ -29,6 +31,14 @@
 
     <div class="page">
       <div class="content">
+
+        <app-info-message
+          [message]="messageText"
+          [type]="messageType"
+          [show]="showMessage"
+          [duration]="5000">
+        </app-info-message>
+
         <form [formGroup]="informeForm" class="A-C">
           <div *ngIf="!isPreviewMode" class="edit-save-buttons">
             <button (click)="toggleEdit()">

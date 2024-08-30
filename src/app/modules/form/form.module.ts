@@ -2,8 +2,9 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormComponent } from './form.component';
 import { ReactiveFormsModule } from '@angular/forms';
-import { HeaderComponent } from '../form/components/header/header.component';
-import { FooterComponent } from './components/footer/footer.component';
+import { HeaderComponent } from '../components/header/header.component';
+import { FooterComponent } from '../components/footer/footer.component';
+import { InfoMessageComponent } from '../components/info-message/info-message.component';
 
 
 
@@ -12,7 +13,8 @@ import { FooterComponent } from './components/footer/footer.component';
   declarations: [
     FormComponent,
     HeaderComponent,
-    FooterComponent
+    FooterComponent,
+    InfoMessageComponent
   ],
   imports: [
     CommonModule,

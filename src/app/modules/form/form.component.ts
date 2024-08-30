@@ -44,6 +44,9 @@ export class FormComponent implements OnInit, OnDestroy {
   isEditingFormI = false;
   showHeaderFooter = false;
   isLoading = false;
+  showMessage = false;
+  messageText = '';
+  messageType: 'success' | 'error' = 'success';
   optionStatus = [
     { idStatus: 1, alias: 'CU' },
     { idStatus: 2, alias: 'N/C' },
@@ -629,18 +632,28 @@ export class FormComponent implements OnInit, OnDestroy {
 
   saveChanges() {
     if (this.informeForm.valid && this.selectedInforme) {
-      const informeData = this.informeForm.value;
-      const idInforme = this.selectedInforme.idInforme;
+      const informeData = {
+        ...this.informeForm.value,
+        idInforme: this.selectedInforme.idInforme,
+        idUser: this.selectedInforme.idUser,
+      };
 
-      this.formService.editInformePuente(idInforme, informeData).subscribe({
+      this.formService.editInformePuente(informeData).subscribe({
         next: (response) => {
           console.log('Datos actualizados exitosamente:', response);
           this.isEditing = false;
           this.isEditingFormI = false;
+          this.showMessage = true;
+          this.messageText = 'Datos actualizados exitosamente.';
+          this.messageType = 'success';
+          // Ocultar el mensaje después de unos segundos
+          setTimeout(() => this.showMessage = false, 3000);
         },
         error: (error) => {
           console.error('Error al actualizar los datos:', error);
-          alert('Ocurrió un error al intentar actualizar el informe.');
+          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+          this.messageType = 'error';
+          this.showMessage = true;
         },
       });
     } else {
