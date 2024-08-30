@@ -1,0 +1,57 @@
+.container-footer {
+  width: 85%;
+  margin: 0 auto;
+  padding-top: 2rem; /* Añade padding superior */
+}
+
+.descrip {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  border-color: #9d9d9d;
+  margin-top: 1rem; /* Asegura que la tabla tenga espacio arriba */
+}
+
+.descrip td,
+.descrip tr {
+  border: 1px solid #73a5d8;
+  padding-left: 10px;
+  color: #9d9d9d;
+}
+
+.des2 {
+  width: 150px;
+}
+
+.footer-texto {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Alinea verticalmente los elementos en el centro */
+  color: rgb(6, 81, 163);
+  font-family: 'AvenirNextLTPro-Regular', sans-serif;
+}
+
+.footer-partner {
+  flex: 1; /* Hace que este elemento ocupe el espacio disponible a la izquierda */
+  text-align: left;
+}
+
+.footer-als {
+  flex: 1;
+  text-align: center; /* Alinea al centro el texto alsglobal.com */
+}
+
+.footer-page {
+  flex: 1;
+  text-align: right; /* Alinea el texto de la página a la derecha */
+}
+
+.text-end {
+  text-align: end;
+  font-family: 'AvenirNextLTPro-Regular', sans-serif;
+  color: #9d9d9d;
+  p {
+    margin-top: auto;
+  }
+}
