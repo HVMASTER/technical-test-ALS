@@ -65,6 +65,10 @@ export class FormService {
     return this.http.put(`${this.baseUrl}editInformePuente`, informeData);
   }
 
+  editItemPuente(itemData: any) {
+    return this.http.put(`${this.baseUrl}editItemPuente`, itemData);
+  }
+
   editFormHPuente(idInforme: number, formHData: any) {
     return this.http.put(`${this.baseUrl}editFormHPuente/${idInforme}`, formHData);
   } 
