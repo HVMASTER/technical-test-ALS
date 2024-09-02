@@ -17,6 +17,13 @@
     <div class="spinner"></div>
   </div>
 
+  <app-info-message
+    [message]="messageText"
+    [type]="messageType"
+    [show]="showMessage"
+    [duration]="5000">
+  </app-info-message>
+
   <div id="contentToConvert">
 
     <div *ngIf="showHeaderFooter" class="header">
@@ -31,13 +38,6 @@
 
     <div class="page">
       <div class="content">
-
-        <app-info-message
-          [message]="messageText"
-          [type]="messageType"
-          [show]="showMessage"
-          [duration]="5000">
-        </app-info-message>
 
         <form [formGroup]="informeForm" class="A-C">
           <div *ngIf="!isPreviewMode" class="edit-save-buttons">

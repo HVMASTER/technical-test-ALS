@@ -334,9 +334,10 @@ export class FormComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (descripcionItems) => {
-          this.descripcionItems = descripcionItems.sort(
-            (a, b) => a.idDetalle - b.idDetalle
-          );
+          // Filtrar ítems que tienen idStatus = 2 o idStatus = 4
+          this.descripcionItems = descripcionItems
+            .filter(item => item.idStatus === 2 || item.idStatus === 4)
+            .sort((a, b) => a.idDetalle - b.idDetalle);
         },
         error: (error) => {
           console.error('Error fetching descripcion data:', error);
@@ -554,13 +555,15 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   toggleEditFormG() {
-    this.isEditingFormG = !this.isEditingFormG;
-    if (!this.isEditingFormG) {
-      this.informeForm.get('G')?.disable(); // Deshabilita la sección G si se cancela la edición
-    } else {
-      this.informeForm.get('G')?.enable(); // Habilita la sección G si se activa la edición
-    }
+  if (this.isEditingFormG) {
+    // Si se cancela la edición, restaurar los valores originales
+    this.descripcionItems = this.originalValues.map((item: any) => ({ ...item }));
+  } else {
+    // Al comenzar la edición, almacenar los valores originales
+    this.originalValues = this.descripcionItems.map(item => ({ ...item }));
   }
+  this.isEditingFormG = !this.isEditingFormG;
+}
 
   toggleEditFormH() {
     this.isEditingFormH = !this.isEditingFormH;
@@ -703,6 +706,11 @@ export class FormComponent implements OnInit, OnDestroy {
             this.showMessage = true;
             this.messageText = 'Datos actualizados exitosamente.';
             this.messageType = 'success';
+
+            // Si el status es N/C o RE, agregar al punto G
+            if (item.idStatus === 2 || item.idStatus === 4) {
+              this.addItemToG(item);
+            }
 
             setTimeout(() => this.showMessage = false, 3000);
           },
@@ -913,14 +921,36 @@ export class FormComponent implements OnInit, OnDestroy {
     }
   }
 
-  saveFormGChanges() {
-    console.log('Descripción modificada:', this.descripcionItems);
-  }
-
   saveChangesFormG() {
-    this.saveFormGChanges(); // Llama al método original para guardar los cambios
+    const itemsToUpdate = this.descripcionItems.filter(
+      (item) => item.idStatus === 2 || item.idStatus === 4
+    );
+
+    if (itemsToUpdate.length === 0) {
+      alert('No hay ítems RE o N/C para actualizar.');
+      return;
+    }
+
+    itemsToUpdate.forEach((item) => {
+      const itemData = {
+        descripcion: item.descripcion,
+        idInforme: item.idInforme,
+        idDetalle: item.idDetalle,
+        idStatus: item.idStatus,
+      };
+
+      this.formService.editDescripcionPuente(itemData).subscribe({
+        next: (response) => {
+          console.log(`Descripción para idDetalle ${item.idDetalle} guardada exitosamente.`);
+        },
+        error: (error) => {
+          console.error(`Error al guardar la descripción para idDetalle ${item.idDetalle}:`, error);
+          alert('Ocurrió un error al intentar guardar los datos del Formulario G.');
+        },
+      });
+    });
+
     this.isEditingFormG = false;
-    this.informeForm.get('G')?.disable(); // Deshabilita la sección G después de guardar
   }
 
   saveFormHChanges() {
@@ -982,6 +1012,23 @@ export class FormComponent implements OnInit, OnDestroy {
     if (selectedOption) {
       item.alias = selectedOption.alias;
       item.idStatus = parseInt(selectedIdStatus, 10);
+      
+      // Si el nuevo idStatus es 2 o 4, agrega el ítem al punto G
+      if (item.idStatus === 2 || item.idStatus === 4) {
+        const descripcionItem = {
+          idDescripcion: null, // Nuevo item, aún no tiene idDescripcion
+          descripcion: item.descripcion || '', // Usa la descripción actual o vacía
+          idInforme: item.idInforme,
+          idStatus: item.idStatus,
+          idDetalle: item.idDetalle
+        };
+        this.descripcionItems.push(descripcionItem);
+      } else {
+        // Si cambia el idStatus a algo que no es 2 o 4, se elimina del punto G
+        this.descripcionItems = this.descripcionItems.filter(
+          (descItem) => descItem.idDetalle !== item.idDetalle
+        );
+      }
     }
   }
 
@@ -1016,6 +1063,19 @@ export class FormComponent implements OnInit, OnDestroy {
     buttons.forEach((button: Element) => {
       (button as HTMLElement).style.display = hide ? 'none' : 'block';
     });
+  }
+
+  addItemToG(item: any) {
+    const existingItem = this.descripcionItems.find(descItem => descItem.idDetalle === item.idDetalle);
+    
+    if (!existingItem) {
+        this.descripcionItems.push({
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus,
+          descripcion: '', // Descripción vacía para que el usuario la complete
+          idInforme: this.selectedInforme?.idInforme
+        });
+    }
   }
 
   generatePDF() {
