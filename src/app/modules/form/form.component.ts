@@ -44,6 +44,10 @@ export class FormComponent implements OnInit, OnDestroy {
   isEditingFormI = false;
   showHeaderFooter = false;
   isLoading = false;
+  showMessage = false;
+  messageText = '';
+  messageType: 'success' | 'error' = 'success';
+  originalValues: any;
   optionStatus = [
     { idStatus: 1, alias: 'CU' },
     { idStatus: 2, alias: 'N/C' },
@@ -330,9 +334,10 @@ export class FormComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (descripcionItems) => {
-          this.descripcionItems = descripcionItems.sort(
-            (a, b) => a.idDetalle - b.idDetalle
-          );
+          // Filtrar ítems que tienen idStatus = 2 o idStatus = 4
+          this.descripcionItems = descripcionItems
+            .filter(item => item.idStatus === 2 || item.idStatus === 4)
+            .sort((a, b) => a.idDetalle - b.idDetalle);
         },
         error: (error) => {
           console.error('Error fetching descripcion data:', error);
@@ -470,75 +475,95 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   toggleEdit() {
-    this.isEditing = !this.isEditing;
-    if (this.isEditing) {
-      this.informeForm.enable(); // Habilitar el formulario en modo edición
+    if (!this.isEditing) {
+        // Guardar los valores actuales antes de comenzar la edición
+        this.originalValues = this.informeForm.getRawValue();
+        this.informeForm.enable(); // Habilitar el formulario en modo edición
     } else {
-      this.informeForm.disable(); // Deshabilitar el formulario fuera del modo edición
+        // Si se cancela la edición, restaurar los valores originales
+        this.informeForm.patchValue(this.originalValues);
+        this.informeForm.disable(); // Deshabilitar el formulario fuera del modo edición
+    }
+    this.isEditing = !this.isEditing;
+  }
+
+  toggleEditStatusA() {
+    this.isEditingStatusA = !this.isEditingStatusA;
+
+    if (this.isEditingStatusA) {
+        // Guarda los valores actuales para que puedan ser restaurados si se cancela la edición
+        this.originalValues = this.itemsWithStatus.map(item => ({ ...item }));
+    } else {
+        // Restaura los valores originales si se cancela la edición
+        this.itemsWithStatus = this.originalValues.map((item: any) => ({ ...item }));
+    }
+}
+
+  toggleEditStatusB() {
+    this.isEditingStatusB = !this.isEditingStatusB;
+
+    if (!this.isEditingStatusB) {
+      
+    } else {
+      // Guarda los valores actuales para que puedan ser restaurados si se cancela la edición
+      this.originalValues = this.itemsWithStatus.map(item => ({ ...item }));
     }
   }
 
-  toggleEditStatus(tabla: string) {
-    switch (tabla) {
-      case 'A':
-        this.isEditingStatusA = !this.isEditingStatusA;
-        if (!this.isEditingStatusA) {
-          this.informeForm.get('A')?.disable(); // Deshabilita la sección A si se cancela la edición
-        } else {
-          this.informeForm.get('A')?.enable(); // Habilita la sección A si se activa la edición
-        }
-        break;
-      case 'B':
-        this.isEditingStatusB = !this.isEditingStatusB;
-        if (!this.isEditingStatusB) {
-          this.informeForm.get('B')?.disable();
-        } else {
-          this.informeForm.get('B')?.enable();
-        }
-        break;
-      case 'C':
-        this.isEditingStatusC = !this.isEditingStatusC;
-        if (!this.isEditingStatusC) {
-          this.informeForm.get('C')?.disable();
-        } else {
-          this.informeForm.get('C')?.enable();
-        }
-        break;
-      case 'D':
-        this.isEditingStatusD = !this.isEditingStatusD;
-        if (!this.isEditingStatusD) {
-          this.informeForm.get('D')?.disable();
-        } else {
-          this.informeForm.get('D')?.enable();
-        }
-        break;
-      case 'E':
-        this.isEditingStatusE = !this.isEditingStatusE;
-        if (!this.isEditingStatusE) {
-          this.informeForm.get('E')?.disable();
-        } else {
-          this.informeForm.get('E')?.enable();
-        }
-        break;
-      case 'F':
-        this.isEditingStatusF = !this.isEditingStatusF;
-        if (!this.isEditingStatusF) {
-          this.informeForm.get('F')?.disable();
-        } else {
-          this.informeForm.get('F')?.enable();
-        }
-        break;
+  toggleEditStatusC() {
+    this.isEditingStatusC = !this.isEditingStatusC;
+
+    if (!this.isEditingStatusC) {
+      
+    } else {
+      // Guarda los valores actuales para que puedan ser restaurados si se cancela la edición
+      this.originalValues = this.itemsWithStatus.map(item => ({ ...item }));
+    }
+  }
+
+  toggleEditStatusD() {
+    this.isEditingStatusD = !this.isEditingStatusD;
+
+    if (!this.isEditingStatusD) {
+      
+    } else {
+      // Guarda los valores actuales para que puedan ser restaurados si se cancela la edición
+      this.originalValues = this.itemsWithStatus.map(item => ({ ...item }));
+    }
+  }
+
+  toggleEditStatusE() {
+    this.isEditingStatusE = !this.isEditingStatusE;
+
+    if (!this.isEditingStatusE) {
+      
+    } else {
+      // Guarda los valores actuales para que puedan ser restaurados si se cancela la edición
+      this.originalValues = this.itemsWithStatus.map(item => ({ ...item }));
+    }
+  }
+
+  toggleEditStatusF() {
+    this.isEditingStatusF = !this.isEditingStatusF;
+
+    if (!this.isEditingStatusF) {
+      
+    } else {
+      // Guarda los valores actuales para que puedan ser restaurados si se cancela la edición
+      this.originalValues = this.itemsWithStatus.map(item => ({ ...item }));
     }
   }
 
   toggleEditFormG() {
-    this.isEditingFormG = !this.isEditingFormG;
-    if (!this.isEditingFormG) {
-      this.informeForm.get('G')?.disable(); // Deshabilita la sección G si se cancela la edición
-    } else {
-      this.informeForm.get('G')?.enable(); // Habilita la sección G si se activa la edición
-    }
+  if (this.isEditingFormG) {
+    // Si se cancela la edición, restaurar los valores originales
+    this.descripcionItems = this.originalValues.map((item: any) => ({ ...item }));
+  } else {
+    // Al comenzar la edición, almacenar los valores originales
+    this.originalValues = this.descripcionItems.map(item => ({ ...item }));
   }
+  this.isEditingFormG = !this.isEditingFormG;
+}
 
   toggleEditFormH() {
     this.isEditingFormH = !this.isEditingFormH;
@@ -629,18 +654,28 @@ export class FormComponent implements OnInit, OnDestroy {
 
   saveChanges() {
     if (this.informeForm.valid && this.selectedInforme) {
-      const informeData = this.informeForm.value;
-      const idInforme = this.selectedInforme.idInforme;
+      const informeData = {
+        ...this.informeForm.value,
+        idInforme: this.selectedInforme.idInforme,
+        idUser: this.selectedInforme.idUser,
+      };
 
-      this.formService.editInformePuente(idInforme, informeData).subscribe({
+      this.formService.editInformePuente(informeData).subscribe({
         next: (response) => {
           console.log('Datos actualizados exitosamente:', response);
           this.isEditing = false;
           this.isEditingFormI = false;
+          this.showMessage = true;
+          this.messageText = 'Datos actualizados exitosamente.';
+          this.messageType = 'success';
+          // Ocultar el mensaje después de unos segundos
+          setTimeout(() => this.showMessage = false, 3000);
         },
         error: (error) => {
           console.error('Error al actualizar los datos:', error);
-          alert('Ocurrió un error al intentar actualizar el informe.');
+          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+          this.messageType = 'error';
+          this.showMessage = true;
         },
       });
     } else {
@@ -648,45 +683,275 @@ export class FormComponent implements OnInit, OnDestroy {
     }
   }
 
-  saveStatusChanges(tabla: string) {
-    console.log(`Guardando cambios en la tabla ${tabla}`);
-  }
+  saveChangesStatusA() {
+    if (this.selectedInforme) {
+      const idInforme = this.selectedInforme.idInforme;
 
-  saveChangesStatus(tabla: string) {
-  switch (tabla) {
-    case 'A':
-      this.saveStatusChanges('A'); // Llama al método original para guardar los cambios
+      const itemsToUpdate = this.itemsWithStatus.slice(0, 11); //items del 1 al 11
+
+      if (itemsToUpdate.length === 0) {
+        console.log('No se encontraron ítems para actualizar en la tabla A.');
+        return;
+      }
+
+      itemsToUpdate.forEach(item => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle
+        };
+
+        this.formService.editItemPuente(itemData).subscribe({
+          next: (response) => {
+            this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+
+            // Si el status es N/C o RE, agregar al punto G
+            if (item.idStatus === 2 || item.idStatus === 4) {
+              this.addItemToG(item);
+            }
+
+            setTimeout(() => this.showMessage = false, 3000);
+          },
+          error: (error) => {
+            console.error(`Error al actualizar el item ${item.idItem}:`, error);
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.showMessage = true;
+          }
+        });
+      });
+
       this.isEditingStatusA = false;
-      this.informeForm.get('A')?.disable(); // Deshabilita la sección A después de guardar
-      break;
-    case 'B':
-      this.saveStatusChanges('B');
-      this.isEditingStatusB = false;
-      this.informeForm.get('B')?.disable();
-      break;
-    case 'C':
-      this.saveStatusChanges('C');
-      this.isEditingStatusC = false;
-      this.informeForm.get('C')?.disable();
-      break;
-    case 'D':
-      this.saveStatusChanges('D');
-      this.isEditingStatusD = false;
-      this.informeForm.get('D')?.disable();
-      break;
-    case 'E':
-      this.saveStatusChanges('E');
-      this.isEditingStatusE = false;
-      this.informeForm.get('E')?.disable();
-      break;
-    case 'F':
-      this.saveStatusChanges('F');
-      this.isEditingStatusF = false;
-      this.informeForm.get('F')?.disable();
-      break;
+    }
   }
-}
 
+  saveChangesStatusB() {
+    if (this.selectedInforme) {
+      const idInforme = this.selectedInforme.idInforme;
+
+      const itemsToUpdate = this.itemsWithStatus.slice(11, 19); //items del 12 al 19
+
+      if (itemsToUpdate.length === 0) {
+        console.log('No se encontraron ítems para actualizar en la tabla B.');
+        return;
+      }
+
+      itemsToUpdate.forEach(item => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle
+        };
+
+        this.formService.editItemPuente(itemData).subscribe({
+          next: (response) => {
+            this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+
+            setTimeout(() => this.showMessage = false, 3000);
+          },
+          error: (error) => {
+            console.error(`Error al actualizar el item ${item.idItem}:`, error);
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.showMessage = true;
+          }
+        });
+      });
+
+      this.isEditingStatusB = false;
+    }
+  }
+
+  saveChangesStatusC() {
+    if (this.selectedInforme) {
+      const idInforme = this.selectedInforme.idInforme;
+
+      const itemsToUpdate = this.itemsWithStatus.slice(19, 26); // items del 20 al 26
+      if (itemsToUpdate.length === 0) {
+        console.log('No se encontraron ítems para actualizar en la tabla C.');
+        return;
+      }
+
+      itemsToUpdate.forEach(item => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle
+        };
+
+        this.formService.editItemPuente(itemData).subscribe({
+          next: (response) => {
+            this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+
+            setTimeout(() => this.showMessage = false, 3000);
+          },
+          error: (error) => {
+            console.error(`Error al actualizar el item ${item.idItem}:`, error);
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.showMessage = true;
+          }
+        });
+      });
+
+      this.isEditingStatusC = false;
+    }
+  }
+
+  saveChangesStatusD() {
+    if (this.selectedInforme) {
+      const idInforme = this.selectedInforme.idInforme;
+
+      const itemsToUpdate = this.itemsWithStatus.slice(26, 43); //items del 27 al 43
+
+      if (itemsToUpdate.length === 0) {
+        console.warn('No se encontraron ítems para actualizar en la tabla D.');
+        return;
+      }
+
+      itemsToUpdate.forEach(item => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle
+        };
+
+        this.formService.editItemPuente(itemData).subscribe({
+          next: (response) => {
+            this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+
+            setTimeout(() => this.showMessage = false, 3000);
+          },
+          error: (error) => {
+            console.error(`Error al actualizar el item ${item.idItem}:`, error);
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.showMessage = true;
+          }
+        });
+      });
+
+      this.isEditingStatusD = false;
+    }
+  }
+
+  saveChangesStatusE() {
+    if (this.selectedInforme) {
+      const idInforme = this.selectedInforme.idInforme;
+
+      const itemsToUpdate = this.itemsWithStatus.slice(43, 52); // items del 44 a 52
+
+      if (itemsToUpdate.length === 0) {
+        console.log('No se encontraron ítems para actualizar en la tabla E.');
+        return;
+      }
+
+      itemsToUpdate.forEach(item => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle
+        };
+
+        this.formService.editItemPuente(itemData).subscribe({
+          next: (response) => {
+            this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+
+            setTimeout(() => this.showMessage = false, 3000);
+          },
+          error: (error) => {
+            console.error(`Error al actualizar el item ${item.idItem}:`, error);
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.showMessage = true;
+          }
+        });
+      });
+
+      this.isEditingStatusE = false;
+    }
+  }
+
+  saveChangesStatusF() {
+    if (this.selectedInforme) {
+      const idInforme = this.selectedInforme.idInforme;
+
+      const itemsToUpdate = this.itemsWithStatus.slice(52, 68); //items del 53 al 68
+
+      if (itemsToUpdate.length === 0) {
+        console.warn('No se encontraron ítems para actualizar en la tabla F.');
+        return;
+      }
+
+      itemsToUpdate.forEach(item => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle
+        };
+
+        this.formService.editItemPuente(itemData).subscribe({
+          next: (response) => {
+            this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+
+            setTimeout(() => this.showMessage = false, 3000);
+          },
+          error: (error) => {
+            console.error(`Error al actualizar el item ${item.idItem}:`, error);
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.showMessage = true;
+          }
+        });
+      });
+
+      this.isEditingStatusF = false;
+    }
+  }
+
+  saveChangesFormG() {
+    const itemsToUpdate = this.descripcionItems.filter(
+      (item) => item.idStatus === 2 || item.idStatus === 4
+    );
+
+    if (itemsToUpdate.length === 0) {
+      alert('No hay ítems RE o N/C para actualizar.');
+      return;
+    }
+
+    itemsToUpdate.forEach((item) => {
+      const itemData = {
+        descripcion: item.descripcion,
+        idInforme: item.idInforme,
+        idDetalle: item.idDetalle,
+        idStatus: item.idStatus,
+      };
+
+      this.formService.editDescripcionPuente(itemData).subscribe({
+        next: (response) => {
+          console.log(`Descripción para idDetalle ${item.idDetalle} guardada exitosamente.`);
+        },
+        error: (error) => {
+          console.error(`Error al guardar la descripción para idDetalle ${item.idDetalle}:`, error);
+          alert('Ocurrió un error al intentar guardar los datos del Formulario G.');
+        },
+      });
+    });
+
+    this.isEditingFormG = false;
+  }
 
   saveFormHChanges() {
     if (this.formH.valid && this.selectedInforme) {
@@ -711,16 +976,6 @@ export class FormComponent implements OnInit, OnDestroy {
     } else {
       alert('Por favor, revisa los datos antes de guardar.');
     }
-  }
-
-  saveFormGChanges() {
-    console.log('Descripción modificada:', this.descripcionItems);
-  }
-
-  saveChangesFormG() {
-    this.saveFormGChanges(); // Llama al método original para guardar los cambios
-    this.isEditingFormG = false;
-    this.informeForm.get('G')?.disable(); // Deshabilita la sección G después de guardar
   }
 
   saveFormH1Changes() {
@@ -756,6 +1011,24 @@ export class FormComponent implements OnInit, OnDestroy {
     );
     if (selectedOption) {
       item.alias = selectedOption.alias;
+      item.idStatus = parseInt(selectedIdStatus, 10);
+      
+      // Si el nuevo idStatus es 2 o 4, agrega el ítem al punto G
+      if (item.idStatus === 2 || item.idStatus === 4) {
+        const descripcionItem = {
+          idDescripcion: null, // Nuevo item, aún no tiene idDescripcion
+          descripcion: item.descripcion || '', // Usa la descripción actual o vacía
+          idInforme: item.idInforme,
+          idStatus: item.idStatus,
+          idDetalle: item.idDetalle
+        };
+        this.descripcionItems.push(descripcionItem);
+      } else {
+        // Si cambia el idStatus a algo que no es 2 o 4, se elimina del punto G
+        this.descripcionItems = this.descripcionItems.filter(
+          (descItem) => descItem.idDetalle !== item.idDetalle
+        );
+      }
     }
   }
 
@@ -792,6 +1065,19 @@ export class FormComponent implements OnInit, OnDestroy {
     });
   }
 
+  addItemToG(item: any) {
+    const existingItem = this.descripcionItems.find(descItem => descItem.idDetalle === item.idDetalle);
+    
+    if (!existingItem) {
+        this.descripcionItems.push({
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus,
+          descripcion: '', // Descripción vacía para que el usuario la complete
+          idInforme: this.selectedInforme?.idInforme
+        });
+    }
+  }
+
   generatePDF() {
     this.isLoading = true;  // Mostrar la barra de carga
 
@@ -809,5 +1095,6 @@ export class FormComponent implements OnInit, OnDestroy {
       this.showHeaderFooter = false;
     }, 0);
   }
+
 
 }

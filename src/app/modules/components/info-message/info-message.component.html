@@ -1,0 +1,5 @@
+<div *ngIf="show" [ngClass]="messageClass" class="message">
+  <span>{{ message }}</span>
+  <button class="close-btn" (click)="show = false">X</button>
+</div>
+
