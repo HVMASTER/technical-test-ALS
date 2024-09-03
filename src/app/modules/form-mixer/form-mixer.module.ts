@@ -1,15 +1,14 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormComponent } from './form.component';
+import { FormMixerComponent } from './form-mixer.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { SharedModule } from '../shared/shared.module';
 
 
 
-
 @NgModule({
   declarations: [
-    FormComponent,
+    FormMixerComponent,
   ],
   imports: [
     CommonModule,
@@ -17,7 +16,7 @@ import { SharedModule } from '../shared/shared.module';
     SharedModule,
   ],
   exports: [
-    FormComponent,
+    FormMixerComponent,
   ]
 })
-export class FormModule { }
+export class FormMixerModule { }
