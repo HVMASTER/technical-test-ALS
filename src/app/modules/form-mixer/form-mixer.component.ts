@@ -9,15 +9,20 @@ import { PdfService } from './../../services/pdf.service';
 @Component({
   selector: 'app-form-mixer',
   templateUrl: './form-mixer.component.html',
-  styleUrl: './form-mixer.component.scss'
+  styleUrl: './form-mixer.component.scss',
 })
 export class FormMixerComponent implements OnInit, OnDestroy {
   formMixerMain: FormGroup;
   informes: any[] = [];
+  tituloForm: any[] = [];
   itemsWithStatus: any[] = [];
   itemsWithDetail: any[] = [];
-  betoneraData: any[] = [];
+  betoneraData: any;
+  torqueDescription: any;
+  nonConformities: any[] = [];
   selectedInforme: any | null = null;
+  photos: any;
+  photoUrl: string = '';
   isEditing = false;
   isEditingStatusA = false;
   isEditingStatusB = false;
@@ -25,12 +30,13 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   showHeaderFooter = false;
   isLoading = false;
   showMessage = false;
+  defaultEmptyRows = new Array(7);
   messageText = '';
   messageType: 'success' | 'error' = 'success';
 
   optionStatus = [
     { idStatus: 1, alias: 'CU' },
-    { idStatus: 2, alias: 'N/C' }
+    { idStatus: 2, alias: 'N/C' },
   ];
   private destroy$ = new Subject<void>();
 
@@ -41,12 +47,13 @@ export class FormMixerComponent implements OnInit, OnDestroy {
     private formBuilder: FormBuilder,
     private datePipe: DatePipe
   ) {
-      this.formMixerMain = this.createFormMixerMain();
-    }
+    this.formMixerMain = this.createFormMixerMain();
+  }
 
   ngOnInit(): void {
     this.formMixerMain.disable();
     this.getNumeroInformes();
+    this.getTitulosForm();
   }
 
   ngOnDestroy(): void {
@@ -82,7 +89,8 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   async getNumeroInformes() {
-    await this.mixerService.getRegistroFormMixer()
+    await this.mixerService
+      .getRegistroFormMixer()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data: any[]) => {
@@ -91,11 +99,12 @@ export class FormMixerComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error fetching informes:', error);
-        }
-      })
+        },
+      });
   }
 
   selectInforme(informe: any) {
+    this.isLoading = true;
     this.mixerService
       .getInformeMixerByID(informe.idInforme)
       .pipe(takeUntil(this.destroy$))
@@ -104,15 +113,28 @@ export class FormMixerComponent implements OnInit, OnDestroy {
           (this.selectedInforme = data),
             this.formMixerMain.patchValue({
               ...this.selectedInforme,
-              idResul: this.selectedInforme.idResul || null,
             });
-          this.loadItemDetails(informe.idInforme);
-          this.loadBetoneraData(informe.idInforme);
+          this.loadFormData(informe.idInforme);
         },
         error: (error) => {
           console.error('Error fetching informe:', error);
+          this.isLoading = false;
         },
       });
+  }
+
+  private loadFormData(idInforme: number) {
+    this.loadItemDetails(idInforme);
+    this.loadBetoneraData(idInforme);
+    this.loadNonConformities(idInforme);
+    this.loadSetFotografico(idInforme);
+    this.getformTorqueByIdInforme(idInforme);
+
+    // Al finalizar todas las cargas
+    setTimeout(() => {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }, 1000);
   }
 
   deselectInforme() {
@@ -122,14 +144,14 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   generatePDF() {
-    this.isLoading = true;  // Mostrar la barra de carga
+    this.isLoading = true; // Mostrar la barra de carga
 
     // Ocultar botones antes de generar el PDF
     this.isPreviewMode = true;
     this.showHeaderFooter = true;
 
     setTimeout(async () => {
-    // Generar el PDF
+      // Generar el PDF
       await this.pdfService.generatePDF('contentToConvert');
 
       // Restaurar el estado después de la generación del PDF
@@ -216,7 +238,9 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   selectStatus(item: any, selectedIdStatus: string): void {
-    const selectedOption = this.optionStatus.find(option => option.idStatus.toString() === selectedIdStatus);
+    const selectedOption = this.optionStatus.find(
+      (option) => option.idStatus.toString() === selectedIdStatus
+    );
     if (selectedOption) {
       item.alias = selectedOption.alias;
       item.idStatus = parseInt(selectedIdStatus, 10);
@@ -224,7 +248,8 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   private loadBetoneraData(idInforme: number): void {
-    this.mixerService.getformBetoneraByIdInformeMixer(idInforme)
+    this.mixerService
+      .getformBetoneraByIdInformeMixer(idInforme)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
@@ -234,8 +259,82 @@ export class FormMixerComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error fetching betonera data:', error);
-        }
+        },
       });
   }
 
+  private loadNonConformities(idInforme: number): void {
+    this.mixerService
+      .getdescripcionMixerByIdInforme(idInforme)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.nonConformities = data.filter(
+            (item: any) => item.idStatus === 2
+          );
+          this.addDefaultRows();
+        },
+        error: (error) => {
+          console.error('Error fetching non-conformities:', error);
+        },
+      });
+  }
+
+  private addDefaultRows(): void {
+    const totalRows =
+      this.nonConformities.length + this.defaultEmptyRows.length;
+    if (this.nonConformities.length < this.defaultEmptyRows.length) {
+      this.defaultEmptyRows = new Array(
+        this.defaultEmptyRows.length - this.nonConformities.length
+      );
+    } else {
+      this.defaultEmptyRows = [];
+    }
+  }
+
+  private loadSetFotografico(idInforme: number) {
+    this.mixerService
+      .getSetFotograficoByIdInformeMixer(idInforme)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.photos.length > 0) {
+            this.photos = response.photos;
+          }
+        },
+        error: (error) => {
+          console.error('Error fetching set fotografico:', error);
+        },
+      });
+  }
+
+  private getformTorqueByIdInforme(idInforme: number) {
+    this.mixerService
+      .getformTorqueByIdInforme(idInforme)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response && response.length > 0) {
+            this.torqueDescription = response[0];
+          }  
+        },
+        error: (error) => {
+          console.error('Error fetching torque description:', error);
+        },
+      });
+  }
+
+  private getTitulosForm() {
+    this.mixerService
+      .getNombreFormMixer()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (titulos) => {
+          this.tituloForm = titulos;
+        },
+        error: (error) => {
+          console.error('Error fetching form titles:', error);
+        },
+      });
+  }
 }

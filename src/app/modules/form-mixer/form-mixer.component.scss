@@ -5,10 +5,10 @@ $header-font-size: 4em;
 $form-padding: 20px 20px;
 $border-color: #9dc2e5;
 $hover-background-color: #e9ecef;
-$font-family: 'AvenirNextLTPro-Bold', sans-serif;
+$font-family: "AvenirNextLTPro-Bold", sans-serif;
 
 $primary-row-color: #dbe5f1;
-$secondary-row-color: #ffffff; 
+$secondary-row-color: #ffffff;
 
 .informes-list {
   font-family: $font-family;
@@ -70,6 +70,12 @@ form {
   padding: 0px 90px;
 }
 
+.title2 {
+  border: 1px solid $border-color;
+  background-color: $primary-row-color;
+  margin: 30px 0 0 0;
+ }
+
 .form-container {
   font-family: $font-family;
   padding: $form-padding;
@@ -83,13 +89,12 @@ form {
     flex: 1;
     padding: 1px;
     border: 1px solid $border-color;
-
   }
 
-  h2{
+  h2 {
     font-weight: 100;
   }
- 
+
   .title {
     display: grid;
     width: 300px;
@@ -97,16 +102,16 @@ form {
 
   .form-row {
     display: flex;
-    flex-wrap: wrap;   
+    flex-wrap: wrap;
     align-items: stretch;
 
-    label.expand{
+    label.expand {
       flex-grow: 1;
     }
 
-     &.capacidad-nominal {
+    &.capacidad-nominal {
       align-items: stretch;
-     }
+    }
 
     &:nth-child(odd) {
       background-color: $primary-row-color;
@@ -119,7 +124,7 @@ form {
 
   .form-row-section {
     display: grid;
-    grid-template-columns: 0.2fr 2fr 3fr 0.5fr 0.5fr; 
+    grid-template-columns: 0.2fr 2fr 3fr 0.5fr 0.5fr;
     align-items: stretch;
     border-bottom: 1px solid $border-color;
 
@@ -140,17 +145,17 @@ form {
   }
 
   .back-button {
-  margin-bottom: 20px;
-  background-color: slategrey;
-  color: #fff;
-  border: none;
-  padding: 5px 15px;
-  cursor: pointer;
-  border-radius: 5px;
+    margin-bottom: 20px;
+    background-color: slategrey;
+    color: #fff;
+    border: none;
+    padding: 5px 15px;
+    cursor: pointer;
+    border-radius: 5px;
 
-  &:hover {
-    background-color: darken(slategrey, 10%);
-   }
+    &:hover {
+      background-color: darken(slategrey, 10%);
+    }
   }
 }
 
@@ -166,15 +171,22 @@ form {
 }
 
 .imagenes {
-
   img {
     width: 360px;
     margin: 0 30px 0 70px;
   }
 }
 
+.imagen-betonera {
+  border: 1px solid $border-color;
+
+  img {
+    width: 730px;
+    margin: 0 30px 0 70px;
+  }
+}
+
 .semi-title {
-  text-align: center;
   background-color: $primary-row-color;
   border: 1px solid $border-color;
 
@@ -188,5 +200,198 @@ form {
   margin-left: 60px;
   label {
     border: none;
+  }
+}
+
+.espesor-betonera {
+  display: inline-grid;
+  background-color: $primary-row-color;
+  border: 1px solid $border-color;
+  inline-size: -webkit-fill-available;
+
+  label {
+    padding: 10px 185px 10px 10px;
+    border: none;
+    white-space: nowrap;
+  }
+}
+
+.union-betonera {
+  display: flex;
+}
+
+.nonconformities {
+  width: 100%;
+  border: 1px solid #9dc2e5;
+
+  label {
+    display: block;
+    padding: 5px;
+    border-bottom: 1px solid #9dc2e5;
+  }
+
+  h2 {
+    margin: 0;
+  }
+
+  h3 {
+    margin: 0;
+  }
+
+  .odd-row {
+    background-color: #dbe5f1; /* Color para las filas impares */
+  }
+
+  .even-row {
+    background-color: #ffffff; /* Color para las filas pares */
+  }
+}
+
+.notes {
+  font-size: medium;
+  font-style: oblique;
+}
+
+.padding12 {
+  label {
+    padding: 12px;
+  }
+}
+
+.indicacion {
+  display: grid;
+  grid-template-columns: 1.5fr 0.2fr 0.2fr;
+  align-items: center;
+  label {
+    font-weight: 900;
+    padding: 5px;
+    border: none;
+    font-size: larger;
+  }
+}
+
+.text-right {
+  text-align: right;
+}
+
+.row-text {
+  display: grid;
+  background-color: $primary-row-color;
+
+  label {
+    padding: 4px;
+    border: none;
+    font-size: large;
+    font-style: oblique;
+  }
+}
+
+.form-row-result {
+  display: flex;
+  flex-direction: column;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1.5fr 0.2fr 0.2fr;
+  border: 1px solid $border-color;
+}
+
+.border {
+  border: 1px solid $border-color;
+  display: flex;
+}
+
+.cuadrado-result {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 1px solid black;
+  text-align: center;
+  line-height: 18px;
+  vertical-align: middle;
+  font-size: 20px;
+  margin-inline: auto;
+  align-self: center;
+}
+
+.justifyCenter {
+  display: flex;
+  justify-content: center;
+  place-items: center;
+}
+
+.custom-h3 {
+  font-weight: normal;
+}
+
+.font-size-25 {
+  font-size: 25px;
+}
+
+.font-green {
+  color: green;;
+}
+
+.border-bottom-dashed {
+  border-bottom-style: dashed; 
+}
+
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px;
+  }
+
+.photo-item {
+    text-align: center;
+
+    img {
+      width: 100%;
+      height: 360px;
+    }
+
+    span {
+      margin-top: 10px;
+      font-family: $font-family;
+      font-size: 1.2em;
+    }
+  }
+
+.loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+
+  p {
+    font-size: 40px;
+    margin-bottom: 10px;
+  }
+
+  .spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #000;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 }
