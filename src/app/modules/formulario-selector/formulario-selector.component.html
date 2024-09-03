@@ -1,0 +1,8 @@
+<div class="list-container">
+  <h2>Seleccione un tipo de formulario</h2>
+  <ul>
+    <li *ngFor="let formulario of tiposFormularios" (click)="seleccionarFormulario(formulario.ruta)">
+      {{ formulario.nombre }}
+    </li>
+  </ul>
+</div>

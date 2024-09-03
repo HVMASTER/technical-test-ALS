@@ -1,0 +1,753 @@
+<div *ngIf="informes" class="list-container">
+  <div *ngIf="!selectedInforme" class="informes-list">
+    <ul>
+      <li *ngFor="let informe of informes" (click)="selectInforme(informe)">
+        {{ informe.numeroInforme }}
+      </li>
+    </ul>
+  </div>
+</div>
+
+<button (click)="deselectInforme()" class="back-button">Volver</button>
+<!-- <button (click)="togglePreview()">Vista Previa</button>
+<button (click)="generatePDF()">Exportar a PDF</button> -->
+<div *ngIf="selectedInforme" class="form-container">
+  <div class="title-main">
+    <h1>INFORME DE INSPECCIÓN VISUAL A CAMIÓN MIXER</h1>
+  </div>
+
+  <div class="page">
+    <div class="content">
+      <form [formGroup]="formMixerMain" class="camion-mixer-form">
+        <div class="form-row">
+          <div class="title">
+            <label>Informe N°</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewNumeroInforme">
+            <input formControlName="numeroInforme" type="text" />
+          </ng-container>
+          <ng-template #viewNumeroInforme>
+            <label>{{ formMixerMain.get("numeroInforme")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Solicitado por / RUT / Fono</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewNombre">
+            <input formControlName="nombre" type="text" />
+          </ng-container>
+          <ng-template #viewNombre>
+            <label>{{ formMixerMain.get("nombre")?.value }}</label>
+          </ng-template>
+          <ng-container *ngIf="isEditing; else viewRut">
+            <input formControlName="rut" type="text" />
+          </ng-container>
+          <ng-template #viewRut>
+            <label>{{ formMixerMain.get("rut")?.value }}</label>
+          </ng-template>
+          <ng-container *ngIf="isEditing; else viewFono">
+            <input formControlName="telefono" type="text" />
+          </ng-container>
+          <ng-template #viewFono>
+            <label>{{ formMixerMain.get("telefono")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Equipo</label>
+          </div>
+          <label>Camión Mixer</label>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Marca / Modelo / Color</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewMarca">
+            <input formControlName="marca" type="text" />
+          </ng-container>
+          <ng-template #viewMarca>
+            <label>{{ formMixerMain.get("marca")?.value }}</label>
+          </ng-template>
+          <ng-container *ngIf="isEditing; else viewModelo">
+            <input formControlName="modelo" type="text" />
+          </ng-container>
+          <ng-template #viewModelo>
+            <label>{{ formMixerMain.get("modelo")?.value }}</label>
+          </ng-template>
+          <ng-container *ngIf="isEditing; else viewColor">
+            <input formControlName="color" type="text" />
+          </ng-container>
+          <ng-template #viewColor>
+            <label>{{ formMixerMain.get("color")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Año</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewAnio">
+            <input formControlName="ano" type="text" />
+          </ng-container>
+          <ng-template #viewAnio>
+            <label>{{ formMixerMain.get("ano")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>N° Motor</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewNumeroMotor">
+            <input formControlName="numMotor" type="text" />
+          </ng-container>
+          <ng-template #viewNumeroMotor>
+            <label>{{ formMixerMain.get("numMotor")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>N° Chasis</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewNumeroChasis">
+            <input formControlName="numChasis" type="text" />
+          </ng-container>
+          <ng-template #viewNumeroChasis>
+            <label>{{ formMixerMain.get("numChasis")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>N° Interno Camión</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewNumeroInternoCamion">
+            <input formControlName="numInternoCamion" type="text" />
+          </ng-container>
+          <ng-template #viewNumeroInternoCamion>
+            <label>{{ formMixerMain.get("numInternoCamion")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Combustible</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewCombustible">
+            <input formControlName="combustible" type="text" />
+          </ng-container>
+          <ng-template #viewCombustible>
+            <label>{{ formMixerMain.get("combustible")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Odómetro actual</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewOdometroActual">
+            <input formControlName="odometroActual" type="number" />
+          </ng-container>
+          <ng-template #viewOdometroActual>
+            <label>{{ formMixerMain.get("odometroActual")?.value }} km</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Horómetro / Kilometraje</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewHorometro">
+            <input formControlName="horometro" type="number" />
+          </ng-container>
+          <ng-template #viewHorometro>
+            <label>{{ formMixerMain.get("horometro")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Patente Vehículo</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewPatenteVehiculo">
+            <input formControlName="patenteVehiculo" type="text" />
+          </ng-container>
+          <ng-template #viewPatenteVehiculo>
+            <label>{{ formMixerMain.get("patenteVehiculo")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Fecha Revisión Técnica</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewFechaRevisionTecnica">
+            <input formControlName="fechaRevisionTecn" type="text" />
+          </ng-container>
+          <ng-template #viewFechaRevisionTecnica>
+            <label>{{ formMixerMain.get("fechaRevisionTec")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Fecha Vencimiento Seguro Obligatorio</label>
+            <label>Fecha Vencimiento Permiso Circulación</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewFechaVencimientoSeguro">
+            <input formControlName="fechaVencimientoSeguro" type="text" />
+          </ng-container>
+          <ng-template #viewFechaVencimientoSeguro>
+            <label>{{ formMixerMain.get("fechaVencSeguroObli")?.value }}</label>
+          </ng-template>
+          <ng-container *ngIf="isEditing; else viewFechaVencimientoPermiso">
+            <input formControlName="fechaVencimientoPermiso" type="text" />
+          </ng-container>
+          <ng-template #viewFechaVencimientoPermiso>
+            <label>{{ formMixerMain.get("fechaVencPermisoCir")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Lugar de inspección</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewLugarInspeccion">
+            <input formControlName="lugarInspeccion" type="text" />
+          </ng-container>
+          <ng-template #viewLugarInspeccion>
+            <label>{{ formMixerMain.get("lugarInspeccion")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Fecha de inspección / Hora</label>
+          </div>
+          <ng-container *ngIf="isEditing; else viewFechaInspeccion">
+            <input formControlName="fechaInspeccion" type="text" />
+          </ng-container>
+          <ng-template #viewFechaInspeccion>
+            <label>{{ formMixerMain.get("fechaInspeccion")?.value }}</label>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Fecha de emisión informe</label>
+          </div>
+          <!-- <ng-container *ngIf="isEditing; else viewFechaEmisionInforme">
+              <input formControlName="fechaEmisionInforme" type="text" />
+            </ng-container>
+            <ng-template #viewFechaEmisionInforme>
+              <label>{{  }}</label>
+            </ng-template> -->
+        </div>
+
+        <div class="form-row">
+          <div class="title">
+            <label>Sello ALS</label>
+          </div>
+          <!-- <ng-container *ngIf="isEditing; else viewSelloALS">
+              <input formControlName="selloALS" type="text" />
+            </ng-container>
+            <ng-template #viewSelloALS>
+              <label>{{  }}</label>
+            </ng-template> -->
+        </div>
+      </form>
+
+      <form>
+        <h2>A.- SISTEMA ELÉCTRICO</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 0 : 19; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="content">
+      <form>
+        <h2>B.- DIRECCIÓN Y EJE DELANTERO</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 19 : 28; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div>
+      
+
+      
+        <h2>C.- SISTEMA DE FRENOS</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 28 : 39; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div>
+      
+
+      
+        <h2>D.- EJE DELANTERO</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 39 : 49; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="content">
+      <form>
+        <h2>E.- EJE TRASERO TÁNDEM</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 49 : 60; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div>
+
+        <h2>F.- 3ER PUENTE</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 60 : 67; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div>
+
+        <h2>G.- SISTEMA NEUMÁTICO</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 67 : 72; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="content">
+      <form>
+        <h2>H.- ESTRUCTURA MIXER</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 72 : 87; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div>
+
+        <h2>I.- SISTEMA HIDRÁULICO MIXER</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 87 : 96; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div>
+
+        <h2>J.- ESTADO PRESURIZADO MIXER</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 96 : 101; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div> 
+      </form>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="content">
+      <form>
+        <h2>K.- TRANSMISIÓN</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 101 : 106; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div>
+
+        <h2>L.- MOTOR</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 106 : 113; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div>
+
+        <h2>M.- VISTA FRONTAL Y CABINA</h2>
+        <div class="form-row-section">
+          <label class="text-center"><strong>N°</strong></label>
+          <label></label>
+          <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+          <label><strong>CUMPLE</strong></label>
+          <label><strong>NO CUMPLE</strong></label>
+        </div>
+        <div *ngFor="let item of itemsWithStatus | slice : 113 : 123; let i = index" class="form-row-section">
+          <!-- Primera columna: Número -->
+          <label class="text-center"><strong>{{ i + 1 }}</strong></label>
+
+          <!-- Segunda columna: Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',')[0] }}</label>
+
+          <!-- Tercera columna: Descripción adicional del Detalle -->
+          <label title="{{ item.detalle }}">{{ item.detalle.split(',').slice(1).join(',') }}</label>
+
+          <!-- Cuarta columna: Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 1">✖</span>
+            </span>
+          </label>
+
+          <!-- Quinta columna: No Cumple -->
+          <label class="text-center">
+            <span class="cuadrado">
+              <span *ngIf="item.idStatus === 2">✖</span>
+            </span>
+          </label>
+        </div>  
+      </form>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="content">
+      <form>
+        <br><br>
+        <div class="semi-title">
+          <h2><strong>TORQUE TUERCA RUEDAS: 480 LBF</strong></h2>
+        </div>
+        <br>
+        <div class="imagenes">
+          <img src="./../../../assets/formulario_mixer/Torque tuerca ruedas 480 LBF.png" alt="Torque tuerca ruedas">
+          <img src="./../../../assets/formulario_mixer/Metodo medicion tuercas.png" alt="Metodo medicion tuercas">
+        </div>
+        <br>
+        <div class="subtitle"><label>Todos los pernos inspeccionados cumplen con el torque indicado.</label></div>
+        <br><br>
+        <div class="semi-title">
+          <h2><strong>ESPESOR BETONERA: Mínimo admisible 2,0mm</strong></h2>
+        </div>
+        <br>
+        <!-- <div class="imagenes">
+          <img src="./../../../assets/formulario_mixer/Espesor betonera.png" alt="Espesor betonera">
+        </div>
+        <div class="espesor-betonera">
+        </div> -->
+      </form>
+    </div>
+  </div>
+</div>
