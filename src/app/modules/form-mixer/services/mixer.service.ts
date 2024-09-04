@@ -63,4 +63,12 @@ export class MixerService {
   getNombreFormMixer() {
     return this.http.get<any[]>(`${this.baseUrl}getNombreFormMixer`);
   }
+
+  editInformeMixer(informeData: any) {
+    return this.http.put<any>(`${this.baseUrl}editInformeMixer`, informeData);
+  }
+
+  editItemMixer(itemData: any) {
+    return this.http.put<any>(`${this.baseUrl}editItemMixer`, itemData);
+  }
 }

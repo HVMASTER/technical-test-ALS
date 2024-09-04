@@ -73,7 +73,7 @@ form {
 .title2 {
   border: 1px solid $border-color;
   background-color: $primary-row-color;
-  margin: 30px 0 0 0;
+  margin: 0;
  }
 
 .form-container {
@@ -373,6 +373,7 @@ form {
   z-index: 1000;
 
   p {
+    font-family: $font-family;
     font-size: 40px;
     margin-bottom: 10px;
   }
@@ -394,4 +395,12 @@ form {
       transform: rotate(360deg);
     }
   }
+}
+
+.edit-save-buttons {
+  display: block;
+}
+
+.preview-mode .edit-save-buttons {
+  display: none;
 }
