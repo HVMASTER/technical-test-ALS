@@ -29,7 +29,9 @@ export class FormComponent implements OnInit, OnDestroy {
   photos: any;
   photoUrl: string = '';
   tituloForm: any[] = [];
-  isEditing: boolean = false;
+  savingMessage = '';
+  isSaving = false; 
+  isEditing = false;
   isPreviewMode = false;
   isEditingStatusA = false;
   isEditingStatusB = false;
@@ -474,6 +476,19 @@ export class FormComponent implements OnInit, OnDestroy {
     return date ? this.datePipe.transform(date, 'dd-MM-yyyy')! : '';
   }
 
+  // Función para restaurar los valores originales
+  restoreOriginalValues() {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+  }
+
+refreshStatus() {
+  if (this.selectedInforme) {
+    this.loadItemDetails(this.selectedInforme.idInforme);
+  }
+}
+
   toggleEdit() {
     if (!this.isEditing) {
         // Guardar los valores actuales antes de comenzar la edición
@@ -685,47 +700,68 @@ export class FormComponent implements OnInit, OnDestroy {
 
   saveChangesStatusA() {
     if (this.selectedInforme) {
-      const idInforme = this.selectedInforme.idInforme;
+        this.isSaving = true; // Activar el spinner
+        this.savingMessage = 'Guardando cambios, por favor espere...'; 
 
-      const itemsToUpdate = this.itemsWithStatus.slice(0, 11); //items del 1 al 11
+        const idInforme = this.selectedInforme.idInforme;
 
-      if (itemsToUpdate.length === 0) {
-        console.log('No se encontraron ítems para actualizar en la tabla A.');
-        return;
-      }
-
-      itemsToUpdate.forEach(item => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle
-        };
-
-        this.formService.editItemPuente(itemData).subscribe({
-          next: (response) => {
-            this.showMessage = true;
-            this.messageText = 'Datos actualizados exitosamente.';
-            this.messageType = 'success';
-
-            // Si el status es N/C o RE, agregar al punto G
-            if (item.idStatus === 2 || item.idStatus === 4) {
-              this.addItemToG(item);
-            }
-
-            setTimeout(() => this.showMessage = false, 3000);
-          },
-          error: (error) => {
-            console.error(`Error al actualizar el item ${item.idItem}:`, error);
-            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            this.showMessage = true;
-          }
+        // Filtrar solo los ítems que han sido modificados
+        const itemsToUpdate = this.itemsWithStatus.slice(0, 11).filter((item, index) => {
+            const originalItem = this.originalValues[index];
+            return originalItem && (item.idStatus !== originalItem.idStatus);
         });
-      });
 
-      this.isEditingStatusA = false;
+        if (itemsToUpdate.length === 0) {
+            console.log('No se encontraron ítems modificados para actualizar en la tabla A.');
+            this.isSaving = false;
+            return;
+        }
+
+        // Crear un array con los datos de los ítems
+        const itemsData = itemsToUpdate.map(item => ({
+            idStatus: item.idStatus,
+            idInforme: idInforme,
+            idDetalle: item.idDetalle
+        }));
+
+        console.log('Items data:', itemsData);
+
+        this.formService.editItemPuente(itemsData).pipe().subscribe({
+            next: (response) => {
+                if ((response as any).success) {
+                    this.showMessage = true;
+                    this.messageText = 'Datos actualizados exitosamente.';
+                    this.messageType = 'success';
+
+                    // Si algún ítem tiene el status N/C o RE, agregar al punto G
+                    itemsToUpdate.forEach(item => {
+                        if (item.idStatus === 2 || item.idStatus === 4) {
+                            this.addItemToG(item); // Agregar al punto G
+                        }
+                    });
+                    
+                    this.refreshStatus();
+                } else {
+                    this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
+                    this.messageType = 'error';
+                    this.refreshStatus();
+                }
+            },
+            error: (error) => {
+                this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+                this.messageType = 'error';
+                console.error('Error actualizando los datos:', error);
+                this.restoreOriginalValues();
+            },
+            complete: () => {
+                this.showMessage = true;
+                setTimeout(() => (this.showMessage = false), 3000);
+                this.isSaving = false; // Desactivar el spinner
+                this.isEditingStatusA = false;
+            }
+        });
     }
-  }
+}
 
   saveChangesStatusB() {
     if (this.selectedInforme) {

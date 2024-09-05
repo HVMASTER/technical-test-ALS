@@ -71,4 +71,18 @@ export class MixerService {
   editItemMixer(itemData: any) {
     return this.http.put<any>(`${this.baseUrl}editItemMixer`, itemData);
   }
+
+  editTorqueMixer(descriptionData: any) {
+    return this.http.put<any>(
+      `${this.baseUrl}editTorqueMixer`,
+      descriptionData
+    );
+  }
+
+  editBetoneraMixer(betoneraData: any) {
+    return this.http.put<any>(
+      `${this.baseUrl}editBetoneraMixer`,
+      betoneraData
+    );
+  }
 }
