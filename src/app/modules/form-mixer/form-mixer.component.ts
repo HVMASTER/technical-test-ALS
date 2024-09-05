@@ -25,7 +25,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   originalValues: any;
   photoUrl: string = '';
   savingMessage = '';
-  isSaving = false; 
+  isSaving = false;
   isEditing = false;
   isEditingStatusA = false;
   isEditingStatusB = false;
@@ -40,6 +40,8 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   isEditingStatusK = false;
   isEditingStatusL = false;
   isEditingStatusM = false;
+  isEditingTorque = false;
+  isEditingBetonera = false;
   isPreviewMode = false;
   showHeaderFooter = false;
   isLoading = false;
@@ -315,7 +317,9 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response.success && response.photos.length > 0) {
-            const validPhotos = response.photos.filter((photo: any) => this.isValidBase64(photo.data));
+            const validPhotos = response.photos.filter((photo: any) =>
+              this.isValidBase64(photo.data)
+            );
 
             if (validPhotos.length > 0) {
               this.photos = validPhotos;
@@ -334,7 +338,8 @@ export class FormMixerComponent implements OnInit, OnDestroy {
 
   // Método para verificar si una cadena es Base64 válida
   private isValidBase64(data: string): boolean {
-    const base64Regex = /^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/;
+    const base64Regex =
+      /^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/;
     return !!data && base64Regex.test(data);
   }
 
@@ -346,7 +351,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
         next: (response) => {
           if (response && response.length > 0) {
             this.torqueDescription = response[0];
-          }  
+          }
         },
         error: (error) => {
           console.error('Error fetching torque description:', error);
@@ -375,16 +380,16 @@ export class FormMixerComponent implements OnInit, OnDestroy {
     }));
   }
 
-refreshStatus() {
-  this.loadItemDetails(this.selectedInforme.idInforme);
-}
+  refreshStatus() {
+    this.loadItemDetails(this.selectedInforme.idInforme);
+  }
 
   handleError(error?: any) {
     console.error('Error actualizando los datos', error);
     this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
     this.messageType = 'error';
     this.showMessage = true;
-    setTimeout(() => this.showMessage = false, 3000);
+    setTimeout(() => (this.showMessage = false), 3000);
   }
 
   toggleEdit() {
@@ -421,7 +426,7 @@ refreshStatus() {
         ...item,
       }));
     }
-    this.isEditingStatusB = !this.isEditingStatusB; 
+    this.isEditingStatusB = !this.isEditingStatusB;
   }
 
   toggleEditStatusC() {
@@ -567,6 +572,24 @@ refreshStatus() {
     this.isEditingStatusM = !this.isEditingStatusM;
   }
 
+  toggleEditTorque() {
+    if (!this.isEditingTorque) {
+      this.originalValues = this.torqueDescription;
+    } else {
+      this.torqueDescription = this.originalValues;
+    }
+    this.isEditingTorque = !this.isEditingTorque;
+  }
+
+  toggleEditBetonera() {
+  if (!this.isEditingBetonera) {
+    this.originalValues = { ...this.betoneraData };
+  } else {
+    this.betoneraData = { ...this.originalValues };
+  }
+  this.isEditingBetonera = !this.isEditingBetonera;
+}
+
   saveChanges() {
     if (this.formMixerMain.valid && this.selectedInforme) {
       const InformeData = {
@@ -582,7 +605,7 @@ refreshStatus() {
           this.messageText = response.message;
           this.messageType = 'success';
           this.isEditing = false;
-          setTimeout(() => this.showMessage = false, 3000);
+          setTimeout(() => (this.showMessage = false), 3000);
         },
         error: (error) => {
           console.error('Error al actualizar los datos:', error);
@@ -598,762 +621,975 @@ refreshStatus() {
     }
   }
 
-  saveChangesStatusA(retryCount: number = 3) {
+  saveChangesStatusA() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(0, 19)
+        .filter((item, index) => {
+          const originalItem = this.originalValues[index];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla A.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      console.log('Items data:', itemsData);
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusA = false;
+          },
+        });
+    }
+  }
+
+  saveChangesStatusB() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados, ajustando el índice
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(19, 28)
+        .filter((item, index) => {
+          const globalIndex = 19 + index; // Ajustar el índice
+          const originalItem = this.originalValues[globalIndex];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla B.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      console.log('Items data:', itemsData);
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusB = false;
+          },
+        });
+    }
+  }
+
+  saveChangesStatusC() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(28, 39)
+        .filter((item, index) => {
+          const globalIndex = 28 + index; // Ajuste de índice
+          const originalItem = this.originalValues[globalIndex];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla C.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      console.log('Items data:', itemsData);
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusC = false;
+          },
+        });
+    }
+  }
+
+  saveChangesStatusD() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(39, 49)
+        .filter((item, index) => {
+          const globalIndex = 39 + index; // Ajuste de índice
+          const originalItem = this.originalValues[globalIndex];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla D.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      console.log('Items data:', itemsData);
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusD = false;
+          },
+        });
+    }
+  }
+
+  saveChangesStatusE() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(49, 60)
+        .filter((item, index) => {
+          const globalIndex = 49 + index; // Ajuste de índice
+          const originalItem = this.originalValues[globalIndex];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla E.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      console.log('Items data:', itemsData);
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusE = false;
+          },
+        });
+    }
+  }
+
+  saveChangesStatusF() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(60, 67)
+        .filter((item, index) => {
+          const globalIndex = 60 + index; // Ajuste de índice
+          const originalItem = this.originalValues[globalIndex];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla F.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      console.log('Items data:', itemsData);
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusF = false;
+          },
+        });
+    }
+  }
+
+  saveChangesStatusG() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(67, 72)
+        .filter((item, index) => {
+          const globalIndex = 67 + index; // Ajuste de índice
+          const originalItem = this.originalValues[globalIndex];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla G.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      console.log('Items data:', itemsData);
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusG = false;
+          },
+        });
+    }
+  }
+
+  saveChangesStatusH() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(72, 87)
+        .filter((item, index) => {
+          const globalIndex = 72 + index; // Ajuste de índice
+          const originalItem = this.originalValues[globalIndex];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla H.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      console.log('Items data:', itemsData);
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusH = false;
+          },
+        });
+    }
+  }
+
+  saveChangesStatusI() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(87, 96)
+        .filter((item, index) => {
+          const globalIndex = 87 + index; // Ajuste de índice
+          const originalItem = this.originalValues[globalIndex];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla I.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      console.log('Items data:', itemsData);
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusI = false;
+          },
+        });
+    }
+  }
+
+  saveChangesStatusJ() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(96, 101)
+        .filter((item, index) => {
+          const globalIndex = 96 + index; // Ajuste de índice
+          const originalItem = this.originalValues[globalIndex];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla J.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      console.log('Items data:', itemsData);
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusJ = false;
+          },
+        });
+    }
+  }
+
+  saveChangesStatusK() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(101, 106)
+        .filter((item, index) => {
+          const globalIndex = 101 + index; // Ajuste de índice
+          const originalItem = this.originalValues[globalIndex];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla K.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      console.log('Items data:', itemsData);
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusK = false;
+          },
+        });
+    }
+  }
+
+  saveChangesStatusL() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(106, 113)
+        .filter((item, index) => {
+          const globalIndex = 106 + index; // Ajuste de índice
+          const originalItem = this.originalValues[globalIndex];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla L.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      console.log('Items data:', itemsData);
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusL = false;
+          },
+        });
+    }
+  }
+
+  saveChangesStatusM() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      // Filtrar solo los ítems que han sido modificados
+      const itemsToUpdate = this.itemsWithStatus
+        .slice(113, 123)
+        .filter((item, index) => {
+          const globalIndex = 113 + index; // Ajuste de índice
+          const originalItem = this.originalValues[globalIndex];
+          return originalItem && item.idStatus !== originalItem.idStatus;
+        });
+
+      if (itemsToUpdate.length === 0) {
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla M.'
+        );
+        this.isSaving = false;
+        return;
+      }
+
+      // array con los datos de los ítems
+      const itemsData = itemsToUpdate.map((item) => ({
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      }));
+
+      this.mixerService
+        .editItemMixer(itemsData)
+        .pipe()
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+              this.refreshStatus();
+              this.restoreOriginalValues();
+            }
+          },
+          error: (error) => {
+            this.messageText =
+              'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            console.error('Error actualizando los datos:', error);
+            this.refreshStatus();
+            this.restoreOriginalValues();
+          },
+          complete: () => {
+            this.showMessage = true;
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false; // Desactivar el spinner
+            this.isEditingStatusM = false;
+          },
+        });
+    }
+  }
+
+  saveChangesTorque() {
+    const descriptionData = {
+    idInforme: this.selectedInforme.idInforme,
+    descripcionTorque: this.torqueDescription.descripcionTorque
+  };
+
+  this.mixerService.editTorqueMixer(descriptionData).subscribe({
+    next: (response) => {
+      if (response.success) {
+        this.showMessage = true;
+        this.messageText = 'Descripción actualizada exitosamente.';
+        this.messageType = 'success';
+      } else {
+        this.messageText = 'Error al actualizar la descripción.';
+        this.messageType = 'error';
+      }
+    },
+    error: (error) => {
+      this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+      this.messageType = 'error';
+      console.error('Error actualizando los datos:', error);
+    },
+    complete: () => {
+      this.showMessage = true;
+      setTimeout(() => (this.showMessage = false), 3000);
+      this.isEditingTorque = false; // Desactivar el modo de edición
+    }
+  });
+  }
+
+  onTorqueDescriptionChange(value: string) {
+    this.torqueDescription.descripcionTorque = value;
+  }
+
+  saveChangesBetonera() {
   if (this.selectedInforme) {
-
-    this.isSaving = true; // Activar el spinner
-    this.savingMessage = 'Guardando cambios, por favor espere...'; 
-
-    const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(0, 19);
-
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en la tabla A.');
-      return;
-    }
-
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
-
-      return this.mixerService.editItemMixer(itemData).toPromise();
-    });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-        }
-        this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusA = false;
-  }
-}
-
-  saveChangesStatusB(retryCount: number = 3) {
-    if (this.selectedInforme) {
-    
-    this.isSaving = true; // Activar el spinner
-    this.savingMessage = 'Guardando cambios, por favor espere...'; 
-
-
-    const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(19, 28);
-
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en la tabla B.');
-      return;
-    }
-
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
-
-      return this.mixerService.editItemMixer(itemData).toPromise();
-    });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-        }
-          this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusB = false; // Deshabilitar el modo de edición después de guardar
-    }
-  }
-
-  saveChangesStatusC(retryCount: number = 3) {
-    if (this.selectedInforme) {
-
     this.isSaving = true; // Activar el spinner
     this.savingMessage = 'Guardando cambios, por favor espere...';
 
     const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(28, 39);
 
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en la tabla C.');
+    const betoneraDataToUpdate = {
+      ...this.originalValues, // Mantener los campos no modificados
+      ...Object.keys(this.betoneraData).reduce((acc, key) => {
+        if (this.betoneraData[key] !== this.originalValues[key]) {
+          acc[key] = this.betoneraData[key]; // Solo sobrescribir los campos modificados
+        }
+        return acc;
+      }, {} as Record<string, any>)
+    };
+
+    // Agregar idInforme al objeto de actualización
+    betoneraDataToUpdate['idInforme'] = idInforme;
+
+    if (Object.keys(betoneraDataToUpdate).length === 0) {
+      console.log('No se encontraron campos modificados para actualizar.');
+      this.isSaving = false;
+      this.isEditingBetonera = false;
       return;
     }
 
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
+    console.log('Betonera data to update:', betoneraDataToUpdate);
 
-      return this.mixerService.editItemMixer(itemData).toPromise();
-    });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
+    // Llamada al servicio para actualizar los datos
+    this.mixerService.editBetoneraMixer(betoneraDataToUpdate).subscribe({
+      next: (response) => {
+        if (response.success) {
           this.showMessage = true;
           this.messageText = 'Datos actualizados exitosamente.';
           this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
         } else {
           this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
           this.messageType = 'error';
-          this.showMessage = true;
         }
-          this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusC = false; // Deshabilitar el modo de edición después de guardar
-    }
-  }
-
-  saveChangesStatusD(retryCount: number = 3) {
-    if (this.selectedInforme) {
-    
-    this.isSaving = true; // Activar el spinner
-
-    const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(39, 49);
-
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en el formulario Mixer.');
-      return;
-    }
-
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
-
-      return this.mixerService.editItemMixer(itemData).toPromise();
+      },
+      error: (error) => {
+        this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+        this.messageType = 'error';
+        console.error('Error actualizando los datos:', error);
+      },
+      complete: () => {
+        this.showMessage = true;
+        setTimeout(() => (this.showMessage = false), 3000);
+        this.isSaving = false; // Desactivar el spinner
+        this.isEditingBetonera = false;
+      }
     });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-        }
-          this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusD = false; // Deshabilitar el modo de edición después de guardar
-    }
   }
-
-  saveChangesStatusE(retryCount: number = 3) {
-    if (this.selectedInforme) {
-    
-    this.isSaving = true; // Activar el spinner
-
-    const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(49, 60);
-
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en la tabla E.');
-      return;
-    }
-
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
-
-      return this.mixerService.editItemMixer(itemData).toPromise();
-    });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-        }
-          this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusE = false; // Deshabilitar el modo de edición después de guardar
-    }
-  }
-
-  saveChangesStatusF(retryCount: number = 3) {
-    if (this.selectedInforme) {
-    
-    this.isSaving = true; // Activar el spinner
-
-    const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(60, 67);
-
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en la tabla F.');
-      return;
-    }
-
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
-
-      return this.mixerService.editItemMixer(itemData).toPromise();
-    });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-        }
-          this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusF = false; // Deshabilitar el modo de edición después de guardar
-    }
-  }
-
-  saveChangesStatusG(retryCount: number = 3) {
-    if (this.selectedInforme) {
-    
-    this.isSaving = true; // Activar el spinner
-
-    const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(67, 72);
-
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en la tabla G.');
-      return;
-    }
-
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
-
-      return this.mixerService.editItemMixer(itemData).toPromise();
-    });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-        }
-          this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusG = false; // Deshabilitar el modo de edición después de guardar
-    }
-  }
-
-  saveChangesStatusH(retryCount: number = 3) {
-    if (this.selectedInforme) {
-    
-    this.isSaving = true; // Activar el spinner
-
-    const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(72, 87);
-
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en la tabla H.');
-      return;
-    }
-
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
-
-      return this.mixerService.editItemMixer(itemData).toPromise();
-    });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-        }
-          this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusH = false; // Deshabilitar el modo de edición después de guardar
-    }
-  }
-
-  saveChangesStatusI(retryCount: number = 3) {
-    if (this.selectedInforme) {
-    
-    this.isSaving = true; // Activar el spinner
-
-    const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(87, 96);
-
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en la tabla I.');
-      return;
-    }
-
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
-
-      return this.mixerService.editItemMixer(itemData).toPromise();
-    });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-        }
-          this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusI = false; // Deshabilitar el modo de edición después de guardar
-    }
-  }
-
-  saveChangesStatusJ(retryCount: number = 3) {
-    if (this.selectedInforme) {
-    
-    this.isSaving = true; // Activar el spinner
-
-    const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(96, 101);
-
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en la tabla J.');
-      return;
-    }
-
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
-
-      return this.mixerService.editItemMixer(itemData).toPromise();
-    });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-        }
-          this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusJ = false; // Deshabilitar el modo de edición después de guardar
-    }
-  }
-
-  saveChangesStatusK(retryCount: number = 3) {
-    if (this.selectedInforme) {
-    
-    this.isSaving = true; // Activar el spinner
-
-    const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(101, 106);
-
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en la tabla K.');
-      return;
-    }
-
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
-
-      return this.mixerService.editItemMixer(itemData).toPromise();
-    });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-        }
-          this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusK = false; // Deshabilitar el modo de edición después de guardar
-    }
-  }
-
-  saveChangesStatusL(retryCount: number = 3) {
-    if (this.selectedInforme) {
-    
-    this.isSaving = true; // Activar el spinner
-
-    const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(106, 113);
-
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en la tabla L.');
-      return;
-    }
-
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
-
-      return this.mixerService.editItemMixer(itemData).toPromise();
-    });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-        }
-          this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusL = false; // Deshabilitar el modo de edición después de guardar
-    }
-  }
-
-  saveChangesStatusM(retryCount: number = 3) {
-    if (this.selectedInforme) {
-    
-    this.isSaving = true; // Activar el spinner
-
-    const idInforme = this.selectedInforme.idInforme;
-    const itemsToUpdate = this.itemsWithStatus.slice(113, 123);
-
-    if (itemsToUpdate.length === 0) {
-      console.log('No se encontraron ítems para actualizar en la tabla M.');
-      return;
-    }
-
-    const updatePromises = itemsToUpdate.map(item => {
-      const itemData = {
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle
-      };
-
-      return this.mixerService.editItemMixer(itemData).toPromise();
-    });
-
-    Promise.all(updatePromises)
-      .then((responses) => {
-        if (responses.every(response => response.success)) {
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-        }
-          this.isSaving = false;  // Desactivar el spinner
-      })
-      .catch((error) => {
-        if (retryCount > 0 && error?.status === 500 && error?.error?.message?.includes("Deadlock")) {
-          console.log('Deadlock detected, retrying...');
-          this.retryCount = retryCount;
-          this.savingMessage = `Reintentando... (${4 - retryCount} de 3)`;  // Mensaje de reintento
-          setTimeout(() => this.saveChangesStatusA(retryCount - 1), 2000); // Reintentar después de un breve retraso
-        } else {
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.showMessage = true;
-          console.error('Error actualizando los datos:', error);
-          this.isSaving = false; // Desactivar el spinner
-          this.restoreOriginalValues();
-          this.refreshStatus();
-        }
-      });
-
-    this.isEditingStatusM = false; // Deshabilitar el modo de edición después de guardar
-    }
-  }
+}
 
 }

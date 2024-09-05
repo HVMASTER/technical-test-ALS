@@ -1138,7 +1138,6 @@
     <div class="page">
       <div class="content">
         <form>
-
           <br /><br />
           <div *ngIf="!isPreviewMode">
             <button type="button" (click)="toggleEditStatusK()">
@@ -1392,6 +1391,19 @@
       <div class="content">
         <form>
           <br /><br />
+
+          <div *ngIf="!isPreviewMode">
+            <button type="button" (click)="toggleEditTorque()">
+              {{ isEditingTorque ? "Cancelar" : "Editar" }}
+            </button>
+            <button
+              type="button"
+              *ngIf="isEditingTorque"
+              (click)="saveChangesTorque()"
+            >
+              Guardar
+            </button>
+          </div>
           <div class="semi-title text-center">
             <h2 *ngIf="tituloForm.length > 0">
               <strong>{{ tituloForm[13].nombre }}</strong>
@@ -1409,10 +1421,33 @@
             />
           </div>
           <br />
-          <div *ngIf="torqueDescription" class="subtitle">
-            <label>{{ torqueDescription.descripcionTorque }}</label>
+          <div *ngIf="torqueDescription" class="subtitle torqDescription">
+            <ng-container *ngIf="isEditingTorque; else viewModeTorque">
+              <input
+                type="text"
+                [(ngModel)]="torqueDescription.descripcionTorque"
+                (ngModelChange)="onTorqueDescriptionChange($event)"
+                name="descripcionTorque"
+              />
+            </ng-container>
+            <ng-template #viewModeTorque>
+              <label>{{ torqueDescription.descripcionTorque }}</label>
+            </ng-template>
           </div>
           <br /><br />
+
+          <div *ngIf="!isPreviewMode">
+            <button type="button" (click)="toggleEditBetonera()">
+              {{ isEditingBetonera ? "Cancelar" : "Editar" }}
+            </button>
+            <button
+              type="button"
+              *ngIf="isEditingBetonera"
+              (click)="saveChangesBetonera()"
+            >
+              Guardar
+            </button>
+          </div>
           <div class="semi-title text-center">
             <h2 *ngIf="tituloForm.length > 0">
               <strong>{{ tituloForm[14].nombre }}</strong>
@@ -1427,12 +1462,34 @@
               />
             </div>
             <div *ngIf="betoneraData" class="espesor-betonera">
-              <label>A={{ betoneraData.EspeBotoA }} MM</label>
-              <label>B={{ betoneraData.EspeBotoB }} MM</label>
-              <label>C={{ betoneraData.EspeBotoC }} MM</label>
-              <label>D={{ betoneraData.EspeBotoD }} MM</label>
-              <label>E={{ betoneraData.EspeBotoE }} MM</label>
-              <label>F={{ betoneraData.EspeBotoF }} MM</label>
+              <ng-container *ngIf="isEditingBetonera; else viewModeBetonera">
+                <label
+                  >A=<input type="text" [(ngModel)]="betoneraData.EspeBotoA" name="espeBotoA"
+                /></label>
+                <label
+                  >B=<input type="text" [(ngModel)]="betoneraData.EspeBotoB" name="espeBotoB"
+                /></label>
+                <label
+                  >C=<input type="text" [(ngModel)]="betoneraData.EspeBotoC" name="espeBotoC"
+                /></label>
+                <label
+                  >D=<input type="text" [(ngModel)]="betoneraData.EspeBotoD" name="espeBotoD"
+                /></label>
+                <label
+                  >E=<input type="text" [(ngModel)]="betoneraData.EspeBotoE" name="espeBotoE"
+                /></label>
+                <label
+                  >F=<input type="text" [(ngModel)]="betoneraData.EspeBotoF" name="espeBotoF"
+                /></label>
+              </ng-container>
+              <ng-template #viewModeBetonera>
+                <label>A={{ betoneraData.EspeBotoA }} MM</label>
+                <label>B={{ betoneraData.EspeBotoB }} MM</label>
+                <label>C={{ betoneraData.EspeBotoC }} MM</label>
+                <label>D={{ betoneraData.EspeBotoD }} MM</label>
+                <label>E={{ betoneraData.EspeBotoE }} MM</label>
+                <label>F={{ betoneraData.EspeBotoF }} MM</label>
+              </ng-template>
             </div>
           </div>
         </form>

@@ -181,7 +181,7 @@ form {
   border: 1px solid $border-color;
 
   img {
-    width: 730px;
+    width: 95vh;
     margin: 0 30px 0 70px;
   }
 }
@@ -208,6 +208,7 @@ form {
   background-color: $primary-row-color;
   border: 1px solid $border-color;
   inline-size: -webkit-fill-available;
+  contain: strict;
 
   label {
     padding: 10px 185px 10px 10px;
@@ -403,4 +404,12 @@ form {
 
 .preview-mode .edit-save-buttons {
   display: none;
+}
+
+.torqDescription {
+
+  input {
+    width: 1000px;
+    font-size: large;
+  }
 }
