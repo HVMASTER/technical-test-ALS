@@ -35,6 +35,17 @@
     >
     </app-info-message>
 
+    <app-report-modal-component 
+      *ngIf="showModal"
+      [idInforme]="selecInforme"
+      [numeroInforme]="selecNumInforme"
+      [idDetalle]="selecDetalle"
+      [idStatus]="selecStatus"
+      (save)="closeModal($event)"
+      (cancel)="cancelModal()"
+    >
+    </app-report-modal-component>
+
     <div id="contentToConvert">
       <div *ngIf="showHeaderFooter" class="header">
         <app-header></app-header>
@@ -48,7 +59,10 @@
         <div class="content">
           <form [formGroup]="formMixerMain" class="camion-mixer-form">
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-              <button (click)="toggleEdit()">
+              <button
+                (click)="toggleEdit()"
+                [disabled]="isAnyEditing && !isEditing"
+              >
                 {{ isEditing ? "Cancelar" : "Editar" }}
               </button>
               <button *ngIf="isEditing" (click)="saveChanges()">Guardar</button>
@@ -300,7 +314,11 @@
           <form>
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusA()">
+              <button
+                type="button"
+                (click)="toggleEditStatusA()"
+                [disabled]="isAnyEditing && !isEditingStatusA"
+              >
                 {{ isEditingStatusA ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -351,7 +369,7 @@
                     [name]="'option_cumple_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -369,7 +387,7 @@
                     [name]="'option_no_cumple_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -378,15 +396,9 @@
                   >
                 </ng-template>
               </div>
-              <div *ngIf="item.idStatus === 2 && isEditingStatusA">
-                <textarea
-                  [(ngModel)]="item.descripcionNoCumple"
-                  name="NC-A"
-                  placeholder="Agrega una descripción"
-                ></textarea>
-              </div>
             </div>
           </form>
+
         </div>
       </div>
 
@@ -395,7 +407,11 @@
           <form>
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusB()">
+              <button
+                type="button"
+                (click)="toggleEditStatusB()"
+                [disabled]="isAnyEditing && !isEditingStatusB"
+              >
                 {{ isEditingStatusB ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -451,7 +467,7 @@
                     [name]="'option_cumple_b_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -469,7 +485,7 @@
                     [name]="'option_no_cumple_b_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -482,7 +498,11 @@
 
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusC()">
+              <button
+                type="button"
+                (click)="toggleEditStatusC()"
+                [disabled]="isAnyEditing && !isEditingStatusC"
+              >
                 {{ isEditingStatusC ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -533,7 +553,7 @@
                     [name]="'option_cumple_b_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -551,7 +571,7 @@
                     [name]="'option_no_cumple_b_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -564,7 +584,11 @@
 
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusD()">
+              <button
+                type="button"
+                (click)="toggleEditStatusD()"
+                [disabled]="isAnyEditing && !isEditingStatusD"
+              >
                 {{ isEditingStatusD ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -615,7 +639,7 @@
                     [name]="'option_cumple_b_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -633,7 +657,7 @@
                     [name]="'option_no_cumple_b_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -652,7 +676,11 @@
           <form>
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusE()">
+              <button
+                type="button"
+                (click)="toggleEditStatusE()"
+                [disabled]="isAnyEditing && !isEditingStatusE"
+              >
                 {{ isEditingStatusE ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -703,7 +731,7 @@
                     [name]="'option_cumple_b_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -721,7 +749,7 @@
                     [name]="'option_no_cumple_b_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -734,7 +762,11 @@
 
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusF()">
+              <button
+                type="button"
+                (click)="toggleEditStatusF()"
+                [disabled]="isAnyEditing && !isEditingStatusF"
+              >
                 {{ isEditingStatusF ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -785,7 +817,7 @@
                     [name]="'option_cumple_b_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -803,7 +835,7 @@
                     [name]="'option_no_cumple_b_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -816,7 +848,11 @@
 
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusG()">
+              <button
+                type="button"
+                (click)="toggleEditStatusG()"
+                [disabled]="isAnyEditing && !isEditingStatusG"
+              >
                 {{ isEditingStatusG ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -867,7 +903,7 @@
                     [name]="'option_cumple_b_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -885,7 +921,7 @@
                     [name]="'option_no_cumple_b_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -904,7 +940,11 @@
           <form>
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusH()">
+              <button
+                type="button"
+                (click)="toggleEditStatusH()"
+                [disabled]="isAnyEditing && !isEditingStatusH"
+              >
                 {{ isEditingStatusH ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -955,7 +995,7 @@
                     [name]="'option_cumple_b_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -973,7 +1013,7 @@
                     [name]="'option_no_cumple_b_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -986,7 +1026,11 @@
 
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusI()">
+              <button
+                type="button"
+                (click)="toggleEditStatusI()"
+                [disabled]="isAnyEditing && !isEditingStatusI"
+              >
                 {{ isEditingStatusI ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -1037,7 +1081,7 @@
                     [name]="'option_cumple_b_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -1055,7 +1099,7 @@
                     [name]="'option_no_cumple_b_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -1068,7 +1112,11 @@
 
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusJ()">
+              <button
+                type="button"
+                (click)="toggleEditStatusJ()"
+                [disabled]="isAnyEditing && !isEditingStatusJ"
+              >
                 {{ isEditingStatusJ ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -1119,7 +1167,7 @@
                     [name]="'option_cumple_b_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -1137,7 +1185,7 @@
                     [name]="'option_no_cumple_b_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -1156,7 +1204,11 @@
           <form>
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusK()">
+              <button
+                type="button"
+                (click)="toggleEditStatusK()"
+                [disabled]="isAnyEditing && !isEditingStatusK"
+              >
                 {{ isEditingStatusK ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -1207,7 +1259,7 @@
                     [name]="'option_cumple_b_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -1225,7 +1277,7 @@
                     [name]="'option_no_cumple_b_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -1238,7 +1290,11 @@
 
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusL()">
+              <button
+                type="button"
+                (click)="toggleEditStatusL()"
+                [disabled]="isAnyEditing && !isEditingStatusL"
+              >
                 {{ isEditingStatusL ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -1289,7 +1345,7 @@
                     [name]="'option_cumple_b_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -1307,7 +1363,7 @@
                     [name]="'option_no_cumple_b_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -1320,7 +1376,11 @@
 
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditStatusM()">
+              <button
+                type="button"
+                (click)="toggleEditStatusM()"
+                [disabled]="isAnyEditing && !isEditingStatusM"
+              >
                 {{ isEditingStatusM ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -1371,7 +1431,7 @@
                     [name]="'option_cumple_b_' + i"
                     [value]="1"
                     [checked]="item.idStatus === 1"
-                    (change)="selectStatus(item, '1')"
+                    (change)="selectStatus(item, '1', i)"
                   />✖
                 </div>
                 <ng-template #viewModeCumple>
@@ -1389,7 +1449,7 @@
                     [name]="'option_no_cumple_b_' + i"
                     [value]="2"
                     [checked]="item.idStatus === 2"
-                    (change)="selectStatus(item, '2')"
+                    (change)="selectStatus(item, '2', i)"
                   />✖
                 </div>
                 <ng-template #viewModeNoCumple>
@@ -1409,7 +1469,11 @@
             <br /><br />
 
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditTorque()">
+              <button
+                type="button"
+                (click)="toggleEditTorque()"
+                [disabled]="isAnyEditing && !isEditingTorque"
+              >
                 {{ isEditingTorque ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -1453,7 +1517,11 @@
             <br /><br />
 
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditBetonera()">
+              <button
+                type="button"
+                (click)="toggleEditBetonera()"
+                [disabled]="isAnyEditing && !isEditingBetonera"
+              >
                 {{ isEditingBetonera ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -1535,7 +1603,11 @@
           <form [formGroup]="formMixerMain">
             <br /><br />
             <div *ngIf="!isPreviewMode">
-              <button type="button" (click)="toggleEditDescription()">
+              <button
+                type="button"
+                (click)="toggleEditDescription()"
+                [disabled]="isAnyEditing && !isEditingDescription"
+              >
                 {{ isEditingDescription ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -1606,6 +1678,23 @@
               <br />
             </div>
 
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditResult()"
+                [disabled]="isAnyEditing && !isEditingResult"
+              >
+                {{ isEditingResult ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingResult"
+                (click)="saveChangesResult()"
+              >
+                Guardar
+              </button>
+            </div>
             <h2 *ngIf="tituloForm.length > 0" class="semi-title">
               <strong>{{ tituloForm[16].nombre }}</strong>
             </h2>
@@ -1619,8 +1708,7 @@
                 <div class="row-text">
                   <label
                     ><strong>Inspección de la unidad:</strong><br />Unidad queda
-                    con SELLO VERDE por el período de 12 Meses Certificación
-                    <br />
+                    con SELLO VERDE por el período de 12 Meses Certificación<br />
                     establecido, correspondiente a 365 DÍAS.</label
                   >
                   <label
@@ -1640,25 +1728,42 @@
                   <label
                     >Se considera <span class="font-green">APROBADO</span>,
                     <span class="border-bottom-dashed">en razón de</span> que
-                    cumple todos los requisitos legales y de <br />
-                    seguridad operacional en el rol que le es propio.</label
+                    cumple todos los requisitos legales y de seguridad
+                    operacional en el rol que le es propio.</label
                   >
                 </div>
 
-                <div class="border">
-                  <div class="cuadrado-result">
-                    <span *ngIf="formMixerMain.get('idResul')?.value === 1"
-                      >✖</span
-                    >
-                  </div>
-                </div>
-                <div class="border">
-                  <div class="cuadrado-result">
-                    <span *ngIf="formMixerMain.get('idResul')?.value === 2"
-                      >✖</span
-                    >
-                  </div>
-                </div>
+                <!-- Modo Edición -->
+<ng-container *ngIf="isEditingResult; else viewModeResult">
+  <label class="text-center cursor-pointer align-content-space-around">
+    <input
+      type="radio"
+      formControlName="idResul"
+      [value]="1"
+    /> SI
+  </label>
+  <label class="text-center cursor-pointer align-content-space-around">
+    <input
+      type="radio"
+      formControlName="idResul"
+      [value]="2"
+    /> NO
+  </label>
+</ng-container>
+
+<!-- Modo Visualización -->
+<ng-template #viewModeResult>
+  <label class="text-center align-content-space-around">
+    <span class="cuadrado-result">
+      {{ formMixerMain.get('idResul')?.value === 1 ? "✖" : "" }}
+    </span>
+  </label>
+  <label class="text-center align-content-space-around">
+    <span class="cuadrado-result">
+      {{ formMixerMain.get('idResul')?.value === 2 ? "✖" : "" }}
+    </span>
+  </label>
+</ng-template>
               </div>
             </div>
           </form>

@@ -8,11 +8,12 @@ import { AppComponent } from './app.component';
 import { FormModule } from './modules/form/form.module';
 import { FormMixerModule } from './modules/form-mixer/form-mixer.module';
 import { FormularioSelectorComponent } from './modules/formulario-selector/formulario-selector.component';
+import { ReportModalComponentComponent } from './modules/components/report-modal-component/report-modal-component.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    FormularioSelectorComponent
+    FormularioSelectorComponent,
   ],
   imports: [
     BrowserModule,

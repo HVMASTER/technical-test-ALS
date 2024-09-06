@@ -99,4 +99,12 @@ export class MixerService {
     descriptionData
   );
 }
+
+sendFotosMixer(data: any) {
+  return this.http.post<any>(
+    `${this.baseUrl}sendFotosMixer`, 
+    data
+  );
+}
+
 }

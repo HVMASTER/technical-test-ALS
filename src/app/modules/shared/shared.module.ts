@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../components/header/header.component';
 import { FooterComponent } from '../components/footer/footer.component';
 import { InfoMessageComponent } from '../components/info-message/info-message.component';
+import { ReportModalComponentComponent } from '../components/report-modal-component/report-modal-component.component';
+import { FormsModule } from '@angular/forms';
 
 
 
@@ -10,15 +12,18 @@ import { InfoMessageComponent } from '../components/info-message/info-message.co
   declarations: [
     HeaderComponent,
     FooterComponent,
-    InfoMessageComponent
+    InfoMessageComponent,
+    ReportModalComponentComponent
   ],
   imports: [
-    CommonModule
+    CommonModule,
+    FormsModule
   ],
   exports: [
     HeaderComponent,
     FooterComponent,
-    InfoMessageComponent
+    InfoMessageComponent,
+    ReportModalComponentComponent
   ]
 })
 export class SharedModule { }
