@@ -5,6 +5,7 @@ import { takeUntil } from 'rxjs/operators';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MixerService } from './services/mixer.service';
 import { PdfService } from './../../services/pdf.service';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-form-mixer',
@@ -21,6 +22,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   torqueDescription: any;
   nonConformities: any[] = [];
   selectedInforme: any | null = null;
+  fechaEmisionInforme: string | null = null;
   photos: any;
   originalValues: any;
   photoUrl: string = '';
@@ -42,9 +44,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   isEditingStatusM = false;
   isEditingTorque = false;
   isEditingBetonera = false;
+  isEditingDescription = false;
   isPreviewMode = false;
   showHeaderFooter = false;
   isLoading = false;
+  isLoadingPdf = false;
   showMessage = false;
   defaultEmptyRows = new Array(7);
   retryCount = 0;
@@ -71,6 +75,12 @@ export class FormMixerComponent implements OnInit, OnDestroy {
     this.formMixerMain.disable();
     this.getNumeroInformes();
     this.getTitulosForm();
+    this.currentDate();
+  }
+
+  currentDate() {
+    const currentDate = new Date();
+    this.fechaEmisionInforme = this.datePipe.transform(currentDate, 'dd-MM-yyyy');
   }
 
   ngOnDestroy(): void {
@@ -127,9 +137,15 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data: any) => {
-          (this.selectedInforme = data),
+          (this.selectedInforme = data)
+
+          const fechaInspeccionFormateada = this.formatDate(this.selectedInforme.fechaInspeccion);
+          const proximoControlFormateado = this.getNextControlDate(this.selectedInforme.fechaInspeccion);
+
             this.formMixerMain.patchValue({
               ...this.selectedInforme,
+              fechaInspeccion: fechaInspeccionFormateada, // Formatear la fecha de inspección
+              proximoControl: proximoControlFormateado, // Agregar el próximo control
             });
           this.loadFormData(informe.idInforme);
         },
@@ -161,21 +177,78 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   generatePDF() {
-    this.isLoading = true; // Mostrar la barra de carga
+  this.isLoadingPdf = true; // Mostrar la barra de carga
 
-    // Ocultar botones antes de generar el PDF
-    this.isPreviewMode = true;
-    this.showHeaderFooter = true;
+  // Ocultar botones antes de generar el PDF
+  this.isPreviewMode = true;
+  this.showHeaderFooter = true;
 
-    setTimeout(async () => {
-      // Generar el PDF
-      await this.pdfService.generatePDF('contentToConvert');
+  // Definir los ajustes específicos para las páginas
+  const pageAdjustments: any[] = [];
 
-      // Restaurar el estado después de la generación del PDF
-      this.isLoading = false; // Ocultar la barra de carga
-      this.isPreviewMode = false;
-      this.showHeaderFooter = false;
-    }, 0);
+  setTimeout(async () => {
+    const content = document.getElementById('contentToConvert');
+    if (content) {
+      const pages = content.querySelectorAll('.page');
+      
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i] as HTMLElement;
+        const canvas = await html2canvas(page); // Crear el canvas
+        const canvasHeight = (canvas.height * 210) / canvas.width; // Calcular el alto del canvas ajustado al ancho A4
+
+        // Ajustes específicos por página
+
+        // Aumentar el tamaño en las páginas 1-5
+        if (i >= 0 && i < 5) {      
+          pageAdjustments.push({ scale: 1.1 });
+
+        // Centrar el contenido en la página 6
+        } else if (i === 7) {
+          
+        // Sin ajustes adicionales para otras páginas
+          pageAdjustments.push({ yOffset: (297 - canvasHeight) / 2 });
+        } else {
+          pageAdjustments.push({});
+        }
+      }
+
+      // Generar el PDF con los ajustes específicos
+      await this.pdfService.generatePDF('contentToConvert', pageAdjustments);
+    }
+
+    // Restaurar el estado después de la generación del PDF
+    this.isLoadingPdf = false; // Ocultar la barra de carga
+    this.isPreviewMode = false;
+    this.showHeaderFooter = false;
+  }, 0);
+}
+
+  togglePreview() {
+    this.isPreviewMode = !this.isPreviewMode;
+    this.showHeaderFooter = this.isPreviewMode;
+    const contentContainer = document.getElementById('contentToConvert');
+    
+    if (this.isPreviewMode) {
+      this.formMixerMain.disable();
+      this.hideButtonsForPreview(true);
+      contentContainer?.classList.add('preview-mode');
+    } else {
+      if (!this.isEditing) {
+        this.formMixerMain.disable();
+      } else {
+        this.formMixerMain.enable();
+      }
+      this.hideButtonsForPreview(false);
+      contentContainer?.classList.remove('preview-mode');
+    }
+  }
+
+  // Ocultar o mostrar los botones de edición y guardar según el modo de vista previa
+  hideButtonsForPreview(hide: boolean) {
+    const buttons = document.querySelectorAll('.edit-save-buttons');
+    buttons.forEach((button: Element) => {
+      (button as HTMLElement).style.display = hide ? 'none' : 'block';
+    });
   }
 
   private loadItemDetails(idInforme: number) {
@@ -261,7 +334,33 @@ export class FormMixerComponent implements OnInit, OnDestroy {
     if (selectedOption) {
       item.alias = selectedOption.alias;
       item.idStatus = parseInt(selectedIdStatus, 10);
+
+      // Si el estado cambia a "NO CUMPLE", solicitar una descripción
+      if (item.idStatus === 2) {
+        item.descripcionNoCumple = item.descripcionNoCumple || ''; // Iniciar la descripción si no existe
+      } else {
+        // Si el estado cambia a "CUMPLE", eliminar la descripción opcionalmente
+        item.descripcionNoCumple = null;
+      }
     }
+  }
+
+  private addNotMetDescription(descriptionData: any): void {
+    this.mixerService
+      .postDescripcionMixer(descriptionData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            console.log('Descripción agregada exitosamente.');
+          } else {
+            console.error('Error al agregar la descripción:', response.message);
+          }
+        },
+        error: (error) => {
+          console.error('Error al agregar la descripción:', error);
+        },
+      });
   }
 
   private loadBetoneraData(idInforme: number): void {
@@ -290,6 +389,18 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             (item: any) => item.idStatus === 2
           );
           this.addDefaultRows();
+
+          // Agregar dinámicamente los campos de descripción al FormGroup
+          this.nonConformities.forEach((nonConformity, index) => {
+            const controlName = `descripcion_${index}`;
+            this.formMixerMain.addControl(
+              controlName,
+              this.formBuilder.control(
+                nonConformity.descripcion,
+                Validators.required
+              )
+            );
+          });
         },
         error: (error) => {
           console.error('Error fetching non-conformities:', error);
@@ -382,6 +493,10 @@ export class FormMixerComponent implements OnInit, OnDestroy {
 
   refreshStatus() {
     this.loadItemDetails(this.selectedInforme.idInforme);
+  }
+
+  refreshNonConformities() {
+    this.loadNonConformities(this.selectedInforme.idInforme);
   }
 
   handleError(error?: any) {
@@ -582,13 +697,26 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   toggleEditBetonera() {
-  if (!this.isEditingBetonera) {
-    this.originalValues = { ...this.betoneraData };
-  } else {
-    this.betoneraData = { ...this.originalValues };
+    if (!this.isEditingBetonera) {
+      this.originalValues = { ...this.betoneraData };
+    } else {
+      this.betoneraData = { ...this.originalValues };
+    }
+    this.isEditingBetonera = !this.isEditingBetonera;
   }
-  this.isEditingBetonera = !this.isEditingBetonera;
-}
+
+  toggleEditDescription() {
+    this.isEditingDescription = !this.isEditingDescription;
+
+    if (!this.isEditingDescription) {
+      // Restablecer los valores originales si se cancela la edición
+      this.nonConformities.forEach((item, index) => {
+        this.formMixerMain
+          .get(`descripcion_${index}`)
+          ?.setValue(item.descripcion);
+      });
+    }
+  }
 
   saveChanges() {
     if (this.formMixerMain.valid && this.selectedInforme) {
@@ -645,14 +773,33 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+        // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
 
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
+
+      // Llamada al servicio para actualizar los ítems
       this.mixerService
         .editItemMixer(itemsData)
         .pipe()
@@ -662,6 +809,8 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              // Actualizar la lista de no conformidades
+              this.refreshNonConformities();
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -1504,76 +1653,18 @@ export class FormMixerComponent implements OnInit, OnDestroy {
 
   saveChangesTorque() {
     const descriptionData = {
-    idInforme: this.selectedInforme.idInforme,
-    descripcionTorque: this.torqueDescription.descripcionTorque
-  };
-
-  this.mixerService.editTorqueMixer(descriptionData).subscribe({
-    next: (response) => {
-      if (response.success) {
-        this.showMessage = true;
-        this.messageText = 'Descripción actualizada exitosamente.';
-        this.messageType = 'success';
-      } else {
-        this.messageText = 'Error al actualizar la descripción.';
-        this.messageType = 'error';
-      }
-    },
-    error: (error) => {
-      this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-      this.messageType = 'error';
-      console.error('Error actualizando los datos:', error);
-    },
-    complete: () => {
-      this.showMessage = true;
-      setTimeout(() => (this.showMessage = false), 3000);
-      this.isEditingTorque = false; // Desactivar el modo de edición
-    }
-  });
-  }
-
-  onTorqueDescriptionChange(value: string) {
-    this.torqueDescription.descripcionTorque = value;
-  }
-
-  saveChangesBetonera() {
-  if (this.selectedInforme) {
-    this.isSaving = true; // Activar el spinner
-    this.savingMessage = 'Guardando cambios, por favor espere...';
-
-    const idInforme = this.selectedInforme.idInforme;
-
-    const betoneraDataToUpdate = {
-      ...this.originalValues, // Mantener los campos no modificados
-      ...Object.keys(this.betoneraData).reduce((acc, key) => {
-        if (this.betoneraData[key] !== this.originalValues[key]) {
-          acc[key] = this.betoneraData[key]; // Solo sobrescribir los campos modificados
-        }
-        return acc;
-      }, {} as Record<string, any>)
+      idInforme: this.selectedInforme.idInforme,
+      descripcionTorque: this.torqueDescription.descripcionTorque,
     };
 
-    // Agregar idInforme al objeto de actualización
-    betoneraDataToUpdate['idInforme'] = idInforme;
-
-    if (Object.keys(betoneraDataToUpdate).length === 0) {
-      console.log('No se encontraron campos modificados para actualizar.');
-      this.isSaving = false;
-      this.isEditingBetonera = false;
-      return;
-    }
-
-    console.log('Betonera data to update:', betoneraDataToUpdate);
-
-    // Llamada al servicio para actualizar los datos
-    this.mixerService.editBetoneraMixer(betoneraDataToUpdate).subscribe({
+    this.mixerService.editTorqueMixer(descriptionData).subscribe({
       next: (response) => {
         if (response.success) {
           this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
+          this.messageText = 'Descripción actualizada exitosamente.';
           this.messageType = 'success';
         } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
+          this.messageText = 'Error al actualizar la descripción.';
           this.messageType = 'error';
         }
       },
@@ -1585,11 +1676,154 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       complete: () => {
         this.showMessage = true;
         setTimeout(() => (this.showMessage = false), 3000);
-        this.isSaving = false; // Desactivar el spinner
-        this.isEditingBetonera = false;
-      }
+        this.isEditingTorque = false; // Desactivar el modo de edición
+      },
     });
   }
+
+  onTorqueDescriptionChange(value: string) {
+    this.torqueDescription.descripcionTorque = value;
+  }
+
+  saveChangesBetonera() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      const betoneraDataToUpdate = {
+        ...this.originalValues, // Mantener los campos no modificados
+        ...Object.keys(this.betoneraData).reduce((acc, key) => {
+          if (this.betoneraData[key] !== this.originalValues[key]) {
+            acc[key] = this.betoneraData[key]; // Solo sobrescribir los campos modificados
+          }
+          return acc;
+        }, {} as Record<string, any>),
+      };
+
+      // Agregar idInforme al objeto de actualización
+      betoneraDataToUpdate['idInforme'] = idInforme;
+
+      if (Object.keys(betoneraDataToUpdate).length === 0) {
+        console.log('No se encontraron campos modificados para actualizar.');
+        this.isSaving = false;
+        this.isEditingBetonera = false;
+        return;
+      }
+
+      console.log('Betonera data to update:', betoneraDataToUpdate);
+
+      // Llamada al servicio para actualizar los datos
+      this.mixerService.editBetoneraMixer(betoneraDataToUpdate).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+          } else {
+            this.messageText =
+              'Error al guardar algunos datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+          }
+        },
+        error: (error) => {
+          this.messageText =
+            'Error al actualizar los datos. Inténtalo de nuevo.';
+          this.messageType = 'error';
+          console.error('Error actualizando los datos:', error);
+        },
+        complete: () => {
+          this.showMessage = true;
+          setTimeout(() => (this.showMessage = false), 3000);
+          this.isSaving = false; // Desactivar el spinner
+          this.isEditingBetonera = false;
+        },
+      });
+    }
+  }
+
+  saveChangesDescription() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const descripcionesToUpdate = this.nonConformities
+        .map((observation, index) => {
+          const descripcionNueva = this.formMixerMain.get(
+            `descripcion_${index}`
+          )?.value;
+          if (descripcionNueva !== observation.descripcion) {
+            return {
+              descripcion: descripcionNueva, // Solo agrega si hay cambios
+              idInforme: this.selectedInforme.idInforme,
+              idDetalle: observation.idDetalle,
+            };
+          }
+          return null;
+        })
+        .filter((item) => item !== null); // Filtrar nulos si no hay cambios
+
+      if (descripcionesToUpdate.length === 0) {
+        console.log(
+          'No se encontraron descripciones modificadas para actualizar.'
+        );
+        this.isSaving = false;
+        this.isEditingDescription = false;
+        return;
+      }
+
+      let success = true;
+
+      // Llamada al método PUT para editar las descripciones
+      descripcionesToUpdate.forEach((descripcionData) => {
+        this.mixerService.editDescripcionMixer(descripcionData).subscribe({
+          next: (response) => {
+            if (!response.success) {
+              success = false;
+              console.error(
+                'Error al actualizar algunas descripciones:',
+                response.message
+              );
+            }
+          },
+          error: (error) => {
+            success = false;
+            console.error('Error al actualizar algunas descripciones:', error);
+          },
+          complete: () => {
+            if (success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+              this.refreshNonConformities();
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+            }
+
+            this.isSaving = false;
+            this.isEditingDescription = false;
+            setTimeout(() => (this.showMessage = false), 3000);
+          },
+        });
+      });
+    }
+  }
+
+  // Método para formatear la fecha
+formatDate(date: string | Date): string {
+  return this.datePipe.transform(date, 'dd-MM-yyyy') || '';
 }
 
+// Método para calcular el próximo control
+getNextControlDate(fechaInspeccion: string): string {
+  const proximoControl = new Date(fechaInspeccion);
+  proximoControl.setFullYear(proximoControl.getFullYear() + 1);
+
+  // Sumar un día a la fecha del próximo control
+  proximoControl.setDate(proximoControl.getDate() + 1);
+  return this.formatDate(proximoControl);
+}
 }

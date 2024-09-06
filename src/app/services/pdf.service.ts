@@ -8,7 +8,7 @@ import html2canvas from 'html2canvas';
 export class PdfService {
   constructor() {}
 
-  async generatePDF(contentToConvert: string) {
+  async generatePDF(contentToConvert: string, pageAdjustments: any) {
     const content = document.getElementById(contentToConvert);
 
     if (content) {
@@ -23,18 +23,16 @@ export class PdfService {
         const page = pages[i] as HTMLElement;
 
         // Capturar la página actual como imagen
-        const canvas = await html2canvas(page);
+        const canvas = await html2canvas(page); 
         const imgData = canvas.toDataURL('image/png');
         let imgHeight = (canvas.height * imgWidth) / canvas.width;
         let yOffset = headerHeight; // Inicialmente después del header
 
-        // Aplicar ajustes específicos según la página
-        if (i >= 0 && i < 5) {
-          // Aumentar ligeramente el tamaño del contenido en las páginas 1-5
-          imgHeight *= 1.2; // Escalado 
-        } else if (i === 5) {
-          // Centrar el contenido en la página 6
-          yOffset = (pageHeight - imgHeight) / 2;
+        // Aplicar ajustes específicos recibidos como parámetro
+        const adjustments = pageAdjustments[i];
+        if (adjustments) {
+          imgHeight *= adjustments.scale || 1;
+          yOffset = adjustments.yOffset || yOffset;
         }
 
         if (i > 0) {

@@ -1,3 +1,3 @@
 export const environment = {
-    API_URL: 'https://maritimo-industrial.als-inspection.cl/api_maritimo_industrial/',
+    API_URL: 'https://inspecciones-industriales.als-inspection.cl/api_industrial/',
     };

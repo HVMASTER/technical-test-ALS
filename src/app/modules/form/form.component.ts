@@ -6,6 +6,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { takeUntil } from 'rxjs/operators';
 import { Informe } from './interfaces/informe.interface';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-form',
@@ -1115,22 +1116,48 @@ refreshStatus() {
   }
 
   generatePDF() {
-    this.isLoading = true;  // Mostrar la barra de carga
+  this.isLoading = true; // Mostrar la barra de carga
 
-    // Ocultar botones antes de generar el PDF
-    this.isPreviewMode = true;
-    this.showHeaderFooter = true;
+  // Ocultar botones antes de generar el PDF
+  this.isPreviewMode = true;
+  this.showHeaderFooter = true;
 
-    setTimeout(async () => {
-    // Generar el PDF
-      await this.pdfService.generatePDF('contentToConvert');
+  // Definir los ajustes específicos para las páginas
+  const pageAdjustments: any[] = [];
 
-      // Restaurar el estado después de la generación del PDF
-      this.isLoading = false; // Ocultar la barra de carga
-      this.isPreviewMode = false;
-      this.showHeaderFooter = false;
-    }, 0);
-  }
+  setTimeout(async () => {
+    const content = document.getElementById('contentToConvert');
+    if (content) {
+      const pages = content.querySelectorAll('.page');
+      
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i] as HTMLElement;
+        const canvas = await html2canvas(page); // Crear el canvas
+        const canvasHeight = (canvas.height * 210) / canvas.width; // Calcular el alto del canvas ajustado al ancho A4
+
+        // Ajustes específicos por página
+        if (i >= 0 && i < 5) {
+          // Aumentar el tamaño en las páginas 1-5
+          pageAdjustments.push({ scale: 1.2 });
+        } else if (i === 5) {
+          // Centrar el contenido en la página 6
+          pageAdjustments.push({ yOffset: (297 - canvasHeight) / 2 });
+        } else {
+          // Sin ajustes adicionales para otras páginas
+          pageAdjustments.push({});
+        }
+      }
+
+      // Generar el PDF con los ajustes específicos
+      await this.pdfService.generatePDF('contentToConvert', pageAdjustments);
+    }
+
+    // Restaurar el estado después de la generación del PDF
+    this.isLoading = false; // Ocultar la barra de carga
+    this.isPreviewMode = false;
+    this.showHeaderFooter = false;
+  }, 0);
+}
 
 
 }
