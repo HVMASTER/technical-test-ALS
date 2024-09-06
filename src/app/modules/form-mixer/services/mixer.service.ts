@@ -85,4 +85,26 @@ export class MixerService {
       betoneraData
     );
   }
+
+  editDescripcionMixer(descriptionData: any) {
+    return this.http.put<any>(
+      `${this.baseUrl}editDescripcionMixer`,
+      descriptionData
+    );
+  }
+
+  postDescripcionMixer(descriptionData: any) {
+  return this.http.post<any>(
+    `${this.baseUrl}sendDescripcionMixer`, 
+    descriptionData
+  );
+}
+
+sendFotosMixer(data: any) {
+  return this.http.post<any>(
+    `${this.baseUrl}sendFotosMixer`, 
+    data
+  );
+}
+
 }

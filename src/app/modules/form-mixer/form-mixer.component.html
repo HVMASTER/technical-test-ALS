@@ -9,8 +9,8 @@
 </div>
 
 <button (click)="deselectInforme()" class="back-button">Volver</button>
-<!-- <button (click)="togglePreview()">Vista Previa</button>
-<button (click)="generatePDF()">Exportar a PDF</button> -->
+<button (click)="togglePreview()">Vista Previa</button>
+<button (click)="generatePDF()">Exportar a PDF</button>
 <div *ngIf="isLoading" class="loading-bar">
   <div class="spinner"></div>
 </div>
@@ -22,6 +22,11 @@
 
 <div *ngIf="!isLoading">
   <div *ngIf="selectedInforme" class="form-container">
+    <div *ngIf="isLoadingPdf" class="loading-bar">
+      <p>Generando PDF, por favor espere...</p>
+      <div class="spinner"></div>
+    </div>
+
     <app-info-message
       [message]="messageText"
       [type]="messageType"
@@ -30,1611 +35,1785 @@
     >
     </app-info-message>
 
-    <div class="title-main">
-      <h1>INFORME DE INSPECCIÓN VISUAL A CAMIÓN MIXER</h1>
-    </div>
+    <app-report-modal-component 
+      *ngIf="showModal"
+      [idInforme]="selecInforme"
+      [numeroInforme]="selecNumInforme"
+      [idDetalle]="selecDetalle"
+      [idStatus]="selecStatus"
+      (save)="closeModal($event)"
+      (cancel)="cancelModal()"
+    >
+    </app-report-modal-component>
 
-    <div class="page">
-      <div class="content">
-        <form [formGroup]="formMixerMain" class="camion-mixer-form">
-          <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-            <button (click)="toggleEdit()">
-              {{ isEditing ? "Cancelar" : "Editar" }}
-            </button>
-            <button *ngIf="isEditing" (click)="saveChanges()">Guardar</button>
-          </div>
+    <div id="contentToConvert">
+      <div *ngIf="showHeaderFooter" class="header">
+        <app-header></app-header>
+      </div>
 
-          <div class="form-row">
-            <div class="title">
-              <label>Informe N°</label>
+      <div class="title-main">
+        <h1>INFORME DE INSPECCIÓN VISUAL A CAMIÓN MIXER</h1>
+      </div>
+
+      <div class="page">
+        <div class="content">
+          <form [formGroup]="formMixerMain" class="camion-mixer-form">
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <button
+                (click)="toggleEdit()"
+                [disabled]="isAnyEditing && !isEditing"
+              >
+                {{ isEditing ? "Cancelar" : "Editar" }}
+              </button>
+              <button *ngIf="isEditing" (click)="saveChanges()">Guardar</button>
             </div>
-            <ng-container *ngIf="isEditing; else viewNumeroInforme">
-              <input formControlName="numeroInforme" type="text" />
-            </ng-container>
-            <ng-template #viewNumeroInforme>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Informe N°</label>
+              </div>
               <label>{{ formMixerMain.get("numeroInforme")?.value }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Solicitado por / RUT / Fono</label>
             </div>
-            <ng-container *ngIf="isEditing; else viewNombre">
-              <input formControlName="nombre" type="text" />
-            </ng-container>
-            <ng-template #viewNombre>
-              <label>{{ formMixerMain.get("nombre")?.value }}</label>
-            </ng-template>
-            <ng-container *ngIf="isEditing; else viewRut">
-              <input formControlName="rut" type="text" />
-            </ng-container>
-            <ng-template #viewRut>
-              <label>{{ formMixerMain.get("rut")?.value }}</label>
-            </ng-template>
-            <ng-container *ngIf="isEditing; else viewFono">
-              <input formControlName="telefono" type="text" />
-            </ng-container>
-            <ng-template #viewFono>
-              <label>{{ formMixerMain.get("telefono")?.value }}</label>
-            </ng-template>
-          </div>
 
-          <div class="form-row">
-            <div class="title">
-              <label>Equipo</label>
-            </div>
-            <label>Camión Mixer</label>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Marca / Modelo / Color</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewMarca">
-              <input formControlName="marca" type="text" />
-            </ng-container>
-            <ng-template #viewMarca>
-              <label>{{ formMixerMain.get("marca")?.value }}</label>
-            </ng-template>
-            <ng-container *ngIf="isEditing; else viewModelo">
-              <input formControlName="modelo" type="text" />
-            </ng-container>
-            <ng-template #viewModelo>
-              <label>{{ formMixerMain.get("modelo")?.value }}</label>
-            </ng-template>
-            <ng-container *ngIf="isEditing; else viewColor">
-              <input formControlName="color" type="text" />
-            </ng-container>
-            <ng-template #viewColor>
-              <label>{{ formMixerMain.get("color")?.value }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Año</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewAnio">
-              <input formControlName="ano" type="text" />
-            </ng-container>
-            <ng-template #viewAnio>
-              <label>{{ formMixerMain.get("ano")?.value }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>N° Motor</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewNumeroMotor">
-              <input formControlName="numMotor" type="text" />
-            </ng-container>
-            <ng-template #viewNumeroMotor>
-              <label>{{ formMixerMain.get("numMotor")?.value }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>N° Chasis</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewNumeroChasis">
-              <input formControlName="numChasis" type="text" />
-            </ng-container>
-            <ng-template #viewNumeroChasis>
-              <label>{{ formMixerMain.get("numChasis")?.value }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>N° Interno Camión</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewNumeroInternoCamion">
-              <input formControlName="numInternoCamion" type="text" />
-            </ng-container>
-            <ng-template #viewNumeroInternoCamion>
-              <label>{{ formMixerMain.get("numInternoCamion")?.value }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Combustible</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewCombustible">
-              <input formControlName="combustible" type="text" />
-            </ng-container>
-            <ng-template #viewCombustible>
-              <label>{{ formMixerMain.get("combustible")?.value }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Odómetro actual</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewOdometroActual">
-              <input formControlName="odometroActual" type="number" />
-            </ng-container>
-            <ng-template #viewOdometroActual>
-              <label>{{ formMixerMain.get("odometroActual")?.value }} km</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Horómetro / Kilometraje</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewHorometro">
-              <input formControlName="horometro" type="number" />
-            </ng-container>
-            <ng-template #viewHorometro>
-              <label>{{ formMixerMain.get("horometro")?.value }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Patente Vehículo</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewPatenteVehiculo">
-              <input formControlName="patenteVehiculo" type="text" />
-            </ng-container>
-            <ng-template #viewPatenteVehiculo>
-              <label>{{ formMixerMain.get("patenteVehiculo")?.value }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Fecha Revisión Técnica</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewFechaRevisionTecnica">
-              <input formControlName="fechaRevisionTec" type="date" />
-            </ng-container>
-            <ng-template #viewFechaRevisionTecnica>
-              <label>{{ formMixerMain.get("fechaRevisionTec")?.value }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Fecha Vencimiento Seguro Obligatorio</label>
-              <label>Fecha Vencimiento Permiso Circulación</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewFechaVencimientoSeguro">
-              <input formControlName="fechaVencSeguroObli" type="date" />
-            </ng-container>
-            <ng-template #viewFechaVencimientoSeguro>
-              <label>{{
-                formMixerMain.get("fechaVencSeguroObli")?.value
-              }}</label>
-            </ng-template>
-            <ng-container *ngIf="isEditing; else viewFechaVencimientoPermiso">
-              <input formControlName="fechaVencPermisoCir" type="date" />
-            </ng-container>
-            <ng-template #viewFechaVencimientoPermiso>
-              <label>{{
-                formMixerMain.get("fechaVencPermisoCir")?.value
-              }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Lugar de inspección</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewLugarInspeccion">
-              <input formControlName="lugarInspeccion" type="text" />
-            </ng-container>
-            <ng-template #viewLugarInspeccion>
-              <label>{{ formMixerMain.get("lugarInspeccion")?.value }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Fecha de inspección / Hora</label>
-            </div>
-            <ng-container *ngIf="isEditing; else viewFechaInspeccion">
-              <input formControlName="fechaInspeccion" type="date" />
-            </ng-container>
-            <ng-template #viewFechaInspeccion>
-              <label>{{ formMixerMain.get("fechaInspeccion")?.value }}</label>
-            </ng-template>
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Fecha de emisión informe</label>
-            </div>
-            <!-- <ng-container *ngIf="isEditing; else viewFechaEmisionInforme">
-                <input formControlName="fechaEmisionInforme" type="text" />
+            <div class="form-row">
+              <div class="title">
+                <label>Solicitado por / RUT / Fono</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewNombre">
+                <input formControlName="nombre" type="text" />
               </ng-container>
-              <ng-template #viewFechaEmisionInforme>
-                <label>{{  }}</label>
-              </ng-template> -->
-          </div>
-
-          <div class="form-row">
-            <div class="title">
-              <label>Sello ALS</label>
+              <ng-template #viewNombre>
+                <label>{{ formMixerMain.get("nombre")?.value }}</label>
+              </ng-template>
+              <ng-container *ngIf="isEditing; else viewRut">
+                <input formControlName="rut" type="text" />
+              </ng-container>
+              <ng-template #viewRut>
+                <label>{{ formMixerMain.get("rut")?.value }}</label>
+              </ng-template>
+              <ng-container *ngIf="isEditing; else viewFono">
+                <input formControlName="telefono" type="text" />
+              </ng-container>
+              <ng-template #viewFono>
+                <label>{{ formMixerMain.get("telefono")?.value }}</label>
+              </ng-template>
             </div>
-            <!-- <ng-container *ngIf="isEditing; else viewSelloALS">
+
+            <div class="form-row">
+              <div class="title">
+                <label>Equipo</label>
+              </div>
+              <label>Camión Mixer</label>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Marca / Modelo / Color</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewMarca">
+                <input formControlName="marca" type="text" />
+              </ng-container>
+              <ng-template #viewMarca>
+                <label>{{ formMixerMain.get("marca")?.value }}</label>
+              </ng-template>
+              <ng-container *ngIf="isEditing; else viewModelo">
+                <input formControlName="modelo" type="text" />
+              </ng-container>
+              <ng-template #viewModelo>
+                <label>{{ formMixerMain.get("modelo")?.value }}</label>
+              </ng-template>
+              <ng-container *ngIf="isEditing; else viewColor">
+                <input formControlName="color" type="text" />
+              </ng-container>
+              <ng-template #viewColor>
+                <label>{{ formMixerMain.get("color")?.value }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Año</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewAnio">
+                <input formControlName="ano" type="text" />
+              </ng-container>
+              <ng-template #viewAnio>
+                <label>{{ formMixerMain.get("ano")?.value }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>N° Motor</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewNumeroMotor">
+                <input formControlName="numMotor" type="text" />
+              </ng-container>
+              <ng-template #viewNumeroMotor>
+                <label>{{ formMixerMain.get("numMotor")?.value }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>N° Chasis</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewNumeroChasis">
+                <input formControlName="numChasis" type="text" />
+              </ng-container>
+              <ng-template #viewNumeroChasis>
+                <label>{{ formMixerMain.get("numChasis")?.value }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>N° Interno Camión</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewNumeroInternoCamion">
+                <input formControlName="numInternoCamion" type="text" />
+              </ng-container>
+              <ng-template #viewNumeroInternoCamion>
+                <label>{{
+                  formMixerMain.get("numInternoCamion")?.value
+                }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Combustible</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewCombustible">
+                <input formControlName="combustible" type="text" />
+              </ng-container>
+              <ng-template #viewCombustible>
+                <label>{{ formMixerMain.get("combustible")?.value }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Odómetro actual</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewOdometroActual">
+                <input formControlName="odometroActual" type="number" />
+              </ng-container>
+              <ng-template #viewOdometroActual>
+                <label
+                  >{{ formMixerMain.get("odometroActual")?.value }} km</label
+                >
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Horómetro / Kilometraje</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewHorometro">
+                <input formControlName="horometro" type="number" />
+              </ng-container>
+              <ng-template #viewHorometro>
+                <label>{{ formMixerMain.get("horometro")?.value }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Patente Vehículo</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewPatenteVehiculo">
+                <input formControlName="patenteVehiculo" type="text" />
+              </ng-container>
+              <ng-template #viewPatenteVehiculo>
+                <label>{{ formMixerMain.get("patenteVehiculo")?.value }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Fecha Revisión Técnica</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewFechaRevisionTecnica">
+                <input formControlName="fechaRevisionTec" type="date" />
+              </ng-container>
+              <ng-template #viewFechaRevisionTecnica>
+                <label>{{
+                  formMixerMain.get("fechaRevisionTec")?.value
+                }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Fecha Vencimiento Seguro Obligatorio</label>
+                <label>Fecha Vencimiento Permiso Circulación</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewFechaVencimientoSeguro">
+                <input formControlName="fechaVencSeguroObli" type="date" />
+              </ng-container>
+              <ng-template #viewFechaVencimientoSeguro>
+                <label>{{
+                  formMixerMain.get("fechaVencSeguroObli")?.value
+                }}</label>
+              </ng-template>
+              <ng-container *ngIf="isEditing; else viewFechaVencimientoPermiso">
+                <input formControlName="fechaVencPermisoCir" type="date" />
+              </ng-container>
+              <ng-template #viewFechaVencimientoPermiso>
+                <label>{{
+                  formMixerMain.get("fechaVencPermisoCir")?.value
+                }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Lugar de inspección</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewLugarInspeccion">
+                <input formControlName="lugarInspeccion" type="text" />
+              </ng-container>
+              <ng-template #viewLugarInspeccion>
+                <label>{{ formMixerMain.get("lugarInspeccion")?.value }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Fecha de inspección / Hora</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewFechaInspeccion">
+                <input formControlName="fechaInspeccion" type="date" />
+              </ng-container>
+              <ng-template #viewFechaInspeccion>
+                <label>{{ formatDate(selectedInforme.fechaInspeccion) }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Fecha de emisión informe</label>
+              </div>
+              <label>{{ fechaEmisionInforme }}</label>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Sello ALS</label>
+              </div>
+              <!-- <ng-container *ngIf="isEditing; else viewSelloALS">
                 <input formControlName="selloALS" type="text" />
               </ng-container>
               <ng-template #viewSelloALS>
                 <label>{{  }}</label>
               </ng-template> -->
-          </div>
-        </form>
-
-        <form>
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusA()">
-              {{ isEditingStatusA ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusA"
-              (click)="saveChangesStatusA()"
-            >
-              Guardar
-            </button>
-          </div>
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[0].nombre }}</strong>
-          </h2>
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-          <div
-            *ngFor="let item of itemsWithStatus | slice : 0 : 19; let i = index"
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",")[0] : ""
-            }}</label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-            }}</label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusA; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado"
-                  ><span *ngIf="item.idStatus === 1">✖</span></span
-                >
-              </ng-template>
             </div>
+          </form>
 
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusA; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado"
-                  ><span *ngIf="item.idStatus === 2">✖</span></span
-                >
-              </ng-template>
+          <form>
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusA()"
+                [disabled]="isAnyEditing && !isEditingStatusA"
+              >
+                {{ isEditingStatusA ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusA"
+                (click)="saveChangesStatusA()"
+              >
+                Guardar
+              </button>
             </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="page">
-      <div class="content">
-        <form>
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusB()">
-              {{ isEditingStatusB ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusB"
-              (click)="saveChangesStatusB()"
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[0].nombre }}</strong>
+            </h2>
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 0 : 19;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
             >
-              Guardar
-            </button>
-          </div>
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
 
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[1].nombre }}</strong>
-          </h2>
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",")[0] : ""
+              }}</label>
 
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-
-          <div
-            *ngFor="
-              let item of itemsWithStatus | slice : 19 : 28;
-              let i = index
-            "
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">
-              {{ item.detalle ? item.detalle.split(",")[0] : "" }}
-            </label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">
-              {{
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
                 item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-              }}
-            </label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusB; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_b_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 1">✖</span>
-                </span>
-              </ng-template>
-            </div>
-
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusB; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_b_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 2">✖</span>
-                </span>
-              </ng-template>
-            </div>
-          </div>
-
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusC()">
-              {{ isEditingStatusC ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusC"
-              (click)="saveChangesStatusC()"
-            >
-              Guardar
-            </button>
-          </div>
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[2].nombre }}</strong>
-          </h2>
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-          <div
-            *ngFor="
-              let item of itemsWithStatus | slice : 28 : 39;
-              let i = index
-            "
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",")[0] : ""
-            }}</label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-            }}</label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusC; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_b_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 1">✖</span>
-                </span>
-              </ng-template>
-            </div>
-
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusC; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_b_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 2">✖</span>
-                </span>
-              </ng-template>
-            </div>
-          </div>
-
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusD()">
-              {{ isEditingStatusD ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusD"
-              (click)="saveChangesStatusD()"
-            >
-              Guardar
-            </button>
-          </div>
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[3].nombre }}</strong>
-          </h2>
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-          <div
-            *ngFor="
-              let item of itemsWithStatus | slice : 39 : 49;
-              let i = index
-            "
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",")[0] : ""
-            }}</label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-            }}</label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusD; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_b_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 1">✖</span>
-                </span>
-              </ng-template>
-            </div>
-
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusD; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_b_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 2">✖</span>
-                </span>
-              </ng-template>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="page">
-      <div class="content">
-        <form>
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusE()">
-              {{ isEditingStatusE ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusE"
-              (click)="saveChangesStatusE()"
-            >
-              Guardar
-            </button>
-          </div>
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[4].nombre }}</strong>
-          </h2>
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-          <div
-            *ngFor="
-              let item of itemsWithStatus | slice : 49 : 60;
-              let i = index
-            "
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",")[0] : ""
-            }}</label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-            }}</label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusE; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_b_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 1">✖</span>
-                </span>
-              </ng-template>
-            </div>
-
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusE; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_b_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 2">✖</span>
-                </span>
-              </ng-template>
-            </div>
-          </div>
-
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusF()">
-              {{ isEditingStatusF ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusF"
-              (click)="saveChangesStatusF()"
-            >
-              Guardar
-            </button>
-          </div>
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[5].nombre }}</strong>
-          </h2>
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-          <div
-            *ngFor="
-              let item of itemsWithStatus | slice : 60 : 67;
-              let i = index
-            "
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",")[0] : ""
-            }}</label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-            }}</label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusF; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_b_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 1">✖</span>
-                </span>
-              </ng-template>
-            </div>
-
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusF; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_b_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 2">✖</span>
-                </span>
-              </ng-template>
-            </div>
-          </div>
-
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusG()">
-              {{ isEditingStatusG ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusG"
-              (click)="saveChangesStatusG()"
-            >
-              Guardar
-            </button>
-          </div>
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[6].nombre }}</strong>
-          </h2>
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-          <div
-            *ngFor="
-              let item of itemsWithStatus | slice : 67 : 72;
-              let i = index
-            "
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",")[0] : ""
-            }}</label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-            }}</label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusG; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_b_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 1">✖</span>
-                </span>
-              </ng-template>
-            </div>
-
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusG; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_b_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 2">✖</span>
-                </span>
-              </ng-template>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="page">
-      <div class="content">
-        <form>
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusH()">
-              {{ isEditingStatusH ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusH"
-              (click)="saveChangesStatusH()"
-            >
-              Guardar
-            </button>
-          </div>
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[7].nombre }}</strong>
-          </h2>
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-          <div
-            *ngFor="
-              let item of itemsWithStatus | slice : 72 : 87;
-              let i = index
-            "
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",")[0] : ""
-            }}</label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-            }}</label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusH; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_b_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 1">✖</span>
-                </span>
-              </ng-template>
-            </div>
-
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusH; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_b_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 2">✖</span>
-                </span>
-              </ng-template>
-            </div>
-          </div>
-
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusI()">
-              {{ isEditingStatusI ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusI"
-              (click)="saveChangesStatusI()"
-            >
-              Guardar
-            </button>
-          </div>
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[8].nombre }}</strong>
-          </h2>
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-          <div
-            *ngFor="
-              let item of itemsWithStatus | slice : 87 : 96;
-              let i = index
-            "
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",")[0] : ""
-            }}</label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-            }}</label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusI; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_b_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 1">✖</span>
-                </span>
-              </ng-template>
-            </div>
-
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusI; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_b_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 2">✖</span>
-                </span>
-              </ng-template>
-            </div>
-          </div>
-
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusJ()">
-              {{ isEditingStatusJ ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusJ"
-              (click)="saveChangesStatusJ()"
-            >
-              Guardar
-            </button>
-          </div>
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[9].nombre }}</strong>
-          </h2>
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-          <div
-            *ngFor="
-              let item of itemsWithStatus | slice : 96 : 101;
-              let i = index
-            "
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",")[0] : ""
-            }}</label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-            }}</label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusJ; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_b_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 1">✖</span>
-                </span>
-              </ng-template>
-            </div>
-
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusJ; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_b_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 2">✖</span>
-                </span>
-              </ng-template>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="page">
-      <div class="content">
-        <form>
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusK()">
-              {{ isEditingStatusK ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusK"
-              (click)="saveChangesStatusK()"
-            >
-              Guardar
-            </button>
-          </div>
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[10].nombre }}</strong>
-          </h2>
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-          <div
-            *ngFor="
-              let item of itemsWithStatus | slice : 101 : 106;
-              let i = index
-            "
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",")[0] : ""
-            }}</label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-            }}</label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusK; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_b_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 1">✖</span>
-                </span>
-              </ng-template>
-            </div>
-
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusK; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_b_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 2">✖</span>
-                </span>
-              </ng-template>
-            </div>
-          </div>
-
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusL()">
-              {{ isEditingStatusL ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusL"
-              (click)="saveChangesStatusL()"
-            >
-              Guardar
-            </button>
-          </div>
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[11].nombre }}</strong>
-          </h2>
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-          <div
-            *ngFor="
-              let item of itemsWithStatus | slice : 106 : 113;
-              let i = index
-            "
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",")[0] : ""
-            }}</label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-            }}</label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusL; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_b_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 1">✖</span>
-                </span>
-              </ng-template>
-            </div>
-
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusL; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_b_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 2">✖</span>
-                </span>
-              </ng-template>
-            </div>
-          </div>
-
-          <br /><br />
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditStatusM()">
-              {{ isEditingStatusM ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingStatusM"
-              (click)="saveChangesStatusM()"
-            >
-              Guardar
-            </button>
-          </div>
-          <h2 *ngIf="tituloForm.length > 0" class="title2">
-            <strong>{{ tituloForm[12].nombre }}</strong>
-          </h2>
-          <div class="form-row-section">
-            <label class="text-center"><strong>N°</strong></label>
-            <label></label>
-            <label><strong>PUNTOS A INSPECCIONAR</strong></label>
-            <label><strong>CUMPLE</strong></label>
-            <label><strong>NO CUMPLE</strong></label>
-          </div>
-          <div
-            *ngFor="
-              let item of itemsWithStatus | slice : 113 : 123;
-              let i = index
-            "
-            class="form-row-section"
-          >
-            <!-- Primera columna: Número -->
-            <label class="text-center"
-              ><strong>{{ i + 1 }}</strong></label
-            >
-
-            <!-- Segunda columna: Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",")[0] : ""
-            }}</label>
-
-            <!-- Tercera columna: Descripción adicional del Detalle -->
-            <label title="{{ item.detalle ?? '' }}">{{
-              item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
-            }}</label>
-
-            <!-- Cuarta columna: Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusM; else viewModeCumple">
-                <input
-                  type="radio"
-                  [name]="'option_cumple_b_' + i"
-                  [value]="1"
-                  [checked]="item.idStatus === 1"
-                  (change)="selectStatus(item, '1')"
-                />✖
-              </div>
-              <ng-template #viewModeCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 1">✖</span>
-                </span>
-              </ng-template>
-            </div>
-
-            <!-- Quinta columna: No Cumple -->
-            <div class="text-center">
-              <div *ngIf="isEditingStatusM; else viewModeNoCumple">
-                <input
-                  type="radio"
-                  [name]="'option_no_cumple_b_' + i"
-                  [value]="2"
-                  [checked]="item.idStatus === 2"
-                  (change)="selectStatus(item, '2')"
-                />✖
-              </div>
-              <ng-template #viewModeNoCumple>
-                <span class="cuadrado">
-                  <span *ngIf="item.idStatus === 2">✖</span>
-                </span>
-              </ng-template>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="page">
-      <div class="content">
-        <form>
-          <br /><br />
-
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditTorque()">
-              {{ isEditingTorque ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingTorque"
-              (click)="saveChangesTorque()"
-            >
-              Guardar
-            </button>
-          </div>
-          <div class="semi-title text-center">
-            <h2 *ngIf="tituloForm.length > 0">
-              <strong>{{ tituloForm[13].nombre }}</strong>
-            </h2>
-          </div>
-          <br />
-          <div class="imagenes">
-            <img
-              src="./../../../assets/formulario_mixer/Torque tuerca ruedas 480 LBF.png"
-              alt="Torque tuerca ruedas"
-            />
-            <img
-              src="./../../../assets/formulario_mixer/Metodo medicion tuercas.png"
-              alt="Metodo medicion tuercas"
-            />
-          </div>
-          <br />
-          <div *ngIf="torqueDescription" class="subtitle torqDescription">
-            <ng-container *ngIf="isEditingTorque; else viewModeTorque">
-              <input
-                type="text"
-                [(ngModel)]="torqueDescription.descripcionTorque"
-                (ngModelChange)="onTorqueDescriptionChange($event)"
-                name="descripcionTorque"
-              />
-            </ng-container>
-            <ng-template #viewModeTorque>
-              <label>{{ torqueDescription.descripcionTorque }}</label>
-            </ng-template>
-          </div>
-          <br /><br />
-
-          <div *ngIf="!isPreviewMode">
-            <button type="button" (click)="toggleEditBetonera()">
-              {{ isEditingBetonera ? "Cancelar" : "Editar" }}
-            </button>
-            <button
-              type="button"
-              *ngIf="isEditingBetonera"
-              (click)="saveChangesBetonera()"
-            >
-              Guardar
-            </button>
-          </div>
-          <div class="semi-title text-center">
-            <h2 *ngIf="tituloForm.length > 0">
-              <strong>{{ tituloForm[14].nombre }}</strong>
-            </h2>
-          </div>
-          <br />
-          <div class="union-betonera">
-            <div class="imagen-betonera">
-              <img
-                src="./../../../assets/formulario_mixer/Espesor betonera.png"
-                alt="Espesor betonera"
-              />
-            </div>
-            <div *ngIf="betoneraData" class="espesor-betonera">
-              <ng-container *ngIf="isEditingBetonera; else viewModeBetonera">
-                <label
-                  >A=<input type="text" [(ngModel)]="betoneraData.EspeBotoA" name="espeBotoA"
-                /></label>
-                <label
-                  >B=<input type="text" [(ngModel)]="betoneraData.EspeBotoB" name="espeBotoB"
-                /></label>
-                <label
-                  >C=<input type="text" [(ngModel)]="betoneraData.EspeBotoC" name="espeBotoC"
-                /></label>
-                <label
-                  >D=<input type="text" [(ngModel)]="betoneraData.EspeBotoD" name="espeBotoD"
-                /></label>
-                <label
-                  >E=<input type="text" [(ngModel)]="betoneraData.EspeBotoE" name="espeBotoE"
-                /></label>
-                <label
-                  >F=<input type="text" [(ngModel)]="betoneraData.EspeBotoF" name="espeBotoF"
-                /></label>
-              </ng-container>
-              <ng-template #viewModeBetonera>
-                <label>A={{ betoneraData.EspeBotoA }} MM</label>
-                <label>B={{ betoneraData.EspeBotoB }} MM</label>
-                <label>C={{ betoneraData.EspeBotoC }} MM</label>
-                <label>D={{ betoneraData.EspeBotoD }} MM</label>
-                <label>E={{ betoneraData.EspeBotoE }} MM</label>
-                <label>F={{ betoneraData.EspeBotoF }} MM</label>
-              </ng-template>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="page">
-      <div class="content">
-        <form [formGroup]="formMixerMain">
-          <br /><br />
-          <div class="nonconformities">
-            <h2 *ngIf="tituloForm.length > 0" class="semi-title">
-              <strong>{{ tituloForm[15].nombre }}</strong>
-            </h2>
-            <div class="text-center">
-              <h3><strong>DETALLE</strong></h3>
-            </div>
-            <br />
-            <div class="padding12"><label class="semi-title"></label></div>
-            <label><strong>OBSERVACIONES</strong></label>
-            <!-- Renderiza las observaciones si existen -->
-            <div
-              *ngFor="let observation of nonConformities; let i = index"
-              [ngClass]="{ 'odd-row': i % 2 === 0, 'even-row': i % 2 !== 0 }"
-            >
-              <label>{{ observation.descripcion || "" }}</label>
-            </div>
-
-            <!-- Renderiza las filas vacías por defecto -->
-            <div
-              *ngFor="let i of defaultEmptyRows"
-              [ngClass]="{ 'odd-row': i % 2 === 0, 'even-row': i % 2 !== 0 }"
-            >
-              <label><strong>&nbsp;</strong></label>
-            </div>
-          </div>
-          <br /><br />
-          <div class="notes">
-            <h3>
-              <strong>
-                Nota muy importante: Toda unidad que durante una inspección
-                técnica de ALS Inspection Chile SpA presente anomalías
-                operativas graves o componentes críticos de seguridad en malas
-                condiciones, quedará clasificada dentro de esta categoría, y
-                será considerada como NO APTA por ALS Inspection Chile SpA
-              </strong>
-            </h3>
-            <h3>
-              <strong>
-                El transportista tendrá 5 días hábiles para mejorar las no
-                conformidades y solo se considerará la tarifa de desplazamiento
-                para el levantamiento de las no conformidades. En caso de
-                superar estos días se deberá solicitar una nueva inspección y se
-                tomará como una nueva.
-              </strong>
-            </h3>
-            <br />
-          </div>
-
-          <h2 *ngIf="tituloForm.length > 0" class="semi-title">
-            <strong>{{ tituloForm[16].nombre }}</strong>
-          </h2>
-          <div class="form-row-result">
-            <div class="indicacion">
-              <label class="text-right">INDICACIÓN (✖)</label>
-              <label class="text-center">SI</label>
-              <label class="text-center">NO</label>
-            </div>
-            <div class="columns">
-              <div class="row-text">
-                <label
-                  ><strong>Inspección de la unidad:</strong><br />Unidad queda
-                  con SELLO VERDE por el período de 12 Meses Certificación
-                  <br />
-                  establecido, correspondiente a 365 DÍAS.</label
-                >
-                <label><strong>Fecha de inspección:</strong></label>
-                <label><strong>Próximo control:</strong></label>
-                <label
-                  >Se considera <span class="font-green">APROBADO</span>,
-                  <span class="border-bottom-dashed">en razón de</span> que
-                  cumple todos los requisitos legales y de <br />
-                  seguridad operacional en el rol que le es propio.</label
-                >
-              </div>
-
-              <div class="border">
-                <div class="cuadrado-result">
-                  <span *ngIf="formMixerMain.get('idResul')?.value === 1"
-                    >✖</span
-                  >
+              }}</label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusA; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
                 </div>
-              </div>
-              <div class="border">
-                <div class="cuadrado-result">
-                  <span *ngIf="formMixerMain.get('idResul')?.value === 2"
-                    >✖</span
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado"
+                    ><span *ngIf="item.idStatus === 1">✖</span></span
                   >
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusA; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
                 </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado"
+                    ><span *ngIf="item.idStatus === 2">✖</span></span
+                  >
+                </ng-template>
               </div>
             </div>
-          </div>
-        </form>
-      </div>
-    </div>
+          </form>
 
-    <br /><br /><br /><br /><br /><br />
-
-    <div class="page">
-      <div class="content">
-        <div class="text-center justifyCenter">
-          <h3 class="custom-h3 font-size-25">
-            Este informe se realizó sin prejuicio de ningún tipo y para el
-            interés de quien <br />concierna.
-          </h3>
         </div>
-        <br /><br /><br /><br /><br /><br />
-        <h4 class="text-center justifyCenter">
-          Nombre y firma <br />INSPECTOR <br />ALS Inspection Chile SPA
-        </h4>
+      </div>
+
+      <div class="page">
+        <div class="content">
+          <form>
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusB()"
+                [disabled]="isAnyEditing && !isEditingStatusB"
+              >
+                {{ isEditingStatusB ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusB"
+                (click)="saveChangesStatusB()"
+              >
+                Guardar
+              </button>
+            </div>
+
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[1].nombre }}</strong>
+            </h2>
+
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 19 : 28;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
+            >
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">
+                {{ item.detalle ? item.detalle.split(",")[0] : "" }}
+              </label>
+
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">
+                {{
+                  item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
+                }}
+              </label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusB; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_b_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 1">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusB; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_b_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 2">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusC()"
+                [disabled]="isAnyEditing && !isEditingStatusC"
+              >
+                {{ isEditingStatusC ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusC"
+                (click)="saveChangesStatusC()"
+              >
+                Guardar
+              </button>
+            </div>
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[2].nombre }}</strong>
+            </h2>
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 28 : 39;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
+            >
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",")[0] : ""
+              }}</label>
+
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
+              }}</label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusC; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_b_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 1">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusC; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_b_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 2">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusD()"
+                [disabled]="isAnyEditing && !isEditingStatusD"
+              >
+                {{ isEditingStatusD ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusD"
+                (click)="saveChangesStatusD()"
+              >
+                Guardar
+              </button>
+            </div>
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[3].nombre }}</strong>
+            </h2>
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 39 : 49;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
+            >
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",")[0] : ""
+              }}</label>
+
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
+              }}</label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusD; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_b_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 1">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusD; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_b_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 2">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="page">
+        <div class="content">
+          <form>
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusE()"
+                [disabled]="isAnyEditing && !isEditingStatusE"
+              >
+                {{ isEditingStatusE ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusE"
+                (click)="saveChangesStatusE()"
+              >
+                Guardar
+              </button>
+            </div>
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[4].nombre }}</strong>
+            </h2>
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 49 : 60;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
+            >
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",")[0] : ""
+              }}</label>
+
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
+              }}</label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusE; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_b_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 1">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusE; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_b_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 2">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusF()"
+                [disabled]="isAnyEditing && !isEditingStatusF"
+              >
+                {{ isEditingStatusF ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusF"
+                (click)="saveChangesStatusF()"
+              >
+                Guardar
+              </button>
+            </div>
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[5].nombre }}</strong>
+            </h2>
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 60 : 67;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
+            >
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",")[0] : ""
+              }}</label>
+
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
+              }}</label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusF; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_b_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 1">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusF; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_b_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 2">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusG()"
+                [disabled]="isAnyEditing && !isEditingStatusG"
+              >
+                {{ isEditingStatusG ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusG"
+                (click)="saveChangesStatusG()"
+              >
+                Guardar
+              </button>
+            </div>
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[6].nombre }}</strong>
+            </h2>
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 67 : 72;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
+            >
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",")[0] : ""
+              }}</label>
+
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
+              }}</label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusG; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_b_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 1">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusG; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_b_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 2">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="page">
+        <div class="content">
+          <form>
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusH()"
+                [disabled]="isAnyEditing && !isEditingStatusH"
+              >
+                {{ isEditingStatusH ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusH"
+                (click)="saveChangesStatusH()"
+              >
+                Guardar
+              </button>
+            </div>
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[7].nombre }}</strong>
+            </h2>
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 72 : 87;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
+            >
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",")[0] : ""
+              }}</label>
+
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
+              }}</label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusH; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_b_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 1">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusH; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_b_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 2">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusI()"
+                [disabled]="isAnyEditing && !isEditingStatusI"
+              >
+                {{ isEditingStatusI ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusI"
+                (click)="saveChangesStatusI()"
+              >
+                Guardar
+              </button>
+            </div>
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[8].nombre }}</strong>
+            </h2>
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 87 : 96;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
+            >
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",")[0] : ""
+              }}</label>
+
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
+              }}</label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusI; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_b_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 1">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusI; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_b_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 2">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusJ()"
+                [disabled]="isAnyEditing && !isEditingStatusJ"
+              >
+                {{ isEditingStatusJ ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusJ"
+                (click)="saveChangesStatusJ()"
+              >
+                Guardar
+              </button>
+            </div>
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[9].nombre }}</strong>
+            </h2>
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 96 : 101;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
+            >
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",")[0] : ""
+              }}</label>
+
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
+              }}</label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusJ; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_b_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 1">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusJ; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_b_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 2">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="page">
+        <div class="content">
+          <form>
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusK()"
+                [disabled]="isAnyEditing && !isEditingStatusK"
+              >
+                {{ isEditingStatusK ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusK"
+                (click)="saveChangesStatusK()"
+              >
+                Guardar
+              </button>
+            </div>
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[10].nombre }}</strong>
+            </h2>
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 101 : 106;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
+            >
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",")[0] : ""
+              }}</label>
+
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
+              }}</label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusK; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_b_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 1">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusK; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_b_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 2">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusL()"
+                [disabled]="isAnyEditing && !isEditingStatusL"
+              >
+                {{ isEditingStatusL ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusL"
+                (click)="saveChangesStatusL()"
+              >
+                Guardar
+              </button>
+            </div>
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[11].nombre }}</strong>
+            </h2>
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 106 : 113;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
+            >
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",")[0] : ""
+              }}</label>
+
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
+              }}</label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusL; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_b_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 1">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusL; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_b_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 2">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditStatusM()"
+                [disabled]="isAnyEditing && !isEditingStatusM"
+              >
+                {{ isEditingStatusM ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusM"
+                (click)="saveChangesStatusM()"
+              >
+                Guardar
+              </button>
+            </div>
+            <h2 *ngIf="tituloForm.length > 0" class="title2">
+              <strong>{{ tituloForm[12].nombre }}</strong>
+            </h2>
+            <div class="form-row-section">
+              <label class="text-center"><strong>N°</strong></label>
+              <label></label>
+              <label><strong>PUNTOS A INSPECCIONAR</strong></label>
+              <label><strong>CUMPLE</strong></label>
+              <label><strong>NO CUMPLE</strong></label>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 113 : 123;
+                let i = index
+              "
+              class="form-row-section cursor-pointer"
+            >
+              <!-- Primera columna: Número -->
+              <label class="text-center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+
+              <!-- Segunda columna: Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",")[0] : ""
+              }}</label>
+
+              <!-- Tercera columna: Descripción adicional del Detalle -->
+              <label title="{{ item.detalle ?? '' }}">{{
+                item.detalle ? item.detalle.split(",").slice(1).join(",") : ""
+              }}</label>
+
+              <!-- Cuarta columna: Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusM; else viewModeCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_cumple_b_' + i"
+                    [value]="1"
+                    [checked]="item.idStatus === 1"
+                    (change)="selectStatus(item, '1', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 1">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+
+              <!-- Quinta columna: No Cumple -->
+              <div class="text-center">
+                <div *ngIf="isEditingStatusM; else viewModeNoCumple">
+                  <input
+                    type="radio"
+                    [name]="'option_no_cumple_b_' + i"
+                    [value]="2"
+                    [checked]="item.idStatus === 2"
+                    (change)="selectStatus(item, '2', i)"
+                  />✖
+                </div>
+                <ng-template #viewModeNoCumple>
+                  <span class="cuadrado">
+                    <span *ngIf="item.idStatus === 2">✖</span>
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="page">
+        <div class="content">
+          <form>
+            <br /><br />
+
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditTorque()"
+                [disabled]="isAnyEditing && !isEditingTorque"
+              >
+                {{ isEditingTorque ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingTorque"
+                (click)="saveChangesTorque()"
+              >
+                Guardar
+              </button>
+            </div>
+            <div class="semi-title text-center">
+              <h2 *ngIf="tituloForm.length > 0">
+                <strong>{{ tituloForm[13].nombre }}</strong>
+              </h2>
+            </div>
+            <br />
+            <div class="imagenes">
+              <img
+                src="./../../../assets/formulario_mixer/Torque tuerca ruedas 480 LBF.png"
+                alt="Torque tuerca ruedas"
+              />
+              <img
+                src="./../../../assets/formulario_mixer/Metodo medicion tuercas.png"
+                alt="Metodo medicion tuercas"
+              />
+            </div>
+            <br />
+            <div *ngIf="torqueDescription" class="subtitle torqDescription">
+              <ng-container *ngIf="isEditingTorque; else viewModeTorque">
+                <input
+                  type="text"
+                  [(ngModel)]="torqueDescription.descripcionTorque"
+                  (ngModelChange)="onTorqueDescriptionChange($event)"
+                  name="descripcionTorque"
+                />
+              </ng-container>
+              <ng-template #viewModeTorque>
+                <label>{{ torqueDescription.descripcionTorque }}</label>
+              </ng-template>
+            </div>
+            <br /><br />
+
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditBetonera()"
+                [disabled]="isAnyEditing && !isEditingBetonera"
+              >
+                {{ isEditingBetonera ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingBetonera"
+                (click)="saveChangesBetonera()"
+              >
+                Guardar
+              </button>
+            </div>
+            <div class="semi-title text-center">
+              <h2 *ngIf="tituloForm.length > 0">
+                <strong>{{ tituloForm[14].nombre }}</strong>
+              </h2>
+            </div>
+            <br />
+            <div class="union-betonera">
+              <div class="imagen-betonera">
+                <img
+                  src="./../../../assets/formulario_mixer/Espesor betonera.png"
+                  alt="Espesor betonera"
+                />
+              </div>
+              <div *ngIf="betoneraData" class="espesor-betonera">
+                <ng-container *ngIf="isEditingBetonera; else viewModeBetonera">
+                  <label
+                    >A=<input
+                      type="text"
+                      [(ngModel)]="betoneraData.EspeBotoA"
+                      name="espeBotoA"
+                  /></label>
+                  <label
+                    >B=<input
+                      type="text"
+                      [(ngModel)]="betoneraData.EspeBotoB"
+                      name="espeBotoB"
+                  /></label>
+                  <label
+                    >C=<input
+                      type="text"
+                      [(ngModel)]="betoneraData.EspeBotoC"
+                      name="espeBotoC"
+                  /></label>
+                  <label
+                    >D=<input
+                      type="text"
+                      [(ngModel)]="betoneraData.EspeBotoD"
+                      name="espeBotoD"
+                  /></label>
+                  <label
+                    >E=<input
+                      type="text"
+                      [(ngModel)]="betoneraData.EspeBotoE"
+                      name="espeBotoE"
+                  /></label>
+                  <label
+                    >F=<input
+                      type="text"
+                      [(ngModel)]="betoneraData.EspeBotoF"
+                      name="espeBotoF"
+                  /></label>
+                </ng-container>
+                <ng-template #viewModeBetonera>
+                  <label>A={{ betoneraData.EspeBotoA }} MM</label>
+                  <label>B={{ betoneraData.EspeBotoB }} MM</label>
+                  <label>C={{ betoneraData.EspeBotoC }} MM</label>
+                  <label>D={{ betoneraData.EspeBotoD }} MM</label>
+                  <label>E={{ betoneraData.EspeBotoE }} MM</label>
+                  <label>F={{ betoneraData.EspeBotoF }} MM</label>
+                </ng-template>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="page">
+        <div class="content">
+          <form [formGroup]="formMixerMain">
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditDescription()"
+                [disabled]="isAnyEditing && !isEditingDescription"
+              >
+                {{ isEditingDescription ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingDescription"
+                (click)="saveChangesDescription()"
+              >
+                Guardar
+              </button>
+            </div>
+
+            <div class="nonconformities">
+              <h2 *ngIf="tituloForm.length > 0" class="semi-title">
+                <strong>{{ tituloForm[15].nombre }}</strong>
+              </h2>
+              <div class="text-center">
+                <h3><strong>DETALLE</strong></h3>
+              </div>
+              <br />
+              <div class="padding12">
+                <label class="semi-title"></label>
+              </div>
+              <label><strong>OBSERVACIONES</strong></label>
+
+              <!-- Renderiza las observaciones si existen -->
+              <div
+                class="torqDescription"
+                *ngFor="let observation of nonConformities; let i = index"
+                [ngClass]="{ 'odd-row': i % 2 === 0, 'even-row': i % 2 !== 0 }"
+              >
+                <ng-container *ngIf="isEditingDescription; else viewMode">
+                  <input type="text" [formControlName]="'descripcion_' + i" />
+                </ng-container>
+
+                <ng-template #viewMode>
+                  <label>{{ observation.descripcion || "" }}</label>
+                </ng-template>
+              </div>
+
+              <!-- Renderiza las filas vacías por defecto -->
+              <div
+                *ngFor="let i of defaultEmptyRows"
+                [ngClass]="{ 'odd-row': i % 2 === 0, 'even-row': i % 2 !== 0 }"
+              >
+                <label><strong>&nbsp;</strong></label>
+              </div>
+            </div>
+            <br /><br />
+            <div class="notes">
+              <h3>
+                <strong>
+                  Nota muy importante: Toda unidad que durante una inspección
+                  técnica de ALS Inspection Chile SpA presente anomalías
+                  operativas graves o componentes críticos de seguridad en malas
+                  condiciones, quedará clasificada dentro de esta categoría, y
+                  será considerada como NO APTA por ALS Inspection Chile SpA
+                </strong>
+              </h3>
+              <h3>
+                <strong>
+                  El transportista tendrá 5 días hábiles para mejorar las no
+                  conformidades y solo se considerará la tarifa de
+                  desplazamiento para el levantamiento de las no conformidades.
+                  En caso de superar estos días se deberá solicitar una nueva
+                  inspección y se tomará como una nueva.
+                </strong>
+              </h3>
+              <br />
+            </div>
+
+            <br /><br />
+            <div *ngIf="!isPreviewMode">
+              <button
+                type="button"
+                (click)="toggleEditResult()"
+                [disabled]="isAnyEditing && !isEditingResult"
+              >
+                {{ isEditingResult ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingResult"
+                (click)="saveChangesResult()"
+              >
+                Guardar
+              </button>
+            </div>
+            <h2 *ngIf="tituloForm.length > 0" class="semi-title">
+              <strong>{{ tituloForm[16].nombre }}</strong>
+            </h2>
+            <div class="form-row-result">
+              <div class="indicacion">
+                <label class="text-right">INDICACIÓN (✖)</label>
+                <label class="text-center">SI</label>
+                <label class="text-center">NO</label>
+              </div>
+              <div class="columns">
+                <div class="row-text">
+                  <label
+                    ><strong>Inspección de la unidad:</strong><br />Unidad queda
+                    con SELLO VERDE por el período de 12 Meses Certificación<br />
+                    establecido, correspondiente a 365 DÍAS.</label
+                  >
+                  <label
+                    ><strong
+                      >Fecha de inspección:
+                      {{ formatDate(selectedInforme.fechaInspeccion) }}</strong
+                    ></label
+                  >
+                  <label
+                    ><strong
+                      >Próximo control:
+                      {{
+                        getNextControlDate(selectedInforme.fechaInspeccion)
+                      }}</strong
+                    ></label
+                  >
+                  <label
+                    >Se considera <span class="font-green">APROBADO</span>,
+                    <span class="border-bottom-dashed">en razón de</span> que
+                    cumple todos los requisitos legales y de seguridad
+                    operacional en el rol que le es propio.</label
+                  >
+                </div>
+
+                <!-- Modo Edición -->
+<ng-container *ngIf="isEditingResult; else viewModeResult">
+  <label class="text-center cursor-pointer align-content-space-around">
+    <input
+      type="radio"
+      formControlName="idResul"
+      [value]="1"
+    /> SI
+  </label>
+  <label class="text-center cursor-pointer align-content-space-around">
+    <input
+      type="radio"
+      formControlName="idResul"
+      [value]="2"
+    /> NO
+  </label>
+</ng-container>
+
+<!-- Modo Visualización -->
+<ng-template #viewModeResult>
+  <label class="text-center align-content-space-around">
+    <span class="cuadrado-result">
+      {{ formMixerMain.get('idResul')?.value === 1 ? "✖" : "" }}
+    </span>
+  </label>
+  <label class="text-center align-content-space-around">
+    <span class="cuadrado-result">
+      {{ formMixerMain.get('idResul')?.value === 2 ? "✖" : "" }}
+    </span>
+  </label>
+</ng-template>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <br /><br /><br /><br /><br /><br />
+
+      <div class="page">
+        <div class="content">
+          <div class="text-center justifyCenter">
+            <h3 class="custom-h3 font-size-25">
+              Este informe se realizó sin prejuicio de ningún tipo y para el
+              interés de quien <br />concierna.
+            </h3>
+          </div>
+          <br /><br /><br /><br /><br /><br />
+          <h4 class="text-center justifyCenter">
+            Nombre y firma <br />INSPECTOR <br />ALS Inspection Chile SPA
+          </h4>
+        </div>
+      </div>
+
+      <br /><br /><br /><br /><br /><br />
+
+      <div class="page">
+        <div class="content">
+          <form>
+            <h2
+              *ngIf="tituloForm.length > 0"
+              class="center justifyCenter font-size-xxxlarge"
+            >
+              <strong>{{ tituloForm[17].nombre }}</strong>
+            </h2>
+            <div class="photo-grid">
+              <div *ngFor="let photo of photos" class="photo-item">
+                <img
+                  [src]="'data:image/png;base64,' + photo.data"
+                  [alt]="photo.descripcionSF"
+                />
+                <span>{{ photo.descripcionSF }}</span>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
 
-    <br /><br /><br /><br /><br /><br />
-
-    <div class="page">
-      <div class="content">
-        <form>
-          <h2
-            *ngIf="tituloForm.length > 0"
-            class="center justifyCenter font-size-xxxlarge"
-          >
-            <strong>{{ tituloForm[17].nombre }}</strong>
-          </h2>
-          <div class="photo-grid">
-            <div *ngFor="let photo of photos" class="photo-item">
-              <img
-                [src]="'data:image/png;base64,' + photo.data"
-                [alt]="photo.descripcionSF"
-              />
-              <span>{{ photo.descripcionSF }}</span>
-            </div>
-          </div>
-        </form>
-      </div>
+    <div *ngIf="showHeaderFooter" class="footer">
+      <app-footer></app-footer>
     </div>
   </div>
 </div>

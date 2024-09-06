@@ -5,6 +5,7 @@ import { takeUntil } from 'rxjs/operators';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MixerService } from './services/mixer.service';
 import { PdfService } from './../../services/pdf.service';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-form-mixer',
@@ -20,12 +21,21 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   betoneraData: any;
   torqueDescription: any;
   nonConformities: any[] = [];
+  currentImages: any[] = [];
   selectedInforme: any | null = null;
+  fechaEmisionInforme: string | null = null;
+  currentItemIndex: number | null = null;
+  selecInforme: any;
+  selecDetalle: any;
+  selecStatus: any;
+  selecNumInforme: any;
   photos: any;
   originalValues: any;
   photoUrl: string = '';
   savingMessage = '';
+  currentDescription = '';
   isSaving = false;
+  isAnyEditing = false;
   isEditing = false;
   isEditingStatusA = false;
   isEditingStatusB = false;
@@ -42,14 +52,18 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   isEditingStatusM = false;
   isEditingTorque = false;
   isEditingBetonera = false;
+  isEditingDescription = false;
+  isEditingResult = false;
   isPreviewMode = false;
   showHeaderFooter = false;
   isLoading = false;
+  isLoadingPdf = false;
   showMessage = false;
+  showModal = false;
   defaultEmptyRows = new Array(7);
   retryCount = 0;
   messageText = '';
-  messageType: 'success' | 'error' = 'success';
+  messageType: 'success' | 'error' | 'warning' = 'success';
 
   optionStatus = [
     { idStatus: 1, alias: 'CU' },
@@ -71,6 +85,12 @@ export class FormMixerComponent implements OnInit, OnDestroy {
     this.formMixerMain.disable();
     this.getNumeroInformes();
     this.getTitulosForm();
+    this.currentDate();
+  }
+
+  currentDate() {
+    const currentDate = new Date();
+    this.fechaEmisionInforme = this.datePipe.transform(currentDate, 'dd-MM-yyyy');
   }
 
   ngOnDestroy(): void {
@@ -127,9 +147,15 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data: any) => {
-          (this.selectedInforme = data),
+          (this.selectedInforme = data)
+
+          const fechaInspeccionFormateada = this.formatDate(this.selectedInforme.fechaInspeccion);
+          const proximoControlFormateado = this.getNextControlDate(this.selectedInforme.fechaInspeccion);
+
             this.formMixerMain.patchValue({
               ...this.selectedInforme,
+              fechaInspeccion: fechaInspeccionFormateada, // Formatear la fecha de inspección
+              proximoControl: proximoControlFormateado, // Agregar el próximo control
             });
           this.loadFormData(informe.idInforme);
         },
@@ -161,21 +187,78 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   generatePDF() {
-    this.isLoading = true; // Mostrar la barra de carga
+  this.isLoadingPdf = true; // Mostrar la barra de carga
 
-    // Ocultar botones antes de generar el PDF
-    this.isPreviewMode = true;
-    this.showHeaderFooter = true;
+  // Ocultar botones antes de generar el PDF
+  this.isPreviewMode = true;
+  this.showHeaderFooter = true;
 
-    setTimeout(async () => {
-      // Generar el PDF
-      await this.pdfService.generatePDF('contentToConvert');
+  // Definir los ajustes específicos para las páginas
+  const pageAdjustments: any[] = [];
 
-      // Restaurar el estado después de la generación del PDF
-      this.isLoading = false; // Ocultar la barra de carga
-      this.isPreviewMode = false;
-      this.showHeaderFooter = false;
-    }, 0);
+  setTimeout(async () => {
+    const content = document.getElementById('contentToConvert');
+    if (content) {
+      const pages = content.querySelectorAll('.page');
+      
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i] as HTMLElement;
+        const canvas = await html2canvas(page); // Crear el canvas
+        const canvasHeight = (canvas.height * 210) / canvas.width; // Calcular el alto del canvas ajustado al ancho A4
+
+        // Ajustes específicos por página
+
+        // Aumentar el tamaño en las páginas 1-5
+        if (i >= 0 && i < 5) {      
+          pageAdjustments.push({ scale: 1.1 });
+
+        // Centrar el contenido en la página 6
+        } else if (i === 7) {
+          
+        // Sin ajustes adicionales para otras páginas
+          pageAdjustments.push({ yOffset: (297 - canvasHeight) / 2 });
+        } else {
+          pageAdjustments.push({});
+        }
+      }
+
+      // Generar el PDF con los ajustes específicos
+      await this.pdfService.generatePDF('contentToConvert', pageAdjustments);
+    }
+
+    // Restaurar el estado después de la generación del PDF
+    this.isLoadingPdf = false; // Ocultar la barra de carga
+    this.isPreviewMode = false;
+    this.showHeaderFooter = false;
+  }, 0);
+}
+
+  togglePreview() {
+    this.isPreviewMode = !this.isPreviewMode;
+    this.showHeaderFooter = this.isPreviewMode;
+    const contentContainer = document.getElementById('contentToConvert');
+    
+    if (this.isPreviewMode) {
+      this.formMixerMain.disable();
+      this.hideButtonsForPreview(true);
+      contentContainer?.classList.add('preview-mode');
+    } else {
+      if (!this.isEditing) {
+        this.formMixerMain.disable();
+      } else {
+        this.formMixerMain.enable();
+      }
+      this.hideButtonsForPreview(false);
+      contentContainer?.classList.remove('preview-mode');
+    }
+  }
+
+  // Ocultar o mostrar los botones de edición y guardar según el modo de vista previa
+  hideButtonsForPreview(hide: boolean) {
+    const buttons = document.querySelectorAll('.edit-save-buttons');
+    buttons.forEach((button: Element) => {
+      (button as HTMLElement).style.display = hide ? 'none' : 'block';
+    });
   }
 
   private loadItemDetails(idInforme: number) {
@@ -254,14 +337,42 @@ export class FormMixerComponent implements OnInit, OnDestroy {
     }
   }
 
-  selectStatus(item: any, selectedIdStatus: string): void {
-    const selectedOption = this.optionStatus.find(
-      (option) => option.idStatus.toString() === selectedIdStatus
-    );
-    if (selectedOption) {
-      item.alias = selectedOption.alias;
-      item.idStatus = parseInt(selectedIdStatus, 10);
+  selectStatus(item: any, selectedIdStatus: string, index: number): void {
+  const selectedOption = this.optionStatus.find(
+    (option) => option.idStatus.toString() === selectedIdStatus
+  );
+  
+  if (selectedOption) {
+    item.alias = selectedOption.alias;
+    item.idStatus = parseInt(selectedIdStatus, 10);
+
+    if (selectedIdStatus === '2') {
+      // Si se selecciona "No Cumple", abre el modal pasando el item
+      this.openModal(item); 
+    } else {
+      // Si es "Cumple", no abrir modal, solo actualizar el estado
+      item.idStatus = 1;
+      item.descripcionNoCumple = '';  // Limpiar la descripción si es "Cumple"
     }
+  }
+}
+
+  private addNotMetDescription(descriptionData: any): void {
+    this.mixerService
+      .postDescripcionMixer(descriptionData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            console.log('Descripción agregada exitosamente.');
+          } else {
+            console.error('Error al agregar la descripción:', response.message);
+          }
+        },
+        error: (error) => {
+          console.error('Error al agregar la descripción:', error);
+        },
+      });
   }
 
   private loadBetoneraData(idInforme: number): void {
@@ -290,6 +401,18 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             (item: any) => item.idStatus === 2
           );
           this.addDefaultRows();
+
+          // Agregar dinámicamente los campos de descripción al FormGroup
+          this.nonConformities.forEach((nonConformity, index) => {
+            const controlName = `descripcion_${index}`;
+            this.formMixerMain.addControl(
+              controlName,
+              this.formBuilder.control(
+                nonConformity.descripcion,
+                Validators.required
+              )
+            );
+          });
         },
         error: (error) => {
           console.error('Error fetching non-conformities:', error);
@@ -384,6 +507,10 @@ export class FormMixerComponent implements OnInit, OnDestroy {
     this.loadItemDetails(this.selectedInforme.idInforme);
   }
 
+  refreshNonConformities() {
+    this.loadNonConformities(this.selectedInforme.idInforme);
+  }
+
   handleError(error?: any) {
     console.error('Error actualizando los datos', error);
     this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
@@ -393,201 +520,353 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   toggleEdit() {
-    if (!this.isEditing) {
-      this.originalValues = this.formMixerMain.getRawValue();
-      this.formMixerMain.enable();
-    } else {
-      this.formMixerMain.patchValue(this.originalValues);
-      this.formMixerMain.disable();
-    }
-    this.isEditing = !this.isEditing;
+  if (!this.isAnyEditing) {
+    this.isEditing = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.formMixerMain.getRawValue();
+    this.formMixerMain.enable();
+  } else if (this.isEditing) {
+    this.formMixerMain.patchValue(this.originalValues);
+    this.formMixerMain.disable();
+    this.isEditing = false;
+    this.isAnyEditing = false;
+  } else { 
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
+}
 
   toggleEditStatusA() {
-    if (!this.isEditingStatusA) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusA = !this.isEditingStatusA;
+  if (!this.isAnyEditing) {
+    this.isEditingStatusA = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusA) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusA = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
+}
 
   toggleEditStatusB() {
-    if (!this.isEditingStatusB) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusB = !this.isEditingStatusB;
+    if (!this.isAnyEditing) {
+    this.isEditingStatusB = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusB) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusB = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
   }
 
   toggleEditStatusC() {
-    if (!this.isEditingStatusC) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusC = !this.isEditingStatusC;
+    if (!this.isAnyEditing) {
+    this.isEditingStatusC = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusC) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusC = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
   }
 
   toggleEditStatusD() {
-    if (!this.isEditingStatusD) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusD = !this.isEditingStatusD;
+    if (!this.isAnyEditing) {
+    this.isEditingStatusD = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusD) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusD = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
   }
 
   toggleEditStatusE() {
-    if (!this.isEditingStatusE) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusE = !this.isEditingStatusE;
+    if (!this.isAnyEditing) {
+    this.isEditingStatusE = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusE) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusE = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
   }
 
   toggleEditStatusF() {
-    if (!this.isEditingStatusF) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusF = !this.isEditingStatusF;
+    if (!this.isAnyEditing) {
+    this.isEditingStatusF = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusF) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusF = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
   }
 
   toggleEditStatusG() {
-    if (!this.isEditingStatusG) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusG = !this.isEditingStatusG;
+    if (!this.isAnyEditing) {
+    this.isEditingStatusG = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusG) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusG = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
   }
 
   toggleEditStatusH() {
-    if (!this.isEditingStatusH) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusH = !this.isEditingStatusH;
+    if (!this.isAnyEditing) {
+    this.isEditingStatusH = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusH) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusH = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
   }
 
   toggleEditStatusI() {
-    if (!this.isEditingStatusI) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusI = !this.isEditingStatusI;
+    if (!this.isAnyEditing) {
+    this.isEditingStatusI = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusI) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusI = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
   }
 
   toggleEditStatusJ() {
-    if (!this.isEditingStatusJ) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusJ = !this.isEditingStatusJ;
+    if (!this.isAnyEditing) {
+    this.isEditingStatusJ = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusJ) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusJ = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
   }
 
   toggleEditStatusK() {
-    if (!this.isEditingStatusK) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusK = !this.isEditingStatusK;
+    if (!this.isAnyEditing) {
+    this.isEditingStatusK = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusK) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusK = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
   }
 
   toggleEditStatusL() {
-    if (!this.isEditingStatusL) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusL = !this.isEditingStatusL;
+    if (!this.isAnyEditing) {
+    this.isEditingStatusL = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusL) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusL = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
   }
 
   toggleEditStatusM() {
-    if (!this.isEditingStatusM) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({
-        ...item,
-      }));
-    } else {
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
-    this.isEditingStatusM = !this.isEditingStatusM;
+    if (!this.isAnyEditing) {
+    this.isEditingStatusM = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.itemsWithStatus.map((item) => ({
+      ...item,
+    }));
+  } else if (this.isEditingStatusM) {
+    this.itemsWithStatus = this.originalValues.map((item: any) => ({
+      ...item,
+    }));
+    this.isEditingStatusM = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
   }
 
   toggleEditTorque() {
-    if (!this.isEditingTorque) {
-      this.originalValues = this.torqueDescription;
-    } else {
-      this.torqueDescription = this.originalValues;
-    }
-    this.isEditingTorque = !this.isEditingTorque;
+  if (!this.isAnyEditing) {
+    this.isEditingTorque = true;
+    this.isAnyEditing = true;
+    this.originalValues = { ...this.torqueDescription };
+  } else if (this.isEditingTorque) {
+    this.torqueDescription = { ...this.originalValues };
+    this.isEditingTorque = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
+}
 
   toggleEditBetonera() {
-  if (!this.isEditingBetonera) {
+  if (!this.isAnyEditing) {
+    this.isEditingBetonera = true;
+    this.isAnyEditing = true; 
     this.originalValues = { ...this.betoneraData };
-  } else {
+  } else if (this.isEditingBetonera) {
     this.betoneraData = { ...this.originalValues };
+    this.isEditingBetonera = false;
+    this.isAnyEditing = false; 
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
-  this.isEditingBetonera = !this.isEditingBetonera;
+}
+
+  toggleEditDescription() {
+  if (!this.isAnyEditing) {
+    this.isEditingDescription = true;
+    this.isAnyEditing = true; 
+  } else if (this.isEditingDescription) {
+    this.isEditingDescription = false;
+    this.isAnyEditing = false; 
+
+    this.nonConformities.forEach((item, index) => {
+      this.formMixerMain
+        .get(`descripcion_${index}`)
+        ?.setValue(item.descripcion);
+    });
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
+}
+
+  toggleEditResult() {
+  if (!this.isAnyEditing) {
+    this.isEditingResult = true;
+    this.isAnyEditing = true;
+
+    this.formMixerMain.get('idResul')?.enable();
+
+    this.originalValues = { idResul: this.formMixerMain.get('idResul')?.value };
+  } else if (this.isEditingResult) {
+    this.formMixerMain.get('idResul')?.setValue(this.originalValues.idResul);
+    this.formMixerMain.get('idResul')?.disable(); 
+    this.isEditingResult = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
 }
 
   saveChanges() {
@@ -605,6 +884,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
           this.messageText = response.message;
           this.messageType = 'success';
           this.isEditing = false;
+          this.isAnyEditing = false;
           setTimeout(() => (this.showMessage = false), 3000);
         },
         error: (error) => {
@@ -613,6 +893,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
           this.messageText = error.message;
           this.messageType = 'error';
           this.isEditing = false;
+          this.isAnyEditing = false;
           this.formMixerMain.disable();
         },
       });
@@ -645,14 +926,33 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+        // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
 
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
+
+      // Llamada al servicio para actualizar los ítems
       this.mixerService
         .editItemMixer(itemsData)
         .pipe()
@@ -662,6 +962,9 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
+              // Actualizar la lista de no conformidades
+              this.refreshNonConformities();
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -683,6 +986,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusA = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -730,6 +1034,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -751,6 +1056,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusB = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -798,6 +1104,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -819,6 +1126,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusC = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -866,6 +1174,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -887,6 +1196,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusD = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -934,6 +1244,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -955,6 +1266,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusE = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -1002,6 +1314,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -1023,6 +1336,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusF = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -1070,6 +1384,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -1091,6 +1406,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusG = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -1138,6 +1454,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -1159,6 +1476,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusH = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -1206,6 +1524,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -1227,6 +1546,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusI = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -1274,6 +1594,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -1295,6 +1616,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusJ = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -1342,6 +1664,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -1363,6 +1686,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusK = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -1410,6 +1734,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -1431,6 +1756,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusL = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -1476,6 +1802,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
               this.showMessage = true;
               this.messageText = 'Datos actualizados exitosamente.';
               this.messageType = 'success';
+              this.isAnyEditing = false;
             } else {
               this.messageText =
                 'Error al guardar algunos datos. Inténtalo de nuevo.';
@@ -1497,6 +1824,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
             setTimeout(() => (this.showMessage = false), 3000);
             this.isSaving = false; // Desactivar el spinner
             this.isEditingStatusM = false;
+            this.isAnyEditing = false;
           },
         });
     }
@@ -1504,76 +1832,19 @@ export class FormMixerComponent implements OnInit, OnDestroy {
 
   saveChangesTorque() {
     const descriptionData = {
-    idInforme: this.selectedInforme.idInforme,
-    descripcionTorque: this.torqueDescription.descripcionTorque
-  };
-
-  this.mixerService.editTorqueMixer(descriptionData).subscribe({
-    next: (response) => {
-      if (response.success) {
-        this.showMessage = true;
-        this.messageText = 'Descripción actualizada exitosamente.';
-        this.messageType = 'success';
-      } else {
-        this.messageText = 'Error al actualizar la descripción.';
-        this.messageType = 'error';
-      }
-    },
-    error: (error) => {
-      this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-      this.messageType = 'error';
-      console.error('Error actualizando los datos:', error);
-    },
-    complete: () => {
-      this.showMessage = true;
-      setTimeout(() => (this.showMessage = false), 3000);
-      this.isEditingTorque = false; // Desactivar el modo de edición
-    }
-  });
-  }
-
-  onTorqueDescriptionChange(value: string) {
-    this.torqueDescription.descripcionTorque = value;
-  }
-
-  saveChangesBetonera() {
-  if (this.selectedInforme) {
-    this.isSaving = true; // Activar el spinner
-    this.savingMessage = 'Guardando cambios, por favor espere...';
-
-    const idInforme = this.selectedInforme.idInforme;
-
-    const betoneraDataToUpdate = {
-      ...this.originalValues, // Mantener los campos no modificados
-      ...Object.keys(this.betoneraData).reduce((acc, key) => {
-        if (this.betoneraData[key] !== this.originalValues[key]) {
-          acc[key] = this.betoneraData[key]; // Solo sobrescribir los campos modificados
-        }
-        return acc;
-      }, {} as Record<string, any>)
+      idInforme: this.selectedInforme.idInforme,
+      descripcionTorque: this.torqueDescription.descripcionTorque,
     };
 
-    // Agregar idInforme al objeto de actualización
-    betoneraDataToUpdate['idInforme'] = idInforme;
-
-    if (Object.keys(betoneraDataToUpdate).length === 0) {
-      console.log('No se encontraron campos modificados para actualizar.');
-      this.isSaving = false;
-      this.isEditingBetonera = false;
-      return;
-    }
-
-    console.log('Betonera data to update:', betoneraDataToUpdate);
-
-    // Llamada al servicio para actualizar los datos
-    this.mixerService.editBetoneraMixer(betoneraDataToUpdate).subscribe({
+    this.mixerService.editTorqueMixer(descriptionData).subscribe({
       next: (response) => {
         if (response.success) {
           this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
+          this.messageText = 'Descripción actualizada exitosamente.';
           this.messageType = 'success';
+          this.isAnyEditing = false;
         } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
+          this.messageText = 'Error al actualizar la descripción.';
           this.messageType = 'error';
         }
       },
@@ -1585,11 +1856,241 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       complete: () => {
         this.showMessage = true;
         setTimeout(() => (this.showMessage = false), 3000);
-        this.isSaving = false; // Desactivar el spinner
+        this.isEditingTorque = false; 
+        this.isAnyEditing = false;
+      },
+    });
+  }
+
+  onTorqueDescriptionChange(value: string) {
+    this.torqueDescription.descripcionTorque = value;
+  }
+
+  saveChangesBetonera() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const idInforme = this.selectedInforme.idInforme;
+
+      const betoneraDataToUpdate = {
+        ...this.originalValues, // Mantener los campos no modificados
+        ...Object.keys(this.betoneraData).reduce((acc, key) => {
+          if (this.betoneraData[key] !== this.originalValues[key]) {
+            acc[key] = this.betoneraData[key]; // Solo sobrescribir los campos modificados
+          }
+          return acc;
+        }, {} as Record<string, any>),
+      };
+
+      // Agregar idInforme al objeto de actualización
+      betoneraDataToUpdate['idInforme'] = idInforme;
+
+      if (Object.keys(betoneraDataToUpdate).length === 0) {
+        console.log('No se encontraron campos modificados para actualizar.');
+        this.isSaving = false;
         this.isEditingBetonera = false;
+        return;
+      }
+
+      console.log('Betonera data to update:', betoneraDataToUpdate);
+
+      // Llamada al servicio para actualizar los datos
+      this.mixerService.editBetoneraMixer(betoneraDataToUpdate).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+          } else {
+            this.messageText =
+              'Error al guardar algunos datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+          }
+        },
+        error: (error) => {
+          this.messageText =
+            'Error al actualizar los datos. Inténtalo de nuevo.';
+          this.messageType = 'error';
+          console.error('Error actualizando los datos:', error);
+        },
+        complete: () => {
+          this.showMessage = true;
+          setTimeout(() => (this.showMessage = false), 3000);
+          this.isSaving = false; // Desactivar el spinner
+          this.isEditingBetonera = false;
+          this.isAnyEditing = false;
+        },
+      });
+    }
+  }
+
+  saveChangesDescription() {
+    if (this.selectedInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const descripcionesToUpdate = this.nonConformities
+        .map((observation, index) => {
+          const descripcionNueva = this.formMixerMain.get(
+            `descripcion_${index}`
+          )?.value;
+          if (descripcionNueva !== observation.descripcion) {
+            return {
+              descripcion: descripcionNueva, // Solo agrega si hay cambios
+              idInforme: this.selectedInforme.idInforme,
+              idDetalle: observation.idDetalle,
+            };
+          }
+          return null;
+        })
+        .filter((item) => item !== null); // Filtrar nulos si no hay cambios
+
+      if (descripcionesToUpdate.length === 0) {
+        console.log(
+          'No se encontraron descripciones modificadas para actualizar.'
+        );
+        this.isSaving = false;
+        this.isEditingDescription = false;
+        return;
+      }
+
+      let success = true;
+
+      // Llamada al método PUT para editar las descripciones
+      descripcionesToUpdate.forEach((descripcionData) => {
+        this.mixerService.editDescripcionMixer(descripcionData).subscribe({
+          next: (response) => {
+            if (!response.success) {
+              success = false;
+              console.error(
+                'Error al actualizar algunas descripciones:',
+                response.message
+              );
+            }
+          },
+          error: (error) => {
+            success = false;
+            console.error('Error al actualizar algunas descripciones:', error);
+          },
+          complete: () => {
+            if (success) {
+              this.showMessage = true;
+              this.messageText = 'Datos actualizados exitosamente.';
+              this.messageType = 'success';
+              this.refreshNonConformities();
+              this.isAnyEditing = false;
+            } else {
+              this.messageText =
+                'Error al guardar algunos datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
+            }
+
+            this.isSaving = false;
+            this.isEditingDescription = false;
+            setTimeout(() => (this.showMessage = false), 3000);
+          },
+        });
+      });
+    }
+  }
+
+  saveChangesResult() {
+  if (this.selectedInforme) {
+    // Actualizamos solo el campo idResul en el objeto selectedInforme
+    const updatedInforme = {
+      ...this.selectedInforme, // Clonamos el objeto actual
+      idResul: this.formMixerMain.get('idResul')?.value // Actualizamos solo el idResul
+    };
+
+    // Llamada al servicio para actualizar el informe completo con el idResul actualizado
+    this.mixerService.editInformeMixer(updatedInforme).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.showMessage = true;
+          this.messageText = 'El resultado ha sido actualizado exitosamente.';
+          this.messageType = 'success';
+          this.isEditingResult = false; // Salir del modo edición
+          this.isAnyEditing = false; // Permitir edición de otras secciones
+        } else {
+          this.messageText = 'Error al guardar el resultado. Inténtalo de nuevo.';
+          this.messageType = 'error';
+        }
+      },
+      error: (error) => {
+        console.error('Error al actualizar el resultado:', error);
+        this.messageText = 'Error al actualizar el resultado. Inténtalo de nuevo.';
+        this.messageType = 'error';
+      },
+      complete: () => {
+        setTimeout(() => (this.showMessage = false), 3000);
       }
     });
   }
 }
+
+  // Método para formatear la fecha
+formatDate(date: string | Date): string {
+    return this.datePipe.transform(date, 'dd-MM-yyyy') || '';
+  }
+
+  // Método para calcular el próximo control
+  getNextControlDate(fechaInspeccion: string): string {
+    const proximoControl = new Date(fechaInspeccion);
+    proximoControl.setFullYear(proximoControl.getFullYear() + 1);
+
+    // Sumar un día a la fecha del próximo control
+    proximoControl.setDate(proximoControl.getDate() + 1);
+    return this.formatDate(proximoControl);
+  }
+
+  openModal(item: any): void {
+  const idInforme = this.selectedInforme.idInforme;
+  const numeroInforme = this.formMixerMain.get('numeroInforme')?.value;
+  const idDetalle = item.idDetalle;
+  const idStatus = item.idStatus;
+
+  // Verifica si tienes todos los datos requeridos
+  if (!idInforme || !numeroInforme || !idDetalle || !idStatus) {
+    console.error('Datos faltantes al intentar abrir el modal.');
+    return;
+  }
+
+  // Asignar valores a las propiedades del modal
+  this.selecInforme = idInforme;
+  this.selecNumInforme = numeroInforme;
+  this.selecDetalle = idDetalle;
+  this.selecStatus = idStatus;
+
+  // Mostrar el modal
+  this.showModal = true;
+  this.currentItemIndex = this.itemsWithStatus.indexOf(item);
+
+  // Agregar logs para verificar la correcta asignación
+  console.log('Modal abierto con los siguientes datos:');
+  console.log('idInforme:', idInforme);
+  console.log('numeroInforme:', numeroInforme);
+  console.log('idDetalle:', idDetalle);
+  console.log('idStatus:', idStatus);
+}
+
+  closeModal(modalData: { description: string, images: string[] }): void {
+    if (this.currentItemIndex !== null) {
+      // Actualiza el ítem con la descripción y las imágenes obtenidas del modal
+      this.itemsWithStatus[this.currentItemIndex].descripcionNoCumple = modalData.description;
+      this.itemsWithStatus[this.currentItemIndex].images = modalData.images;
+    }
+
+    this.showModal = false;
+    this.currentItemIndex = null;
+  }
+
+cancelModal(): void {
+    this.showModal = false;
+    this.currentItemIndex = null;
+    this.currentDescription = '';
+  }
+
 
 }
