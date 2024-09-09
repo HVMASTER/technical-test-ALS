@@ -80,10 +80,7 @@ export class MixerService {
   }
 
   editBetoneraMixer(betoneraData: any) {
-    return this.http.put<any>(
-      `${this.baseUrl}editBetoneraMixer`,
-      betoneraData
-    );
+    return this.http.put<any>(`${this.baseUrl}editBetoneraMixer`, betoneraData);
   }
 
   editDescripcionMixer(descriptionData: any) {
@@ -94,17 +91,33 @@ export class MixerService {
   }
 
   postDescripcionMixer(descriptionData: any) {
-  return this.http.post<any>(
-    `${this.baseUrl}sendDescripcionMixer`, 
-    descriptionData
-  );
-}
+    return this.http.post<any>(
+      `${this.baseUrl}sendDescripcionMixer`,
+      descriptionData
+    );
+  }
 
-sendFotosMixer(data: any) {
-  return this.http.post<any>(
-    `${this.baseUrl}sendFotosMixer`, 
-    data
-  );
-}
+  sendFotosMixer(formData: any) {
+    return this.http.post<any>(`${this.baseUrl}sendFotosMixer`, formData);
+  }
 
+  deleteFotoMixer(fotoData: any) {
+    return this.http.request<any>(
+      'delete',
+      `${this.baseUrl}deleteFotoMixer`,
+      { 
+       body: fotoData
+      }  
+    );
+  }
+
+  deleteDescripcionMixer(descriptionData: any) {
+    return this.http.request<any>(
+      'delete',
+      `${this.baseUrl}deleteDescripcionMixer`,
+      {
+        body: descriptionData,
+      }
+    );
+  }
 }
