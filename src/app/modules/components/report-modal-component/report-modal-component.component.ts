@@ -7,52 +7,61 @@ import { MixerService } from '../../form-mixer/services/mixer.service';
   styleUrl: './report-modal-component.component.scss',
 })
 export class ReportModalComponentComponent {
-  @Input() idInforme!: number; // Recibe el idInforme desde el componente principal
-  @Input() idDetalle!: number; // Recibe el idDetalle desde el componente principal
-  @Input() idStatus!: number; // Recibe el idStatus desde el componente principal
-  @Input() numeroInforme!: string; // Recibe el número de informe desde el componente principal
+  @Input() idInforme!: any;
+  @Input() idDetalle!: any;
+  @Input() idStatus!: any;
+  @Input() numeroInforme!: string;
 
   @Output() save = new EventEmitter<{
     description: string;
     images: string[];
+    imagesNames: any[];
   }>();
   @Output() cancel = new EventEmitter<void>();
 
   description: string = '';
-  images: string[] = [];
-  imageNames: string[] = [];
+  images: any[] = []; // Para mostrar las imágenes en base64 en el frontend
+  imageBlobs: Blob[] = []; // Para almacenar las imágenes en formato Blob para el backend
+  imageNames: any[] = [];
 
   constructor(private mixerService: MixerService) {}
 
   // Propiedad para habilitar/deshabilitar el botón de guardar
   get canSave(): boolean {
-    return (
-      this.description.trim().length > 0 &&
-      this.images.length >= 2
-    );
+    return this.description.trim().length > 0 && this.images.length >= 2;
   }
 
   // Manejo de archivos seleccionados
-  onFileSelected(event: Event) {
+  async onFileSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
-      this.imageNames.push(file.name); // Agregar nombre de la imagen
-      this.convertToBase64(file);
+      this.imageNames.push(file.name);
+
+      // Convertimos el archivo a base64 para la visualización en el frontend
+      const base64Image = await this.convertBlobToBase64(file);
+      this.images.push(base64Image); // Guardamos la imagen en base64 para mostrarla
+
+      // Guardamos el BLOB para enviarlo al backend
+      this.imageBlobs.push(file);
     }
   }
 
-  // Conversión de archivo a Base64
-   convertToBase64(file: File) {
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      this.images.push(e.target.result); // Agregar la imagen convertida al array
-    };
-    reader.readAsDataURL(file);
+  // Conversión de BLOB a Base64 para visualización
+  convertBlobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.readAsDataURL(blob);
+    });
   }
 
   // Eliminar imagen
   removeImage(index: number) {
-    this.images.splice(index, 1); // Eliminamos la imagen
+    this.images.splice(index, 1); // Eliminamos la imagen en base64
+    this.imageBlobs.splice(index, 1); // Eliminamos el BLOB
     this.imageNames.splice(index, 1); // Eliminamos también el nombre
   }
 
@@ -75,52 +84,45 @@ export class ReportModalComponentComponent {
       }
 
       console.log('Descripción:', this.description);
-      console.log('Imágenes (Base64):', this.images);
+      console.log('Imágenes (Blob):', this.imageBlobs);
       console.log('Nombres de las imágenes:', this.imageNames);
 
-      // Filtrar imágenes no vacías antes de agregarlas al formData
-      const validImages = this.images.filter((img) => img !== '');
-
-      // crear objeto de imagen para enviar al servidor
-      validImages.forEach((image, index) => {
-        if (image) {
-          formData.append('idInforme', this.idInforme.toString());
+      // Utilizamos imageBlobs para enviar las imágenes como BLOB
+      this.imageBlobs.forEach((imageBlob, index) => {
+        if (imageBlob) {
+          formData.append('idInforme', this.idInforme);
           formData.append('numeroInforme', this.numeroInforme);
-          formData.append('idDetalle', this.idDetalle.toString());
-          formData.append('idStatus', this.idStatus.toString());
+          formData.append('idDetalle', this.idDetalle);
+          formData.append('idStatus', this.idStatus);
 
           formData.append('foto', this.imageNames[index]); // Agrega el nombre de la imagen
-          const base64Data = image.replace(/^data:image\/[a-z]+;base64,/, ''); // Eliminar el prefijo Base64
-          formData.append('data', base64Data); // Agrega la imagen en Base64
-          formData.append('numero', index.toString()); // Agregar el índice de la imagen como número
+          formData.append('data', imageBlob); // Enviar la imagen en BLOB
+          formData.append('numero', (index + 1).toString()); // Agregar el índice de la imagen como número
 
           console.log(`Imagen ${index}:`, {
             nombre: this.imageNames[index],
-            base64: base64Data,
+            Blob: imageBlob,
           });
 
+          // Llamada al servicio para enviar las imágenes como BLOB
+          this.mixerService.sendFotosMixer(formData).subscribe({
+            next: (response) => {
+              console.log('fotos subidas correctamente: ', this.imageBlobs);
+              console.log(`Imagen ${index + 1} subida correctamente.`);
+              console.log('Imagen(es) subidas correctamente.');
+
+              // Emitir el evento de guardar en el modal
+              this.save.emit({
+                description: this.description,
+                images: this.images, // imágenes en base64 para el frontend
+                imagesNames: this.imageNames, // nombres de las imágenes
+              });
+            },
+            error: (error) => {
+              console.error('Error subiendo imagen(es):', error);
+            },
+          });
         }
-      });
-
-        // Verifica el contenido de formData
-        formData.forEach((value, key) => {
-          console.log(`FormData key: ${key}, value: ${value}`);
-        });
-
-      // Llamada al servicio para enviar las imágenes
-      this.mixerService.sendFotosMixer(formData).subscribe({
-        next: (response) => {
-          console.log('Imagen(es) subidas correctamente.');
-
-          // Emitir el evento de guardar en el modal
-          this.save.emit({
-            description: this.description,
-            images: this.images,
-          });
-        },
-        error: (error) => {
-          console.error('Error subiendo imagen(es):', error);
-        },
       });
     } else {
       alert('Por favor, ingrese una descripción y suba al menos 2 imágenes.');

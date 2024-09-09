@@ -34,6 +34,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   photoUrl: string = '';
   savingMessage = '';
   currentDescription = '';
+  originalStatus: any;
   isSaving = false;
   isAnyEditing = false;
   isEditing = false;
@@ -90,7 +91,10 @@ export class FormMixerComponent implements OnInit, OnDestroy {
 
   currentDate() {
     const currentDate = new Date();
-    this.fechaEmisionInforme = this.datePipe.transform(currentDate, 'dd-MM-yyyy');
+    this.fechaEmisionInforme = this.datePipe.transform(
+      currentDate,
+      'dd-MM-yyyy'
+    );
   }
 
   ngOnDestroy(): void {
@@ -147,16 +151,20 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data: any) => {
-          (this.selectedInforme = data)
+          this.selectedInforme = data;
 
-          const fechaInspeccionFormateada = this.formatDate(this.selectedInforme.fechaInspeccion);
-          const proximoControlFormateado = this.getNextControlDate(this.selectedInforme.fechaInspeccion);
+          const fechaInspeccionFormateada = this.formatDate(
+            this.selectedInforme.fechaInspeccion
+          );
+          const proximoControlFormateado = this.getNextControlDate(
+            this.selectedInforme.fechaInspeccion
+          );
 
-            this.formMixerMain.patchValue({
-              ...this.selectedInforme,
-              fechaInspeccion: fechaInspeccionFormateada, // Formatear la fecha de inspección
-              proximoControl: proximoControlFormateado, // Agregar el próximo control
-            });
+          this.formMixerMain.patchValue({
+            ...this.selectedInforme,
+            fechaInspeccion: fechaInspeccionFormateada, // Formatear la fecha de inspección
+            proximoControl: proximoControlFormateado, // Agregar el próximo control
+          });
           this.loadFormData(informe.idInforme);
         },
         error: (error) => {
@@ -187,57 +195,56 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   generatePDF() {
-  this.isLoadingPdf = true; // Mostrar la barra de carga
+    this.isLoadingPdf = true; // Mostrar la barra de carga
 
-  // Ocultar botones antes de generar el PDF
-  this.isPreviewMode = true;
-  this.showHeaderFooter = true;
+    // Ocultar botones antes de generar el PDF
+    this.isPreviewMode = true;
+    this.showHeaderFooter = true;
 
-  // Definir los ajustes específicos para las páginas
-  const pageAdjustments: any[] = [];
+    // Definir los ajustes específicos para las páginas
+    const pageAdjustments: any[] = [];
 
-  setTimeout(async () => {
-    const content = document.getElementById('contentToConvert');
-    if (content) {
-      const pages = content.querySelectorAll('.page');
-      
-      for (let i = 0; i < pages.length; i++) {
-        const page = pages[i] as HTMLElement;
-        const canvas = await html2canvas(page); // Crear el canvas
-        const canvasHeight = (canvas.height * 210) / canvas.width; // Calcular el alto del canvas ajustado al ancho A4
+    setTimeout(async () => {
+      const content = document.getElementById('contentToConvert');
+      if (content) {
+        const pages = content.querySelectorAll('.page');
 
-        // Ajustes específicos por página
+        for (let i = 0; i < pages.length; i++) {
+          const page = pages[i] as HTMLElement;
+          const canvas = await html2canvas(page); // Crear el canvas
+          const canvasHeight = (canvas.height * 210) / canvas.width; // Calcular el alto del canvas ajustado al ancho A4
 
-        // Aumentar el tamaño en las páginas 1-5
-        if (i >= 0 && i < 5) {      
-          pageAdjustments.push({ scale: 1.1 });
+          // Ajustes específicos por página
 
-        // Centrar el contenido en la página 6
-        } else if (i === 7) {
-          
-        // Sin ajustes adicionales para otras páginas
-          pageAdjustments.push({ yOffset: (297 - canvasHeight) / 2 });
-        } else {
-          pageAdjustments.push({});
+          // Aumentar el tamaño en las páginas 1-5
+          if (i >= 0 && i < 5) {
+            pageAdjustments.push({ scale: 1.1 });
+
+            // Centrar el contenido en la página 6
+          } else if (i === 7) {
+            // Sin ajustes adicionales para otras páginas
+            pageAdjustments.push({ yOffset: (297 - canvasHeight) / 2 });
+          } else {
+            pageAdjustments.push({});
+          }
         }
+
+        // Generar el PDF con los ajustes específicos
+        await this.pdfService.generatePDF('contentToConvert', pageAdjustments);
       }
 
-      // Generar el PDF con los ajustes específicos
-      await this.pdfService.generatePDF('contentToConvert', pageAdjustments);
-    }
-
-    // Restaurar el estado después de la generación del PDF
-    this.isLoadingPdf = false; // Ocultar la barra de carga
-    this.isPreviewMode = false;
-    this.showHeaderFooter = false;
-  }, 0);
-}
+      // Restaurar el estado después de la generación del PDF
+      this.isLoadingPdf = false; // Ocultar la barra de carga
+      this.isPreviewMode = false;
+      this.showHeaderFooter = false;
+    }, 0);
+  }
 
   togglePreview() {
     this.isPreviewMode = !this.isPreviewMode;
     this.showHeaderFooter = this.isPreviewMode;
     const contentContainer = document.getElementById('contentToConvert');
-    
+
     if (this.isPreviewMode) {
       this.formMixerMain.disable();
       this.hideButtonsForPreview(true);
@@ -338,24 +345,48 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   selectStatus(item: any, selectedIdStatus: string, index: number): void {
-  const selectedOption = this.optionStatus.find(
-    (option) => option.idStatus.toString() === selectedIdStatus
-  );
-  
-  if (selectedOption) {
-    item.alias = selectedOption.alias;
-    item.idStatus = parseInt(selectedIdStatus, 10);
+    const selectedOption = this.optionStatus.find(
+      (option) => option.idStatus.toString() === selectedIdStatus
+    );
 
-    if (selectedIdStatus === '2') {
-      // Si se selecciona "No Cumple", abre el modal pasando el item
-      this.openModal(item); 
-    } else {
-      // Si es "Cumple", no abrir modal, solo actualizar el estado
-      item.idStatus = 1;
-      item.descripcionNoCumple = '';  // Limpiar la descripción si es "Cumple"
+    if (selectedOption) {
+      // Guardar el estado original antes de abrir el modal
+      this.originalStatus = { ...item };
+
+      if (selectedIdStatus === '2') {
+        // Solo abrir el modal si se selecciona "No Cumple" (N/C)
+        item.idStatus = 2; // Actualizar el idStatus a "No Cumple"
+        item.alias = 'N/C'; // Asignar el alias
+        this.openModal(item);
+      } else if (selectedIdStatus === '1' && item.idStatus === 2) {
+        // Si se intenta cambiar de "No Cumple" a "Cumple" (N/C -> CU)
+        const confirmChange = window.confirm(
+          '¿Estás seguro de cambiar el estado de N/C a C/U? Esto eliminará las imágenes y la descripción asociadas a este ítem.'
+        );
+
+        if (confirmChange) {
+          // Borrar descripción y fotos
+          this.deleteDescriptionAndPhotos(item);
+
+          // Actualizar el estado a "Cumple"
+          item.idStatus = 1;
+          item.alias = 'CU';
+          item.descripcionNoCumple = ''; // Limpiar la descripción de "No Cumple"
+          item.images = []; // Limpiar las imágenes asociadas
+        } else {
+          // Si el usuario cancela, restaurar el estado a "No Cumple"
+          item.idStatus = 2;
+        }
+      } else if (selectedIdStatus === '1') {
+        // Si es "Cumple", actualizar el estado directamente (sin haber sido N/C)
+        item.idStatus = 1; // Actualizar a "Cumple"
+        item.alias = 'CU'; // Asignar el alias
+        item.descripcionNoCumple = ''; // Limpiar la descripción de "No Cumple"
+      }
+
+      this.cdr.detectChanges(); // Forzar la actualización visual
     }
   }
-}
 
   private addNotMetDescription(descriptionData: any): void {
     this.mixerService
@@ -520,354 +551,370 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   toggleEdit() {
-  if (!this.isAnyEditing) {
-    this.isEditing = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.formMixerMain.getRawValue();
-    this.formMixerMain.enable();
-  } else if (this.isEditing) {
-    this.formMixerMain.patchValue(this.originalValues);
-    this.formMixerMain.disable();
-    this.isEditing = false;
-    this.isAnyEditing = false;
-  } else { 
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
+    if (!this.isAnyEditing) {
+      this.isEditing = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.formMixerMain.getRawValue();
+      this.formMixerMain.enable();
+    } else if (this.isEditing) {
+      this.formMixerMain.patchValue(this.originalValues);
+      this.formMixerMain.disable();
+      this.isEditing = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
-}
 
   toggleEditStatusA() {
-  if (!this.isAnyEditing) {
-    this.isEditingStatusA = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusA) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusA = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
+    if (!this.isAnyEditing) {
+      this.isEditingStatusA = true;
+      this.isAnyEditing = true;
+      this.originalValues = JSON.parse(JSON.stringify(this.itemsWithStatus)); // Copia profunda
+    } else if (this.isEditingStatusA) {
+      this.itemsWithStatus = JSON.parse(JSON.stringify(this.originalValues)); // Restaurar
+      this.isEditingStatusA = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
-}
 
   toggleEditStatusB() {
     if (!this.isAnyEditing) {
-    this.isEditingStatusB = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusB) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusB = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
-  }
+      this.isEditingStatusB = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.itemsWithStatus.map((item) => ({
+        ...item,
+      }));
+    } else if (this.isEditingStatusB) {
+      this.itemsWithStatus = this.originalValues.map((item: any) => ({
+        ...item,
+      }));
+      this.isEditingStatusB = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
 
   toggleEditStatusC() {
     if (!this.isAnyEditing) {
-    this.isEditingStatusC = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusC) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusC = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
-  }
+      this.isEditingStatusC = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.itemsWithStatus.map((item) => ({
+        ...item,
+      }));
+    } else if (this.isEditingStatusC) {
+      this.itemsWithStatus = this.originalValues.map((item: any) => ({
+        ...item,
+      }));
+      this.isEditingStatusC = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
 
   toggleEditStatusD() {
     if (!this.isAnyEditing) {
-    this.isEditingStatusD = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusD) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusD = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
-  }
+      this.isEditingStatusD = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.itemsWithStatus.map((item) => ({
+        ...item,
+      }));
+    } else if (this.isEditingStatusD) {
+      this.itemsWithStatus = this.originalValues.map((item: any) => ({
+        ...item,
+      }));
+      this.isEditingStatusD = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
 
   toggleEditStatusE() {
     if (!this.isAnyEditing) {
-    this.isEditingStatusE = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusE) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusE = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
-  }
+      this.isEditingStatusE = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.itemsWithStatus.map((item) => ({
+        ...item,
+      }));
+    } else if (this.isEditingStatusE) {
+      this.itemsWithStatus = this.originalValues.map((item: any) => ({
+        ...item,
+      }));
+      this.isEditingStatusE = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
 
   toggleEditStatusF() {
     if (!this.isAnyEditing) {
-    this.isEditingStatusF = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusF) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusF = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
-  }
+      this.isEditingStatusF = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.itemsWithStatus.map((item) => ({
+        ...item,
+      }));
+    } else if (this.isEditingStatusF) {
+      this.itemsWithStatus = this.originalValues.map((item: any) => ({
+        ...item,
+      }));
+      this.isEditingStatusF = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
 
   toggleEditStatusG() {
     if (!this.isAnyEditing) {
-    this.isEditingStatusG = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusG) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusG = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
-  }
+      this.isEditingStatusG = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.itemsWithStatus.map((item) => ({
+        ...item,
+      }));
+    } else if (this.isEditingStatusG) {
+      this.itemsWithStatus = this.originalValues.map((item: any) => ({
+        ...item,
+      }));
+      this.isEditingStatusG = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
 
   toggleEditStatusH() {
     if (!this.isAnyEditing) {
-    this.isEditingStatusH = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusH) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusH = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
-  }
+      this.isEditingStatusH = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.itemsWithStatus.map((item) => ({
+        ...item,
+      }));
+    } else if (this.isEditingStatusH) {
+      this.itemsWithStatus = this.originalValues.map((item: any) => ({
+        ...item,
+      }));
+      this.isEditingStatusH = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
 
   toggleEditStatusI() {
     if (!this.isAnyEditing) {
-    this.isEditingStatusI = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusI) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusI = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
-  }
+      this.isEditingStatusI = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.itemsWithStatus.map((item) => ({
+        ...item,
+      }));
+    } else if (this.isEditingStatusI) {
+      this.itemsWithStatus = this.originalValues.map((item: any) => ({
+        ...item,
+      }));
+      this.isEditingStatusI = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
 
   toggleEditStatusJ() {
     if (!this.isAnyEditing) {
-    this.isEditingStatusJ = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusJ) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusJ = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
-  }
+      this.isEditingStatusJ = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.itemsWithStatus.map((item) => ({
+        ...item,
+      }));
+    } else if (this.isEditingStatusJ) {
+      this.itemsWithStatus = this.originalValues.map((item: any) => ({
+        ...item,
+      }));
+      this.isEditingStatusJ = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
 
   toggleEditStatusK() {
     if (!this.isAnyEditing) {
-    this.isEditingStatusK = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusK) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusK = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
-  }
+      this.isEditingStatusK = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.itemsWithStatus.map((item) => ({
+        ...item,
+      }));
+    } else if (this.isEditingStatusK) {
+      this.itemsWithStatus = this.originalValues.map((item: any) => ({
+        ...item,
+      }));
+      this.isEditingStatusK = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
 
   toggleEditStatusL() {
     if (!this.isAnyEditing) {
-    this.isEditingStatusL = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusL) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusL = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
-  }
+      this.isEditingStatusL = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.itemsWithStatus.map((item) => ({
+        ...item,
+      }));
+    } else if (this.isEditingStatusL) {
+      this.itemsWithStatus = this.originalValues.map((item: any) => ({
+        ...item,
+      }));
+      this.isEditingStatusL = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
 
   toggleEditStatusM() {
     if (!this.isAnyEditing) {
-    this.isEditingStatusM = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.itemsWithStatus.map((item) => ({
-      ...item,
-    }));
-  } else if (this.isEditingStatusM) {
-    this.itemsWithStatus = this.originalValues.map((item: any) => ({
-      ...item,
-    }));
-    this.isEditingStatusM = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
-  }
+      this.isEditingStatusM = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.itemsWithStatus.map((item) => ({
+        ...item,
+      }));
+    } else if (this.isEditingStatusM) {
+      this.itemsWithStatus = this.originalValues.map((item: any) => ({
+        ...item,
+      }));
+      this.isEditingStatusM = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
 
   toggleEditTorque() {
-  if (!this.isAnyEditing) {
-    this.isEditingTorque = true;
-    this.isAnyEditing = true;
-    this.originalValues = { ...this.torqueDescription };
-  } else if (this.isEditingTorque) {
-    this.torqueDescription = { ...this.originalValues };
-    this.isEditingTorque = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
+    if (!this.isAnyEditing) {
+      this.isEditingTorque = true;
+      this.isAnyEditing = true;
+      this.originalValues = { ...this.torqueDescription };
+    } else if (this.isEditingTorque) {
+      this.torqueDescription = { ...this.originalValues };
+      this.isEditingTorque = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
-}
 
   toggleEditBetonera() {
-  if (!this.isAnyEditing) {
-    this.isEditingBetonera = true;
-    this.isAnyEditing = true; 
-    this.originalValues = { ...this.betoneraData };
-  } else if (this.isEditingBetonera) {
-    this.betoneraData = { ...this.originalValues };
-    this.isEditingBetonera = false;
-    this.isAnyEditing = false; 
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
+    if (!this.isAnyEditing) {
+      this.isEditingBetonera = true;
+      this.isAnyEditing = true;
+      this.originalValues = { ...this.betoneraData };
+    } else if (this.isEditingBetonera) {
+      this.betoneraData = { ...this.originalValues };
+      this.isEditingBetonera = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
-}
 
   toggleEditDescription() {
-  if (!this.isAnyEditing) {
-    this.isEditingDescription = true;
-    this.isAnyEditing = true; 
-  } else if (this.isEditingDescription) {
-    this.isEditingDescription = false;
-    this.isAnyEditing = false; 
+    if (!this.isAnyEditing) {
+      this.isEditingDescription = true;
+      this.isAnyEditing = true;
+    } else if (this.isEditingDescription) {
+      this.isEditingDescription = false;
+      this.isAnyEditing = false;
 
-    this.nonConformities.forEach((item, index) => {
-      this.formMixerMain
-        .get(`descripcion_${index}`)
-        ?.setValue(item.descripcion);
-    });
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
+      this.nonConformities.forEach((item, index) => {
+        this.formMixerMain
+          .get(`descripcion_${index}`)
+          ?.setValue(item.descripcion);
+      });
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
-}
 
   toggleEditResult() {
-  if (!this.isAnyEditing) {
-    this.isEditingResult = true;
-    this.isAnyEditing = true;
+    if (!this.isAnyEditing) {
+      this.isEditingResult = true;
+      this.isAnyEditing = true;
 
-    this.formMixerMain.get('idResul')?.enable();
+      this.formMixerMain.get('idResul')?.enable();
 
-    this.originalValues = { idResul: this.formMixerMain.get('idResul')?.value };
-  } else if (this.isEditingResult) {
-    this.formMixerMain.get('idResul')?.setValue(this.originalValues.idResul);
-    this.formMixerMain.get('idResul')?.disable(); 
-    this.isEditingResult = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
+      this.originalValues = {
+        idResul: this.formMixerMain.get('idResul')?.value,
+      };
+    } else if (this.isEditingResult) {
+      this.formMixerMain.get('idResul')?.setValue(this.originalValues.idResul);
+      this.formMixerMain.get('idResul')?.disable();
+      this.isEditingResult = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
-}
 
   saveChanges() {
     if (this.formMixerMain.valid && this.selectedInforme) {
@@ -1017,13 +1064,31 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
+
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
 
       this.mixerService
         .editItemMixer(itemsData)
@@ -1087,13 +1152,31 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
+
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
 
       this.mixerService
         .editItemMixer(itemsData)
@@ -1157,13 +1240,31 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
+
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
 
       this.mixerService
         .editItemMixer(itemsData)
@@ -1227,13 +1328,31 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
+
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
 
       this.mixerService
         .editItemMixer(itemsData)
@@ -1297,13 +1416,31 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
+
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
 
       this.mixerService
         .editItemMixer(itemsData)
@@ -1367,13 +1504,31 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
+
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
 
       this.mixerService
         .editItemMixer(itemsData)
@@ -1437,13 +1592,31 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
+
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
 
       this.mixerService
         .editItemMixer(itemsData)
@@ -1507,13 +1680,31 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
+
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
 
       this.mixerService
         .editItemMixer(itemsData)
@@ -1577,13 +1768,31 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
+
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
 
       this.mixerService
         .editItemMixer(itemsData)
@@ -1647,13 +1856,31 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
+
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
 
       this.mixerService
         .editItemMixer(itemsData)
@@ -1717,13 +1944,31 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
 
-      console.log('Items data:', itemsData);
+      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
+
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
 
       this.mixerService
         .editItemMixer(itemsData)
@@ -1787,11 +2032,31 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       }
 
       // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => ({
-        idStatus: item.idStatus,
-        idInforme: idInforme,
-        idDetalle: item.idDetalle,
-      }));
+      const itemsData = itemsToUpdate.map((item) => {
+        const itemData = {
+          idStatus: item.idStatus,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+        };
+
+      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
+        if (item.idStatus === 2) {
+          const descripcionData = {
+            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
+            idInforme: idInforme,
+            idStatus: item.idStatus,
+            idDetalle: item.idDetalle,
+          };
+
+          const descripcionesArray = {
+            descripciones: [descripcionData],
+          };
+
+          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        }
+
+        return itemData;
+      });
 
       this.mixerService
         .editItemMixer(itemsData)
@@ -1856,7 +2121,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       complete: () => {
         this.showMessage = true;
         setTimeout(() => (this.showMessage = false), 3000);
-        this.isEditingTorque = false; 
+        this.isEditingTorque = false;
         this.isAnyEditing = false;
       },
     });
@@ -1997,41 +2262,43 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   saveChangesResult() {
-  if (this.selectedInforme) {
-    // Actualizamos solo el campo idResul en el objeto selectedInforme
-    const updatedInforme = {
-      ...this.selectedInforme, // Clonamos el objeto actual
-      idResul: this.formMixerMain.get('idResul')?.value // Actualizamos solo el idResul
-    };
+    if (this.selectedInforme) {
+      // Actualizamos solo el campo idResul en el objeto selectedInforme
+      const updatedInforme = {
+        ...this.selectedInforme, // Clonamos el objeto actual
+        idResul: this.formMixerMain.get('idResul')?.value, // Actualizamos solo el idResul
+      };
 
-    // Llamada al servicio para actualizar el informe completo con el idResul actualizado
-    this.mixerService.editInformeMixer(updatedInforme).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.showMessage = true;
-          this.messageText = 'El resultado ha sido actualizado exitosamente.';
-          this.messageType = 'success';
-          this.isEditingResult = false; // Salir del modo edición
-          this.isAnyEditing = false; // Permitir edición de otras secciones
-        } else {
-          this.messageText = 'Error al guardar el resultado. Inténtalo de nuevo.';
+      // Llamada al servicio para actualizar el informe completo con el idResul actualizado
+      this.mixerService.editInformeMixer(updatedInforme).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.showMessage = true;
+            this.messageText = 'El resultado ha sido actualizado exitosamente.';
+            this.messageType = 'success';
+            this.isEditingResult = false; // Salir del modo edición
+            this.isAnyEditing = false; // Permitir edición de otras secciones
+          } else {
+            this.messageText =
+              'Error al guardar el resultado. Inténtalo de nuevo.';
+            this.messageType = 'error';
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar el resultado:', error);
+          this.messageText =
+            'Error al actualizar el resultado. Inténtalo de nuevo.';
           this.messageType = 'error';
-        }
-      },
-      error: (error) => {
-        console.error('Error al actualizar el resultado:', error);
-        this.messageText = 'Error al actualizar el resultado. Inténtalo de nuevo.';
-        this.messageType = 'error';
-      },
-      complete: () => {
-        setTimeout(() => (this.showMessage = false), 3000);
-      }
-    });
+        },
+        complete: () => {
+          setTimeout(() => (this.showMessage = false), 3000);
+        },
+      });
+    }
   }
-}
 
   // Método para formatear la fecha
-formatDate(date: string | Date): string {
+  formatDate(date: string | Date): string {
     return this.datePipe.transform(date, 'dd-MM-yyyy') || '';
   }
 
@@ -2046,51 +2313,123 @@ formatDate(date: string | Date): string {
   }
 
   openModal(item: any): void {
-  const idInforme = this.selectedInforme.idInforme;
-  const numeroInforme = this.formMixerMain.get('numeroInforme')?.value;
-  const idDetalle = item.idDetalle;
-  const idStatus = item.idStatus;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.formMixerMain.get('numeroInforme')?.value;
+    const idDetalle = item.idDetalle;
+    const idStatus = item.idStatus;
 
-  // Verifica si tienes todos los datos requeridos
-  if (!idInforme || !numeroInforme || !idDetalle || !idStatus) {
-    console.error('Datos faltantes al intentar abrir el modal.');
-    return;
+    // Verifica si tienes todos los datos requeridos
+    if (!idInforme || !numeroInforme || !idDetalle || !idStatus) {
+      console.error('Datos faltantes al intentar abrir el modal.');
+      return;
+    }
+
+    //guardar el estado original del item
+    this.originalStatus = { ...item };
+
+    // Asignar valores a las propiedades del modal
+    this.selecInforme = idInforme;
+    this.selecNumInforme = numeroInforme;
+    this.selecDetalle = idDetalle;
+    this.selecStatus = idStatus;
+
+    // Mostrar el modal
+    this.showModal = true;
+    this.currentItemIndex = this.itemsWithStatus.indexOf(item);
+
+    // Agregar logs para verificar la correcta asignación
+    console.log('Modal abierto con los siguientes datos:');
+    console.log('idInforme:', idInforme);
+    console.log('numeroInforme:', numeroInforme);
+    console.log('idDetalle:', idDetalle);
+    console.log('idStatus:', idStatus);
   }
 
-  // Asignar valores a las propiedades del modal
-  this.selecInforme = idInforme;
-  this.selecNumInforme = numeroInforme;
-  this.selecDetalle = idDetalle;
-  this.selecStatus = idStatus;
-
-  // Mostrar el modal
-  this.showModal = true;
-  this.currentItemIndex = this.itemsWithStatus.indexOf(item);
-
-  // Agregar logs para verificar la correcta asignación
-  console.log('Modal abierto con los siguientes datos:');
-  console.log('idInforme:', idInforme);
-  console.log('numeroInforme:', numeroInforme);
-  console.log('idDetalle:', idDetalle);
-  console.log('idStatus:', idStatus);
-}
-
-  closeModal(modalData: { description: string, images: string[] }): void {
+  closeModal(modalData: { description: string; images: string[]; imagesNames:any[] }): void {
     if (this.currentItemIndex !== null) {
-      // Actualiza el ítem con la descripción y las imágenes obtenidas del modal
-      this.itemsWithStatus[this.currentItemIndex].descripcionNoCumple = modalData.description;
-      this.itemsWithStatus[this.currentItemIndex].images = modalData.images;
+      const currentItem = this.itemsWithStatus[this.currentItemIndex];
+      currentItem.descripcionNoCumple = modalData.description;
+      currentItem.images = modalData.images;
+      currentItem.imagesNames = modalData.imagesNames;
+
+      if (currentItem.idStatus === 2) {
+        currentItem.alias = 'N/C';
+      } else {
+        currentItem.idStatus = 1; // Asignar CU si no se selecciona N/C
+        currentItem.alias = 'CU';
+      }
     }
 
     this.showModal = false;
     this.currentItemIndex = null;
+    this.cdr.detectChanges(); // Forzar actualización visual
   }
 
-cancelModal(): void {
+  cancelModal(): void {
+    // Restaurar el estado original del ítem si se cancela el modal
+    if (this.currentItemIndex !== null && this.originalStatus) {
+      this.itemsWithStatus[this.currentItemIndex] = { ...this.originalStatus };
+    }
+
     this.showModal = false;
     this.currentItemIndex = null;
     this.currentDescription = '';
+    this.cdr.detectChanges(); // Forzar actualización visual
   }
 
+  // Método para eliminar la descripción y las fotos asociadas
+  deleteDescriptionAndPhotos(item: any) {
+    const idInforme = this.selectedInforme.idInforme;
+    const idDetalle = item.idDetalle;
+    const idStatus = item.idStatus;
 
+    // Asegúrate de que los valores están correctos
+    console.log('Datos enviados al eliminar descripción:', {
+      idInforme,
+      idDetalle,
+      idStatus,
+    });
+
+    console.log('idInforme:', idInforme, 'Tipo:', typeof idInforme);
+    console.log('idDetalle:', idDetalle, 'Tipo:', typeof idDetalle);
+    console.log('idStatus:', idStatus, 'Tipo:', typeof idStatus);
+
+    // Objeto para eliminar la descripción
+    const descripcionData = {
+      idInforme: idInforme,
+      idDetalle: idDetalle,
+      idStatus: idStatus,
+    };
+
+    this.mixerService.deleteDescripcionMixer(descripcionData).subscribe({
+      next: (response) => {
+        console.log('Descripción eliminada:', response);
+      },
+      error: (error) => {
+        console.error('Error al eliminar la descripción:', error);
+      },
+    });
+
+    if (item.imagesNames && item.images && item.images.length > 0) {
+      item.imagesNames.forEach((fotoNombre: string) => {
+        const fotoData = {
+          idInforme: idInforme,
+          idDetalle: idDetalle,
+          foto: fotoNombre,
+          numeroInforme: this.selectedInforme.numeroInforme,
+        };
+
+        this.mixerService.deleteFotoMixer(fotoData).subscribe({
+          next: (response) => {
+            console.log('Foto eliminada:', response);
+          },
+          error: (error) => {
+            console.error('Error al eliminar la foto:', error);
+          },
+        });
+      });
+    } else {
+      console.log('No se encontraron fotos para eliminar.');
+    }
+  }
 }
