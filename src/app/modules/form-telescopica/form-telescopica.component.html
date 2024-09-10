@@ -1,1 +1,273 @@
-<p>form-telescopica works!</p>
+<div *ngIf="informes" class="list-container">
+  <div *ngIf="!selectedInforme" class="informes-list">
+    <ul>
+      <li *ngFor="let informe of informes" (click)="selectInforme(informe)">
+        {{ informe.numeroInforme }}
+      </li>
+    </ul>
+  </div>
+</div>
+
+<button (click)="deselectInforme()" class="back-button">Volver</button>
+<button (click)="togglePreview()">Vista Previa</button>
+<button (click)="generatePDF()">Exportar a PDF</button>
+<div *ngIf="isLoading" class="loading-bar">
+  <div class="spinner"></div>
+</div>
+
+<div *ngIf="isSaving" class="loading-bar">
+  <div class="spinner"></div>
+  <p>{{ savingMessage }}</p>
+</div>
+
+<div *ngIf="!isLoading">
+  <div *ngIf="selectedInforme" class="form-container">
+    <div *ngIf="isLoadingPdf" class="loading-bar">
+      <p>Generando PDF, por favor espere...</p>
+      <div class="spinner"></div>
+    </div>
+
+    <!-- <app-info-message
+      [message]="messageText"
+      [type]="messageType"
+      [show]="showMessage"
+      [duration]="5000"
+    >
+    </app-info-message> -->
+
+    <!-- <app-report-modal-component
+      *ngIf="showModal"
+      [idInforme]="selecInforme"
+      [numeroInforme]="selecNumInforme"
+      [idDetalle]="selecDetalle"
+      [idStatus]="selecStatus"
+      [allowImages]="allowImages"
+      (save)="closeModal($event)"
+      (cancel)="cancelModal()"
+    >
+    </app-report-modal-component> -->
+
+    <div id="contentToConvert">
+      <div *ngIf="showHeaderFooter" class="header">
+        <app-header></app-header>
+      </div>
+
+      <div class="title-main">
+        <h1>
+          INFORME DE INSPECCIÓN Y PRUEBA DE CARGA A GRÚAS MÓVILES TELESCÓPICAS y/o CELOSÍA (RETICULADAS)
+        </h1>
+      </div>
+
+      <div class="page">
+        <div class="content">
+          <form [formGroup]="informeForm" class="A-C">
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <button (click)="toggleEdit()">
+                {{ isEditing ? "Cancelar" : "Editar" }}
+              </button>
+              <button *ngIf="isEditing" (click)="saveChanges()">Guardar</button>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Informe N°</label>
+              </div>
+              <label>{{ informeForm.get("numeroInforme")?.value }}</label>
+              <label>Certificado asociado N°</label>
+              <ng-container *ngIf="isEditing; else viewCertificado">
+                <input formControlName="numeroInforme" type="text" />
+              </ng-container>
+              <ng-template #viewCertificado>
+                <label>{{ informeForm.get("numeroInforme")?.value }}</label>
+              </ng-template>
+            </div>
+            <div class="form-row">
+              <div class="title">
+                <label>Solicitado por</label>
+              </div>
+              <label>Empresa</label>
+              <ng-container *ngIf="isEditing; else viewEmpresa">
+                <input formControlName="empresa" type="text" />
+              </ng-container>
+              <ng-template #viewEmpresa>
+                <label>{{ informeForm.get("empresa")?.value }}</label>
+              </ng-template>
+              <label>Persona</label>
+              <ng-container *ngIf="isEditing; else viewPersona">
+                <input formControlName="persona" type="text" />
+              </ng-container>
+              <ng-template #viewPersona>
+                <label>{{ informeForm.get("persona")?.value }}</label>
+              </ng-template>
+            </div>
+            <div class="form-row">
+              <div class="title">
+                <label>Equipo</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewEquipo">
+                <input formControlName="equipo" type="text" />
+              </ng-container>
+              <ng-template #viewEquipo>
+                <label>{{ informeForm.get("equipo")?.value }}</label>
+              </ng-template>
+            </div>
+            <div class="form-row">
+              <div class="title">
+                <label>Modelo</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewModelo">
+                <input formControlName="modelo" type="text" />
+              </ng-container>
+              <ng-template #viewModelo>
+                <label>{{ informeForm.get("modelo")?.value }}</label>
+              </ng-template>
+            </div>
+            <div class="form-row">
+              <div class="title">
+                <label>Marca</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewMarca">
+                <input formControlName="marca" type="text" />
+              </ng-container>
+              <ng-template #viewMarca>
+                <label>{{ informeForm.get("marca")?.value }}</label>
+              </ng-template>
+            </div>
+            <div class="form-row capacidad-nominal">
+              <div class="title">
+                <label>Capacidad Nominal</label>
+              </div>
+              <label>Polipasto 1</label>
+              <ng-container *ngIf="isEditing; else viewPolipasto1">
+                <ng-container
+                  *ngIf="
+                    informeForm.get('polipasto1')?.value !== 0;
+                    else naPolipasto1
+                  "
+                >
+                  <input formControlName="polipasto1" type="number" />
+                </ng-container>
+                <ng-template #naPolipasto1>
+                  <label>N/A</label>
+                </ng-template>
+              </ng-container>
+              <ng-template #viewPolipasto1>
+                <label>{{
+                  informeForm.get("polipasto1")?.value !== 0
+                    ? informeForm.get("polipasto1")?.value + " kg"
+                    : "N/A"
+                }}</label>
+              </ng-template>
+              <label>Polipasto 2</label>
+              <ng-container *ngIf="isEditing; else viewPolipasto2">
+                <ng-container
+                  *ngIf="
+                    informeForm.get('polipasto2')?.value !== 0;
+                    else naPolipasto2
+                  "
+                >
+                  <input formControlName="polipasto2" type="number" />
+                </ng-container>
+                <ng-template #naPolipasto2>
+                  <label>N/A</label>
+                </ng-template>
+              </ng-container>
+              <ng-template #viewPolipasto2>
+                <label>{{
+                  informeForm.get("polipasto2")?.value !== 0
+                    ? informeForm.get("polipasto2")?.value + " kg"
+                    : "N/A"
+                }}</label>
+              </ng-template>
+              <label>Polipasto 3</label>
+              <ng-container *ngIf="isEditing; else viewPolipasto3">
+                <ng-container
+                  *ngIf="
+                    informeForm.get('polipasto3')?.value !== 0;
+                    else naPolipasto3
+                  "
+                >
+                  <input formControlName="polipasto3" type="number" />
+                </ng-container>
+                <ng-template #naPolipasto3>
+                  <label>N/A</label>
+                </ng-template>
+              </ng-container>
+              <ng-template #viewPolipasto3>
+                <label>{{
+                  informeForm.get("polipasto3")?.value !== 0
+                    ? informeForm.get("polipasto3")?.value + " kg"
+                    : "N/A"
+                }}</label>
+              </ng-template>
+            </div>
+            <div class="form-row">
+              <div class="title">
+                <label>Fecha de Fabricación</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewFechaFabricacion">
+                <input formControlName="fechaFabricacion" type="text" />
+              </ng-container>
+              <ng-template #viewFechaFabricacion>
+                <label>{{ informeForm.get("fechaFabricacion")?.value }}</label>
+              </ng-template>
+            </div>
+            <div class="form-row">
+              <div class="title">
+                <label>ID o número de serie</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewNumeroSerie">
+                <input formControlName="numeroSerie" type="text" />
+              </ng-container>
+              <ng-template #viewNumeroSerie>
+                <label>{{ informeForm.get("numeroSerie")?.value }}</label>
+              </ng-template>
+            </div>
+            <div class="form-row">
+              <div class="title">
+                <label>Lugar de inscripción y prueba</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewLugarInscripcion">
+                <input formControlName="lugarInscripcion" type="text" />
+              </ng-container>
+              <ng-template #viewLugarInscripcion>
+                <label>{{ informeForm.get("lugarInscripcion")?.value }}</label>
+              </ng-template>
+            </div>
+            <div class="form-row">
+              <div class="title">
+                <label>Fecha de inspección y prueba</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewFechaInspeccion">
+                <input formControlName="fechaInspeccion" type="date" />
+              </ng-container>
+              <ng-template #viewFechaInspeccion>
+                <label>{{ informeForm.get("fechaInspeccion")?.value }}</label>
+              </ng-template>
+            </div>
+            <div class="form-row">
+              <div class="title">
+                <label>Fecha de emisión informe</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewFechaEmision">
+                <input formControlName="fechaInspeccion" type="date" />
+              </ng-container>
+              <ng-template #viewFechaEmision>
+                <label>{{ informeForm.get("fechaInspeccion")?.value }}</label>
+              </ng-template>
+            </div>
+            <div class="subtitle">
+              <h3 class="custom-h3">
+                <strong>(CU)</strong> CUMPLE <strong>(N/C)</strong> NO CUMPLE NO
+                APLICA
+                <strong>(N/A)</strong>
+                RECOMENDACIÓN
+                <strong>(RE)</strong>
+              </h3>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
