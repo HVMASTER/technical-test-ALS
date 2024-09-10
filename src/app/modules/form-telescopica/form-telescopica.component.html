@@ -27,13 +27,13 @@
       <div class="spinner"></div>
     </div>
 
-    <!-- <app-info-message
+    <app-info-message
       [message]="messageText"
       [type]="messageType"
       [show]="showMessage"
       [duration]="5000"
     >
-    </app-info-message> -->
+    </app-info-message>
 
     <!-- <app-report-modal-component
       *ngIf="showModal"
@@ -54,7 +54,8 @@
 
       <div class="title-main">
         <h1>
-          INFORME DE INSPECCIÓN Y PRUEBA DE CARGA A GRÚAS MÓVILES TELESCÓPICAS y/o CELOSÍA (RETICULADAS)
+          INFORME DE INSPECCIÓN Y PRUEBA DE CARGA A GRÚAS MÓVILES TELESCÓPICAS
+          y/o CELOSÍA (RETICULADAS)
         </h1>
       </div>
 
@@ -87,17 +88,17 @@
               </div>
               <label>Empresa</label>
               <ng-container *ngIf="isEditing; else viewEmpresa">
-                <input formControlName="empresa" type="text" />
+                <input formControlName="nombreEmpresa" type="text" />
               </ng-container>
               <ng-template #viewEmpresa>
-                <label>{{ informeForm.get("empresa")?.value }}</label>
+                <label>{{ informeForm.get("nombreEmpresa")?.value }}</label>
               </ng-template>
               <label>Persona</label>
               <ng-container *ngIf="isEditing; else viewPersona">
-                <input formControlName="persona" type="text" />
+                <input formControlName="nombrePersona" type="text" />
               </ng-container>
               <ng-template #viewPersona>
-                <label>{{ informeForm.get("persona")?.value }}</label>
+                <label>{{ informeForm.get("nombrePersona")?.value }}</label>
               </ng-template>
             </div>
             <div class="form-row">
@@ -113,94 +114,170 @@
             </div>
             <div class="form-row">
               <div class="title">
-                <label>Modelo</label>
+                <label>Modelo Grúa</label>
               </div>
               <ng-container *ngIf="isEditing; else viewModelo">
-                <input formControlName="modelo" type="text" />
+                <input formControlName="modeloGrua" type="text" />
               </ng-container>
               <ng-template #viewModelo>
-                <label>{{ informeForm.get("modelo")?.value }}</label>
+                <label>{{ informeForm.get("modeloGrua")?.value }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row border-color">
+  <div class="title">
+    <span class="border-right">Tipo</span>
+  </div>
+
+  <!-- Modo Edición -->
+  <ng-container *ngIf="isEditing; else viewTipo">
+    <div class="text-center flex-row">
+      <span class="cuadrado">
+        <span *ngIf="informeForm.get('tipo')?.value === 1">✖</span>
+      </span>
+      <input
+        type="radio"
+        name="tipo_montada"
+        [value]="1"
+        [checked]="informeForm.get('tipo')?.value === 1"
+        (change)="informeForm.patchValue({ tipo: 1 })"
+      />
+      <label>Montada sobre camión</label>
+    </div>
+
+    <div class="text-center flex-row">
+      <span class="cuadrado">
+        <span *ngIf="informeForm.get('tipo')?.value === 2">✖</span>
+      </span>
+      <input
+        type="radio"
+        name="tipo_autopropulsada"
+        [value]="2"
+        [checked]="informeForm.get('tipo')?.value === 2"
+        (change)="informeForm.patchValue({ tipo: 2 })"
+      />
+      <label>Autopropulsada</label>
+    </div>
+  </ng-container>
+
+  <!-- Modo Vista -->
+  <ng-template #viewTipo>
+    <div class="text-center flex-row">
+      <span class="cuadrado margin-left-right">
+        <span *ngIf="informeForm.get('tipo')?.value === 1">✖</span>
+      </span>
+      <label class="border-none">Montada sobre camión</label>
+    </div>
+
+    <div class="text-center flex-row">
+      <span class="cuadrado margin-left-right">
+        <span *ngIf="informeForm.get('tipo')?.value === 2">✖</span>
+      </span>
+      <label class="border-none">Autopropulsada</label>
+    </div>
+  </ng-template>
+</div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Marca grúa</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewMarca">
+                <input formControlName="marcaGrua" type="text" />
+              </ng-container>
+              <ng-template #viewMarca>
+                <label>{{ informeForm.get("marcaGrua")?.value }}</label>
               </ng-template>
             </div>
             <div class="form-row">
               <div class="title">
-                <label>Marca</label>
+                <label>Horómetro actual</label>
               </div>
-              <ng-container *ngIf="isEditing; else viewMarca">
-                <input formControlName="marca" type="text" />
+              <ng-container *ngIf="isEditing; else viewHorometro">
+                <input formControlName="horometroactual" type="number" />
               </ng-container>
-              <ng-template #viewMarca>
-                <label>{{ informeForm.get("marca")?.value }}</label>
+              <ng-template #viewHorometro>
+                <label>{{ informeForm.get("horometroactual")?.value }}</label>
               </ng-template>
             </div>
-            <div class="form-row capacidad-nominal">
-              <div class="title">
-                <label>Capacidad Nominal</label>
+
+            <div class="unionLevante">
+              <div class="form-row">
+                <div class="title">
+                  <label>Capacidad de levante máxima.</label>
+                </div>
               </div>
-              <label>Polipasto 1</label>
-              <ng-container *ngIf="isEditing; else viewPolipasto1">
-                <ng-container
-                  *ngIf="
-                    informeForm.get('polipasto1')?.value !== 0;
-                    else naPolipasto1
-                  "
-                >
-                  <input formControlName="polipasto1" type="number" />
-                </ng-container>
-                <ng-template #naPolipasto1>
-                  <label>N/A</label>
-                </ng-template>
-              </ng-container>
-              <ng-template #viewPolipasto1>
-                <label>{{
-                  informeForm.get("polipasto1")?.value !== 0
-                    ? informeForm.get("polipasto1")?.value + " kg"
-                    : "N/A"
-                }}</label>
-              </ng-template>
-              <label>Polipasto 2</label>
-              <ng-container *ngIf="isEditing; else viewPolipasto2">
-                <ng-container
-                  *ngIf="
-                    informeForm.get('polipasto2')?.value !== 0;
-                    else naPolipasto2
-                  "
-                >
-                  <input formControlName="polipasto2" type="number" />
-                </ng-container>
-                <ng-template #naPolipasto2>
-                  <label>N/A</label>
-                </ng-template>
-              </ng-container>
-              <ng-template #viewPolipasto2>
-                <label>{{
-                  informeForm.get("polipasto2")?.value !== 0
-                    ? informeForm.get("polipasto2")?.value + " kg"
-                    : "N/A"
-                }}</label>
-              </ng-template>
-              <label>Polipasto 3</label>
-              <ng-container *ngIf="isEditing; else viewPolipasto3">
-                <ng-container
-                  *ngIf="
-                    informeForm.get('polipasto3')?.value !== 0;
-                    else naPolipasto3
-                  "
-                >
-                  <input formControlName="polipasto3" type="number" />
-                </ng-container>
-                <ng-template #naPolipasto3>
-                  <label>N/A</label>
-                </ng-template>
-              </ng-container>
-              <ng-template #viewPolipasto3>
-                <label>{{
-                  informeForm.get("polipasto3")?.value !== 0
-                    ? informeForm.get("polipasto3")?.value + " kg"
-                    : "N/A"
-                }}</label>
-              </ng-template>
+                <div class="capacidad-levante">
+                  <label class="label-levante">Grúa</label>
+                  <ng-container *ngIf="isEditing; else viewCapLevanteMaxGrua">
+                    <ng-container
+                      *ngIf="
+                        informeForm.get('capLevanteMaxGrua')?.value !== 0;
+                        else naCapLevanteMaxGrua
+                      "
+                    >
+                      <input formControlName="capLevanteMaxGrua" type="number" />
+                    </ng-container>
+                    <ng-template #naCapLevanteMaxGrua>
+                      <label class="label-levante">N/A</label>
+                    </ng-template>
+                  </ng-container>
+                  <ng-template #viewCapLevanteMaxGrua>
+                    <label class="label-levante">{{
+                      informeForm.get("capLevanteMaxGrua")?.value !== 0
+                        ? informeForm.get("capLevanteMaxGrua")?.value
+                        : "N/A"
+                    }}</label>
+                  </ng-template>
+                  <label class="label-levante">kg</label>
+                  <label class="label-levante">Gancho principal</label>
+                  <ng-container *ngIf="isEditing; else viewCapLevanteMaxGanchoPrin">
+                    <ng-container
+                      *ngIf="
+                        informeForm.get('capLevanteMaxGanchoPrin')?.value !== 0;
+                        else naCapLevanteMaxGanchoPrin
+                      "
+                    >
+                      <input formControlName="capLevanteMaxGanchoPrin" type="number" />
+                    </ng-container>
+                    <ng-template #naCapLevanteMaxGanchoPrin>
+                      <label class="label-levante">N/A</label>
+                    </ng-template>
+                  </ng-container>
+                  <ng-template #viewCapLevanteMaxGanchoPrin>
+                    <label class="label-levante">{{
+                      informeForm.get("capLevanteMaxGanchoPrin")?.value !== 0
+                        ? informeForm.get("capLevanteMaxGanchoPrin")?.value
+                        : "N/A"
+                    }}</label>
+                  </ng-template>
+                  <label class="label-levante">kg</label>
+                  <label class="label-levante">Gancho auxiliar</label>
+                  <ng-container *ngIf="isEditing; else viewCapLevanteMaxGanchoAux">
+                    <ng-container
+                      *ngIf="
+                        informeForm.get('capLevanteMaxGanchoAux')?.value !== 0;
+                        else naCapLevanteMaxGanchoAux
+                      "
+                    >
+                      <input formControlName="capLevanteMaxGanchoAux" type="number" />
+                    </ng-container>
+                    <ng-template #naCapLevanteMaxGanchoAux>
+                      <label class="label-levante">N/A</label>
+                    </ng-template>
+                  </ng-container>
+                  <ng-template #viewCapLevanteMaxGanchoAux>
+                    <label class="label-levante">{{
+                      informeForm.get("capLevanteMaxGanchoAux")?.value !== 0
+                        ? informeForm.get("capLevanteMaxGanchoAux")?.value
+                        : "N/A"
+                    }}</label>
+                  </ng-template>
+                  <label class="label-levante">kg</label>
+                </div>
             </div>
+            
+
             <div class="form-row">
               <div class="title">
                 <label>Fecha de Fabricación</label>
@@ -212,6 +289,7 @@
                 <label>{{ informeForm.get("fechaFabricacion")?.value }}</label>
               </ng-template>
             </div>
+
             <div class="form-row">
               <div class="title">
                 <label>ID o número de serie</label>
@@ -222,16 +300,30 @@
               <ng-template #viewNumeroSerie>
                 <label>{{ informeForm.get("numeroSerie")?.value }}</label>
               </ng-template>
+              <label>Sello ALS</label>
+              <label>2303023815042</label>
             </div>
             <div class="form-row">
               <div class="title">
-                <label>Lugar de inscripción y prueba</label>
+                <label>Patente Vehículo</label>
               </div>
-              <ng-container *ngIf="isEditing; else viewLugarInscripcion">
-                <input formControlName="lugarInscripcion" type="text" />
+              <ng-container *ngIf="isEditing; else viewPatente">
+                <input formControlName="patenteVehiculo" type="text" />
               </ng-container>
-              <ng-template #viewLugarInscripcion>
-                <label>{{ informeForm.get("lugarInscripcion")?.value }}</label>
+              <ng-template #viewPatente>
+                <label>{{ informeForm.get("patenteVehiculo")?.value }}</label>
+              </ng-template>
+            </div>
+
+            <div class="form-row">
+              <div class="title">
+                <label>Lugar de inspección y prueba</label>
+              </div>
+              <ng-container *ngIf="isEditing; else viewLugarInspeccion">
+                <input formControlName="lugarInspeccion" type="text" />
+              </ng-container>
+              <ng-template #viewLugarInspeccion>
+                <label>{{ informeForm.get("lugarInspeccion")?.value }}</label>
               </ng-template>
             </div>
             <div class="form-row">
@@ -249,12 +341,7 @@
               <div class="title">
                 <label>Fecha de emisión informe</label>
               </div>
-              <ng-container *ngIf="isEditing; else viewFechaEmision">
-                <input formControlName="fechaInspeccion" type="date" />
-              </ng-container>
-              <ng-template #viewFechaEmision>
-                <label>{{ informeForm.get("fechaInspeccion")?.value }}</label>
-              </ng-template>
+              <label>{{ fechaEmisionInforme }}</label>
             </div>
             <div class="subtitle">
               <h3 class="custom-h3">

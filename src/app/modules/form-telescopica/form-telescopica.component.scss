@@ -72,6 +72,17 @@ input[type="number"] {
     -moz-appearance: textfield; /* Firefox */
 }
 
+.cuadrado {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 1px solid black;
+  text-align: center;
+  line-height: 18px;
+  vertical-align: middle;
+  font-size: 20px;
+}
+
 .cuadrado2 {
   display: inline-block;
   width: 18px;
@@ -129,6 +140,11 @@ form {
 
 .alignCenter {
   text-align: center;
+}
+
+.margin-left-right {
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 .cursor-pointer {
@@ -204,10 +220,6 @@ form {
     label.expand{
       flex-grow: 1;
     }
-
-     &.capacidad-nominal {
-      align-items: stretch;
-     }
 
     &:nth-child(odd) {
       background-color: $primary-row-color;
@@ -473,6 +485,22 @@ form {
     align-content: center;
   }
 
+  .border-none {
+    border: none;
+  }
+
+  .border-color {
+    border: 1px solid $border-color;
+  }
+
+  .border-right {
+    border-right: 2px solid $border-color;
+  }
+
+  .width-265 {
+    width: 265px;
+  }
+
   .text-right {
     text-align: right;
   }
@@ -485,6 +513,10 @@ form {
     text-transform: uppercase;
   }
 
+  .flex-wrap {
+    flex-wrap: nowrap;
+  }
+
   .paddingLeft {
     padding-left: 5px;
     align-content: center;
@@ -493,6 +525,17 @@ form {
   .comentario {
     display: flex;
     padding: 0px 5px;
+  }
+
+  .capacidad-levante {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1.4fr 1.1fr 0.5fr 1.4fr 1.1fr 0.5fr 1.4fr 1.1fr 0.5fr;
+  }
+
+  .unionLevante {
+    display: flex;
+    background-color: $primary-row-color;
   }
 
   .titulo-h1 {

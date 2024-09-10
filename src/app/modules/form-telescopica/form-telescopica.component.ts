@@ -18,14 +18,17 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   tituloForm: any[] = [];
   originalValues: any;
   selectedInforme: any | null = null;
+  fechaEmisionInforme: string | null = null;
   isEditing = false;
   showMessage = false;
   isPreviewMode = false;
   showHeaderFooter = false;
+  isLoading = false;
   isLoadingPdf = false;
+  isSaving = false;
   messageText = '';
-  messageType = '';
   savingMessage = '';
+  messageType: 'success' | 'error' = 'success';
   informeForm: FormGroup;
   // formH: FormGroup;
   // formH1: FormGroup;
@@ -69,9 +72,23 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.informeForm.disable();
+    this.getNumeroInformes();
+    this.getTitulosForm();
+    this.currentDate();
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  currentDate() {
+    const currentDate = new Date();
+    this.fechaEmisionInforme = this.datePipe.transform(
+      currentDate,
+      'dd-MM-yyyy'
+    );
   }
 
   async getNumeroInformes() {

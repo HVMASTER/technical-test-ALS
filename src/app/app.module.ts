@@ -7,6 +7,7 @@ import { DatePipe } from '@angular/common';
 import { AppComponent } from './app.component';
 import { FormModule } from './modules/form/form.module';
 import { FormMixerModule } from './modules/form-mixer/form-mixer.module';
+import { FormTelescopicaModule } from './modules/form-telescopica/form-telescopica.module';
 import { FormularioSelectorComponent } from './modules/formulario-selector/formulario-selector.component';
 
 @NgModule({
@@ -20,6 +21,7 @@ import { FormularioSelectorComponent } from './modules/formulario-selector/formu
     AppRoutingModule,
     FormModule,
     FormMixerModule,
+    FormTelescopicaModule
   ],
   providers: [DatePipe],
   bootstrap: [AppComponent]
