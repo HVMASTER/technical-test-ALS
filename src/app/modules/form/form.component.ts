@@ -24,10 +24,17 @@ export class FormComponent implements OnInit, OnDestroy {
   itemsWithDetail: any[] = [];
   ganchos: any[] = [];
   descripcionItems: any[] = [];
+  currentImages: any[] = [];
+  currentItemIndex: number | null = null;
   formHData: any;
   formH1Data: any;
   formH2Data: any;
   photos: any;
+  selecInforme: any;
+  selecDetalle: any;
+  selecStatus: any;
+  selecNumInforme: any;
+  originalStatus: any;
   photoUrl: string = '';
   tituloForm: any[] = [];
   savingMessage = '';
@@ -46,8 +53,12 @@ export class FormComponent implements OnInit, OnDestroy {
   isEditingFormH2 = false;
   isEditingFormI = false;
   showHeaderFooter = false;
+  showModal = false;
   isLoading = false;
+  isLoadingPdf = false;
   showMessage = false;
+  isAnyEditing = false;
+  allowImages = false;
   messageText = '';
   messageType: 'success' | 'error' = 'success';
   originalValues: any;
@@ -704,7 +715,7 @@ refreshStatus() {
         this.isSaving = true; // Activar el spinner
         this.savingMessage = 'Guardando cambios, por favor espere...'; 
 
-        const idInforme = this.selectedInforme.idInforme;
+        const idInforme = this.selectedInforme?.idInforme;
 
         // Filtrar solo los ítems que han sido modificados
         const itemsToUpdate = this.itemsWithStatus.slice(0, 11).filter((item, index) => {
@@ -766,7 +777,7 @@ refreshStatus() {
 
   saveChangesStatusB() {
     if (this.selectedInforme) {
-      const idInforme = this.selectedInforme.idInforme;
+      const idInforme = this.selectedInforme?.idInforme;
 
       const itemsToUpdate = this.itemsWithStatus.slice(11, 19); //items del 12 al 19
 
@@ -1042,32 +1053,125 @@ refreshStatus() {
     }
   }
 
-  selectStatus(item: any, selectedIdStatus: string) {
-    const selectedOption = this.optionStatus.find(
-      (option) => option.idStatus.toString() === selectedIdStatus
-    );
-    if (selectedOption) {
-      item.alias = selectedOption.alias;
-      item.idStatus = parseInt(selectedIdStatus, 10);
-      
-      // Si el nuevo idStatus es 2 o 4, agrega el ítem al punto G
-      if (item.idStatus === 2 || item.idStatus === 4) {
-        const descripcionItem = {
-          idDescripcion: null, // Nuevo item, aún no tiene idDescripcion
-          descripcion: item.descripcion || '', // Usa la descripción actual o vacía
-          idInforme: item.idInforme,
-          idStatus: item.idStatus,
-          idDetalle: item.idDetalle
-        };
-        this.descripcionItems.push(descripcionItem);
-      } else {
-        // Si cambia el idStatus a algo que no es 2 o 4, se elimina del punto G
-        this.descripcionItems = this.descripcionItems.filter(
-          (descItem) => descItem.idDetalle !== item.idDetalle
-        );
-      }
+  selectStatus(item: any, selectedIdStatus: string, index: number): void {
+  const selectedOption = this.optionStatus.find(
+    (option) => option.idStatus.toString() === selectedIdStatus
+  );
+
+  if (selectedOption) {
+    // Guardar el estado original antes de abrir el modal
+    this.originalStatus = { ...item };
+
+    if (selectedIdStatus === '2') {
+      // Si el estado es "No Cumple" (N/C)
+      item.idStatus = 2; // Actualizar el idStatus a "No Cumple"
+      item.alias = 'N/C'; // Asignar el alias
+      this.openModal(item, true); // Llamar al modal permitiendo fotos y descripción
+    } else if (selectedIdStatus === '4') {
+      // Si el estado es "Revisión Especial" (RE)
+      item.idStatus = 4;
+      item.alias = 'RE';
+      this.openModal(item, false); // Llamar al modal solo con descripción
+    // } else if (selectedIdStatus === '1' && item.idStatus === 2) {
+    //   // Si se intenta cambiar de "No Cumple" a "Cumple" (N/C -> CU)
+    //   const confirmChange = window.confirm(
+    //     '¿Estás seguro de cambiar el estado de N/C a C/U? Esto eliminará las imágenes y la descripción asociadas a este ítem.'
+    //   );
+
+    //   if (confirmChange) {
+    //     // Borrar descripción y fotos
+    //     this.deleteDescriptionAndPhotos(item);
+
+    //     // Actualizar el estado a "Cumple"
+    //     item.idStatus = 1;
+    //     item.alias = 'CU';
+    //     item.descripcionNoCumple = ''; // Limpiar la descripción de "No Cumple"
+    //     item.images = []; // Limpiar las imágenes asociadas
+    //   } else {
+    //     // Si el usuario cancela, restaurar el estado a "No Cumple"
+    //     item.idStatus = 2;
+    //   }
+    // } else if (selectedIdStatus === '1') {
+      // Si es "Cumple", actualizar el estado directamente (sin haber sido N/C)
+      item.idStatus = 1;
+      item.alias = 'CU';
+      item.descripcionNoCumple = '';
     }
+
+    this.cdr.detectChanges(); // Forzar la actualización visual
   }
+}
+
+  openModal(item: any, allowImages: boolean): void {
+  const idInforme = this.selectedInforme?.idInforme;
+  const numeroInforme = this.informeForm.get('numeroInforme')?.value;
+  const idDetalle = item.idDetalle;
+  const idStatus = item.idStatus;
+
+  // Verifica si tienes todos los datos requeridos
+  if (!idInforme || !numeroInforme || !idDetalle || !idStatus) {
+    console.error('Datos faltantes al intentar abrir el modal.');
+    return;
+  }
+
+  //guardar el estado original del item
+  this.originalStatus = { ...item };
+
+  // Asignar valores a las propiedades del modal
+  this.selecInforme = idInforme;
+  this.selecNumInforme = numeroInforme;
+  this.selecDetalle = idDetalle;
+  this.selecStatus = idStatus;
+
+  // Determinar si se permiten imágenes o solo la descripción
+  this.allowImages = allowImages;
+
+  // Mostrar el modal
+  this.showModal = true;
+  this.currentItemIndex = this.itemsWithStatus.indexOf(item);
+
+  // Agregar logs para verificar la correcta asignación
+  console.log('Modal abierto con los siguientes datos:');
+  console.log('idInforme:', idInforme);
+  console.log('numeroInforme:', numeroInforme);
+  console.log('idDetalle:', idDetalle);
+  console.log('idStatus:', idStatus);
+  console.log('allowImages:', allowImages); // Verificación de permisos de imágenes
+}
+
+  closeModal(modalData: { description: string; images: string[]; imagesNames: any[] }): void {
+  if (this.currentItemIndex !== null) {
+    const currentItem = this.itemsWithStatus[this.currentItemIndex];
+    currentItem.descripcionNoCumple = modalData.description;
+
+    if (this.allowImages) {
+      currentItem.images = modalData.images;
+      currentItem.imagesNames = modalData.imagesNames;
+    }
+
+    this.showModal = false;
+    this.currentItemIndex = null;
+    this.cdr.detectChanges(); // Actualizar la vista
+  }
+}
+
+  cancelModal(): void {
+  // Verifica si hay un ítem seleccionado para restaurar su estado original
+  if (this.currentItemIndex !== null && this.originalStatus) {
+    // Restaurar el ítem al estado original antes de abrir el modal
+    this.itemsWithStatus[this.currentItemIndex] = { ...this.originalStatus };
+  }
+
+  // Ocultar el modal y limpiar las variables relacionadas
+  this.showModal = false;
+  this.currentItemIndex = null;
+  this.originalStatus = null;
+  this.allowImages = false;
+
+  // Actualizar la vista para reflejar los cambios
+  this.cdr.detectChanges();
+}
+
 
   updateFormG(descripcion: any, event: Event) {
     const inputElement = event.target as HTMLInputElement;
@@ -1116,7 +1220,7 @@ refreshStatus() {
   }
 
   generatePDF() {
-  this.isLoading = true; // Mostrar la barra de carga
+  this.isLoadingPdf = true; // Mostrar la barra de carga
 
   // Ocultar botones antes de generar el PDF
   this.isPreviewMode = true;
@@ -1153,7 +1257,7 @@ refreshStatus() {
     }
 
     // Restaurar el estado después de la generación del PDF
-    this.isLoading = false; // Ocultar la barra de carga
+    this.isLoadingPdf = false; // Ocultar la barra de carga
     this.isPreviewMode = false;
     this.showHeaderFooter = false;
   }, 0);

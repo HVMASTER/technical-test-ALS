@@ -1,25 +1,24 @@
 <div class="modal">
   <div class="modal-content">
-    <h2>Agregar Descripción y Subir Imágenes</h2>
+    <h2>{{ allowImages ? 'Agregar Descripción y Subir Imágenes' : 'Agregar Descripción' }}</h2>
 
+    <!-- Textarea para la descripción -->
     <textarea [(ngModel)]="description" name="description" placeholder="Ingrese la descripción aquí"></textarea>
 
-    <div class="image-upload">
-  <div *ngFor="let img of images; let i = index">
-    <div class="content-image">
-      <img *ngIf="img" [src]="img" alt="Imagen subida" />
+    <!-- Bloque de subida de imágenes solo si allowImages es verdadero -->
+    <div *ngIf="allowImages" class="image-upload">
+      <div *ngFor="let img of images; let i = index">
+        <div class="content-image">
+          <img *ngIf="img" [src]="img" alt="Imagen subida" />
+        </div>
+        <button (click)="removeImage(i)" class="delete-btn">✖</button>
+      </div>
+
+      <!-- Input para subir una imagen solo si hay menos de 5 imágenes -->
+      <input *ngIf="images.length < 5" type="file" (change)="onFileSelected($event)" />
     </div>
-    <button (click)="removeImage(i)" class="delete-btn">✖</button>
-  </div>
 
-  <!-- Input para subir una imagen -->
-  <input
-    *ngIf="images.length < 5"
-    type="file"
-    (change)="onFileSelected($event)"
-  />
-</div>
-
+    <!-- Botones para guardar y cancelar -->
     <button [disabled]="!canSave" (click)="onSave()">Guardar</button>
     <button (click)="onCancel()">Cancelar</button>
   </div>

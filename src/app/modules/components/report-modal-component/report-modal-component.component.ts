@@ -11,6 +11,7 @@ export class ReportModalComponentComponent {
   @Input() idDetalle!: any;
   @Input() idStatus!: any;
   @Input() numeroInforme!: string;
+  @Input() allowImages: boolean = true; // Permite controlar si se permiten imágenes
 
   @Output() save = new EventEmitter<{
     description: string;
@@ -28,7 +29,7 @@ export class ReportModalComponentComponent {
 
   // Propiedad para habilitar/deshabilitar el botón de guardar
   get canSave(): boolean {
-    return this.description.trim().length > 0 && this.images.length >= 2;
+    return this.description.trim().length > 0 && this.images.length == 2;
   }
 
   // Manejo de archivos seleccionados
