@@ -403,7 +403,13 @@
                         name="option_{{ i }}"
                         [value]="option.idStatus"
                         [checked]="option.alias === item.alias"
-                        (change)="selectStatus(itemsWithStatus[i], option.idStatus.toString(), i)"
+                        (change)="
+                          selectStatus(
+                            itemsWithStatus[i],
+                            option.idStatus.toString(),
+                            i
+                          )
+                        "
                       />
                       {{ option.alias }}
                     </label>
@@ -415,17 +421,12 @@
               </ng-template>
 
               <!-- Segunda columna, numeración del 6 al 9 -->
-              <ng-container
-                *ngIf="
-                  5 + i < itemsWithStatus.length &&
-                  itemsWithStatus[5 + i].idItem <= 9
-                "
-              >
+              <ng-container *ngIf="5 + i < itemsWithStatus.length && i < 4">
                 <label class="center"
-                  ><strong>{{ 5 + i + 1 }}</strong></label
+                  ><strong>{{ 6 + i }}</strong></label
                 >
                 <label title="{{ itemsWithStatus[5 + i].detalle }}">{{
-                  itemsWithStatus[5 + i].detalle
+                  itemsWithStatus[5 + i]?.detalle
                 }}</label>
                 <div *ngIf="isEditingStatusA; else viewMode2">
                   <div class="options-list">
@@ -438,7 +439,13 @@
                           [checked]="
                             option.alias === itemsWithStatus[5 + i]?.alias
                           "
-                          (change)="selectStatus(itemsWithStatus[5 + i], option.idStatus.toString(), 5 + i)"
+                          (change)="
+                            selectStatus(
+                              itemsWithStatus[5 + i],
+                              option.idStatus.toString(),
+                              5 + i
+                            )
+                          "
                         />
                         {{ option.alias }}
                       </label>
@@ -450,6 +457,12 @@
                     itemsWithStatus[5 + i]?.alias
                   }}</label>
                 </ng-template>
+              </ng-container>
+              <!-- Espacio vacío para el ítem 10 -->
+              <ng-container *ngIf="i === 4">
+                <label class="center"><strong>-</strong></label>
+                <label></label>
+                <label></label>
               </ng-container>
             </div>
 
@@ -493,7 +506,13 @@
                         name="option_{{ 9 + i }}"
                         [value]="option.idStatus"
                         [checked]="option.alias === item.alias"
-                        (change)="selectStatus(itemsWithStatus[9 + i], option.idStatus.toString(), 9 + i)"
+                        (change)="
+                          selectStatus(
+                            itemsWithStatus[9 + i],
+                            option.idStatus.toString(),
+                            9 + i
+                          )
+                        "
                       />
                       {{ option.alias }}
                     </label>
@@ -504,19 +523,14 @@
                 <label class="center">{{ item.alias }}</label>
               </ng-template>
 
-              <!-- Segunda columna, numeración del 16 al 19 -->
-              <ng-container
-                *ngIf="
-                  17 + i < itemsWithStatus.length &&
-                  itemsWithStatus[17 + i].idItem <= 24
-                "
-              >
+              <!-- Segunda columna, numeración del 18 al 24 -->
+              <ng-container *ngIf="17 + i < itemsWithStatus.length && i < 7">
                 <label class="center"
                   ><strong>{{ 18 + i }}</strong></label
                 >
-                <label title="{{ itemsWithStatus[15 + i].detalle }}">{{
-                  itemsWithStatus[17 + i].detalle
-                }}</label>
+                <label title="{{ itemsWithStatus[17 + i].detalle }}">
+                  {{ itemsWithStatus[17 + i]?.detalle }}
+                </label>
                 <div *ngIf="isEditingStatusB; else viewMode2">
                   <div class="options-list">
                     <form>
@@ -528,7 +542,13 @@
                           [checked]="
                             option.alias === itemsWithStatus[17 + i]?.alias
                           "
-                          (change)="selectStatus(itemsWithStatus[17 + i], option.idStatus.toString(), 17 + i)"
+                          (change)="
+                            selectStatus(
+                              itemsWithStatus[17 + i],
+                              option.idStatus.toString(),
+                              17 + i
+                            )
+                          "
                         />
                         {{ option.alias }}
                       </label>
@@ -541,15 +561,21 @@
                   }}</label>
                 </ng-template>
               </ng-container>
-            </div>
 
+              <!-- Espacio vacío para el ítem 25 -->
+              <ng-container *ngIf="i === 7">
+                <label class="center"><strong>-</strong></label>
+                <label></label>
+                <label></label>
+              </ng-container>
+            </div>
           </form>
         </div>
       </div>
 
       <div class="page">
         <div class="content">
-          <form class="E-F">
+          <form class="C-F">
             <h2 class="subtitle" *ngIf="tituloForm.length > 0">
               {{ tituloForm[2].nombre }}
             </h2>
@@ -593,7 +619,13 @@
                       name="option_{{ 24 + i }}"
                       [value]="option.idStatus"
                       [checked]="option.alias === item.alias"
-                      (change)="selectStatus(itemsWithStatus[24 + i], option.idStatus.toString(), 24 + i)"
+                      (change)="
+                        selectStatus(
+                          itemsWithStatus[24 + i],
+                          option.idStatus.toString(),
+                          24 + i
+                        )
+                      "
                     />
                     {{ option.alias }}
                   </label>
@@ -604,34 +636,33 @@
               </ng-template>
 
               <!-- Segunda columna, numeración del 30 al 34 -->
-              <ng-container
-                *ngIf="
-                  29 + i < itemsWithStatus.length &&
-                  itemsWithStatus[29 + i].idItem <= 34
-                "
-              >
+              <ng-container *ngIf="29 + i < itemsWithStatus.length && i < 5">
                 <label class="center"
                   ><strong>{{ 30 + i }}</strong></label
                 >
-                <label title="{{ itemsWithStatus[35 + i].detalle }}">{{
-                  itemsWithStatus[29 + i].detalle
-                }}</label>
+                <label title="{{ itemsWithStatus[29 + i].detalle }}">
+                  {{ itemsWithStatus[29 + i]?.detalle }}
+                </label>
                 <div *ngIf="isEditingStatusC; else viewModeC2">
                   <div class="options-list">
-                    <form>
-                      <label *ngFor="let option of optionStatus">
-                        <input
-                          type="radio"
-                          name="option_{{ 29 + i }}"
-                          [value]="option.idStatus"
-                          [checked]="
-                            option.alias === itemsWithStatus[29 + i]?.alias
-                          "
-                          (change)="selectStatus(itemsWithStatus[29 + i], option.idStatus.toString(), 29 + i)"
-                        />
-                        {{ option.alias }}
-                      </label>
-                    </form>
+                    <label *ngFor="let option of optionStatus">
+                      <input
+                        type="radio"
+                        name="option_{{ 29 + i }}"
+                        [value]="option.idStatus"
+                        [checked]="
+                          option.alias === itemsWithStatus[29 + i]?.alias
+                        "
+                        (change)="
+                          selectStatus(
+                            itemsWithStatus[29 + i],
+                            option.idStatus.toString(),
+                            29 + i
+                          )
+                        "
+                      />
+                      {{ option.alias }}
+                    </label>
                   </div>
                 </div>
                 <ng-template #viewModeC2>
@@ -685,7 +716,13 @@
                       name="option_{{ 34 + i }}"
                       [value]="option.idStatus"
                       [checked]="option.alias === item.alias"
-                      (change)="selectStatus(itemsWithStatus[34 + i], option.idStatus.toString(), 34 + i)"
+                      (change)="
+                        selectStatus(
+                          itemsWithStatus[34 + i],
+                          option.idStatus.toString(),
+                          34 + i
+                        )
+                      "
                     />
                     {{ option.alias }}
                   </label>
@@ -695,19 +732,14 @@
                 <label class="center">{{ item.alias }}</label>
               </ng-template>
 
-              <!-- Segunda columna, numeración del 36 al 43 -->
-              <ng-container
-                *ngIf="
-                  41 + i < itemsWithStatus.length &&
-                  itemsWithStatus[41 + i].idItem <= 47
-                "
-              >
+              <!-- Segunda columna, numeración del 42 al 47 -->
+              <ng-container *ngIf="41 + i < itemsWithStatus.length && i < 6">
                 <label class="center"
                   ><strong>{{ 42 + i }}</strong></label
                 >
-                <label title="{{ itemsWithStatus[41 + i].detalle }}">{{
-                  itemsWithStatus[41 + i].detalle
-                }}</label>
+                <label title="{{ itemsWithStatus[41 + i].detalle }}">
+                  {{ itemsWithStatus[41 + i]?.detalle }}
+                </label>
                 <div *ngIf="isEditingStatusD; else viewModeD2">
                   <div class="options-list">
                     <form>
@@ -719,7 +751,13 @@
                           [checked]="
                             option.alias === itemsWithStatus[41 + i]?.alias
                           "
-                          (change)="selectStatus(itemsWithStatus[41 + i], option.idStatus.toString(), 41 + i)"
+                          (change)="
+                            selectStatus(
+                              itemsWithStatus[41 + i],
+                              option.idStatus.toString(),
+                              41 + i
+                            )
+                          "
                         />
                         {{ option.alias }}
                       </label>
@@ -731,6 +769,13 @@
                     itemsWithStatus[41 + i]?.alias
                   }}</label>
                 </ng-template>
+              </ng-container>
+
+              <!-- Espacio en blanco para el ítem 48 -->
+              <ng-container *ngIf="i === 6">
+                <label class="center"><strong>-</strong></label>
+                <label></label>
+                <label></label>
               </ng-container>
             </div>
 
@@ -783,7 +828,13 @@
                         name="option_{{ 47 + i }}"
                         [value]="option.idStatus"
                         [checked]="option.alias === item.alias"
-                        (change)="selectStatus(itemsWithStatus[47 + i], option.idStatus.toString(), 47 + i)"
+                        (change)="
+                          selectStatus(
+                            itemsWithStatus[47 + i],
+                            option.idStatus.toString(),
+                            47 + i
+                          )
+                        "
                       />
                       {{ option.alias }}
                     </label>
@@ -794,21 +845,17 @@
                 <label class="center">{{ item.alias }}</label>
               </ng-template>
 
-              <!-- Segunda columna, numeración del 49 al 52 -->
-              <ng-container
-                *ngIf="
-                  53 + i < itemsWithStatus.length &&
-                  itemsWithStatus[53 + i].idItem <= 58
-                "
-              >
+              <!-- Segunda columna, numeración del 54 al 58 -->
+              <ng-container *ngIf="53 + i < itemsWithStatus.length && i < 5">
                 <label class="center"
                   ><strong>{{ 54 + i }}</strong></label
                 >
                 <label
                   title="{{ itemsWithStatus[53 + i].detalle }}"
                   class="detalle-column"
-                  >{{ itemsWithStatus[53 + i].detalle }}</label
                 >
+                  {{ itemsWithStatus[53 + i]?.detalle }}
+                </label>
                 <div
                   *ngIf="isEditingStatusE; else viewModeE2"
                   class="options-container"
@@ -823,7 +870,13 @@
                           [checked]="
                             option.alias === itemsWithStatus[53 + i]?.alias
                           "
-                          (change)="selectStatus(itemsWithStatus[53 + i], option.idStatus.toString(), 53 + i)"
+                          (change)="
+                            selectStatus(
+                              itemsWithStatus[53 + i],
+                              option.idStatus.toString(),
+                              53 + i
+                            )
+                          "
                         />
                         {{ option.alias }}
                       </label>
@@ -835,6 +888,13 @@
                     itemsWithStatus[53 + i]?.alias
                   }}</label>
                 </ng-template>
+              </ng-container>
+
+              <!-- Espacio en blanco para el ítem 59 -->
+              <ng-container *ngIf="i === 5">
+                <label class="center"><strong>-</strong></label>
+                <label></label>
+                <label></label>
               </ng-container>
             </div>
 
@@ -882,7 +942,13 @@
                         name="option_{{ 58 + i }}"
                         [value]="option.idStatus"
                         [checked]="option.alias === item.alias"
-                        (change)="selectStatus(itemsWithStatus[58 + i], option.idStatus.toString(), 58 + i)"
+                        (change)="
+                          selectStatus(
+                            itemsWithStatus[58 + i],
+                            option.idStatus.toString(),
+                            58 + i
+                          )
+                        "
                       />
                       {{ option.alias }}
                     </label>
@@ -893,18 +959,13 @@
                 <label class="center">{{ item.alias }}</label>
               </ng-template>
 
-              <!-- Segunda columna, numeración del 61 al 68 -->
-              <ng-container
-                *ngIf="
-                  66 + i < itemsWithStatus.length &&
-                  itemsWithStatus[66 + i].idItem <= 74
-                "
-              >
+              <!-- Segunda columna, numeración del 67 al 74 -->
+              <ng-container *ngIf="66 + i < itemsWithStatus.length && i < 8">
                 <label class="center"
                   ><strong>{{ 67 + i }}</strong></label
                 >
                 <label title="{{ itemsWithStatus[66 + i].detalle }}">{{
-                  itemsWithStatus[66 + i].detalle
+                  itemsWithStatus[66 + i]?.detalle
                 }}</label>
                 <div *ngIf="isEditingStatusF; else viewModeF2">
                   <div class="options-list">
@@ -917,7 +978,13 @@
                           [checked]="
                             option.alias === itemsWithStatus[66 + i]?.alias
                           "
-                          (change)="selectStatus(itemsWithStatus[66 + i], option.idStatus.toString(), 66 + i)"
+                          (change)="
+                            selectStatus(
+                              itemsWithStatus[66 + i],
+                              option.idStatus.toString(),
+                              66 + i
+                            )
+                          "
                         />
                         {{ option.alias }}
                       </label>
@@ -931,11 +998,85 @@
                 </ng-template>
               </ng-container>
             </div>
-
           </form>
         </div>
       </div>
 
+      <div>
+        <div>
+          <form class="G">
+            <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+              {{ tituloForm[6].nombre }}
+            </h2>
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <!-- <button type="button" (click)="toggleEditFormG()">
+                {{ isEditingFormG ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingFormG"
+                (click)="saveChangesFormG()"
+              >
+                Guardar
+              </button> -->
+            </div>
+            <form class="padding-none">
+              <div class="form-row-G">
+                <strong class="center">ÍTEM</strong>
+                <strong class="center">COND</strong>
+                <strong class="center">DESCRIPCIÓN</strong>
+              </div>
+              <div
+                *ngFor="let descripcion of descripcionItems"
+                class="form-row-G editInputFormG"
+              >
+                <label class="center"><strong>{{ descripcion.idDetalle }}</strong></label>
+                <label class="center"
+                  >{{
+                    getStatusLabel(descripcion.idStatus)
+                  }}</label
+                >
+                <div *ngIf="isEditingFormG; else viewModeFormG">
+                  <input
+                    [value]="descripcion.descripcion"
+                    (input)="updateFormG(descripcion, $event)"
+                    type="text"
+                    class="edit-input"
+                  />
+                </div>
+                <ng-template #viewModeFormG>
+                  <label>{{ descripcion.descripcion }}</label>
+                </ng-template>
+              </div>
+            </form>
+            <h2>Notas en columna descripción:</h2>
+            <ul>
+              <h2>
+                - La palabra <strong>“debe”</strong> indica un requisito.Se
+                relaciona con una no conformidad (N/C) y debe ser corregida por
+                el cliente.
+              </h2>
+              <h2>
+                - La palabra <strong>“debería”</strong> indica una
+                recomendación/observación (RE). Puede o no ser tratada por el
+                cliente.
+              </h2>
+            </ul>
+            <h3>
+              Nota <span class="underline">muy importante</span>: Si
+              correspondiesen acciones correctivas (por no conformidades, n/c),
+              estas deberán ser solucionadas o tratadas por el cliente en el
+              menor tiempo posible con el fin de reducir los riesgos asociados
+              de mantener en operación un equipo sub-estándar.
+            </h3>
+            <h3 class="custom-h3 font-italic">
+              Las observaciones importantes de seguridad (N/C) deberán, si
+              corresponde, ser levantadas mediante el documento “levantamiento
+              de no conformidades”.
+            </h3>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 </div>

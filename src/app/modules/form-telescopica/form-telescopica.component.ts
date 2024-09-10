@@ -16,6 +16,7 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   itemsWithStatus: any[] = [];
   itemsWithDetail: any[] = [];
   tituloForm: any[] = [];
+  descripcionItems: any[] = [];
   originalStatus: any;
   originalValues: any;
   selecInforme: any;
@@ -40,6 +41,7 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   isEditingStatusD = false;
   isEditingStatusE = false;
   isEditingStatusF = false;
+  isEditingFormG = false;
   messageText = '';
   savingMessage = '';
   messageType: 'success' | 'error' = 'success';
@@ -222,7 +224,7 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
         next: (items) => {
           this.loadItemStatus(items);
           this.loadDetail(items);
-          //this.loadDescripcion(idInforme);
+          this.loadDescripcion(idInforme);
 
           setTimeout(() => {
             this.combineItemData();
@@ -291,6 +293,32 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
         };
       });
     }
+  }
+
+  private loadDescripcion(idInforme: number) {
+    this.telescopicaService
+      .getdescripcionTelescopicaByIdInforme(idInforme)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (descripcionItems) => {
+          // Filtrar ítems que tienen idStatus = 2 o idStatus = 4
+          this.descripcionItems = descripcionItems
+            .filter(item => item.idStatus === 2 || item.idStatus === 4)
+            .sort((a, b) => a.idDetalle - b.idDetalle);
+        },
+        error: (error) => {
+          console.error('Error fetching descripcion data:', error);
+        },
+      });
+  }
+
+  updateFormG(descripcion: any, event: Event) {
+    const inputElement = event.target as HTMLInputElement;
+    descripcion.descripcion = inputElement.value;
+  }
+
+  getStatusLabel(idStatus: number): string {
+    return idStatus === 2 ? 'N/C' : idStatus === 4 ? 'RE' : '';
   }
 
   deselectInforme() {
