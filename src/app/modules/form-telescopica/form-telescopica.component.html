@@ -61,7 +61,7 @@
 
       <div class="page">
         <div class="content">
-          <form [formGroup]="informeForm" class="A-C">
+          <form [formGroup]="informeForm" class="A-B">
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
               <button (click)="toggleEdit()">
                 {{ isEditing ? "Cancelar" : "Editar" }}
@@ -125,58 +125,58 @@
             </div>
 
             <div class="form-row border-color">
-  <div class="title">
-    <span class="border-right">Tipo</span>
-  </div>
+              <div class="title">
+                <span class="border-right">Tipo</span>
+              </div>
 
-  <!-- Modo Edición -->
-  <ng-container *ngIf="isEditing; else viewTipo">
-    <div class="text-center flex-row">
-      <span class="cuadrado">
-        <span *ngIf="informeForm.get('tipo')?.value === 1">✖</span>
-      </span>
-      <input
-        type="radio"
-        name="tipo_montada"
-        [value]="1"
-        [checked]="informeForm.get('tipo')?.value === 1"
-        (change)="informeForm.patchValue({ tipo: 1 })"
-      />
-      <label>Montada sobre camión</label>
-    </div>
+              <!-- Modo Edición -->
+              <ng-container *ngIf="isEditing; else viewTipo">
+                <div class="text-center flex-row">
+                  <span class="cuadrado">
+                    <span *ngIf="informeForm.get('tipo')?.value === 1">✖</span>
+                  </span>
+                  <input
+                    type="radio"
+                    name="tipo_montada"
+                    [value]="1"
+                    [checked]="informeForm.get('tipo')?.value === 1"
+                    (change)="informeForm.patchValue({ tipo: 1 })"
+                  />
+                  <label>Montada sobre camión</label>
+                </div>
 
-    <div class="text-center flex-row">
-      <span class="cuadrado">
-        <span *ngIf="informeForm.get('tipo')?.value === 2">✖</span>
-      </span>
-      <input
-        type="radio"
-        name="tipo_autopropulsada"
-        [value]="2"
-        [checked]="informeForm.get('tipo')?.value === 2"
-        (change)="informeForm.patchValue({ tipo: 2 })"
-      />
-      <label>Autopropulsada</label>
-    </div>
-  </ng-container>
+                <div class="text-center flex-row">
+                  <span class="cuadrado">
+                    <span *ngIf="informeForm.get('tipo')?.value === 2">✖</span>
+                  </span>
+                  <input
+                    type="radio"
+                    name="tipo_autopropulsada"
+                    [value]="2"
+                    [checked]="informeForm.get('tipo')?.value === 2"
+                    (change)="informeForm.patchValue({ tipo: 2 })"
+                  />
+                  <label>Autopropulsada</label>
+                </div>
+              </ng-container>
 
-  <!-- Modo Vista -->
-  <ng-template #viewTipo>
-    <div class="text-center flex-row">
-      <span class="cuadrado margin-left-right">
-        <span *ngIf="informeForm.get('tipo')?.value === 1">✖</span>
-      </span>
-      <label class="border-none">Montada sobre camión</label>
-    </div>
+              <!-- Modo Vista -->
+              <ng-template #viewTipo>
+                <div class="text-center flex-row">
+                  <span class="cuadrado margin-left-right">
+                    <span *ngIf="informeForm.get('tipo')?.value === 1">✖</span>
+                  </span>
+                  <label class="border-none">Montada sobre camión</label>
+                </div>
 
-    <div class="text-center flex-row">
-      <span class="cuadrado margin-left-right">
-        <span *ngIf="informeForm.get('tipo')?.value === 2">✖</span>
-      </span>
-      <label class="border-none">Autopropulsada</label>
-    </div>
-  </ng-template>
-</div>
+                <div class="text-center flex-row">
+                  <span class="cuadrado margin-left-right">
+                    <span *ngIf="informeForm.get('tipo')?.value === 2">✖</span>
+                  </span>
+                  <label class="border-none">Autopropulsada</label>
+                </div>
+              </ng-template>
+            </div>
 
             <div class="form-row">
               <div class="title">
@@ -207,76 +207,85 @@
                   <label>Capacidad de levante máxima.</label>
                 </div>
               </div>
-                <div class="capacidad-levante">
-                  <label class="label-levante">Grúa</label>
-                  <ng-container *ngIf="isEditing; else viewCapLevanteMaxGrua">
-                    <ng-container
-                      *ngIf="
-                        informeForm.get('capLevanteMaxGrua')?.value !== 0;
-                        else naCapLevanteMaxGrua
-                      "
-                    >
-                      <input formControlName="capLevanteMaxGrua" type="number" />
-                    </ng-container>
-                    <ng-template #naCapLevanteMaxGrua>
-                      <label class="label-levante">N/A</label>
-                    </ng-template>
+              <div class="capacidad-levante">
+                <label class="label-levante">Grúa</label>
+                <ng-container *ngIf="isEditing; else viewCapLevanteMaxGrua">
+                  <ng-container
+                    *ngIf="
+                      informeForm.get('capLevanteMaxGrua')?.value !== 0;
+                      else naCapLevanteMaxGrua
+                    "
+                  >
+                    <input formControlName="capLevanteMaxGrua" type="number" />
                   </ng-container>
-                  <ng-template #viewCapLevanteMaxGrua>
-                    <label class="label-levante">{{
-                      informeForm.get("capLevanteMaxGrua")?.value !== 0
-                        ? informeForm.get("capLevanteMaxGrua")?.value
-                        : "N/A"
-                    }}</label>
+                  <ng-template #naCapLevanteMaxGrua>
+                    <label class="label-levante">N/A</label>
                   </ng-template>
-                  <label class="label-levante">kg</label>
-                  <label class="label-levante">Gancho principal</label>
-                  <ng-container *ngIf="isEditing; else viewCapLevanteMaxGanchoPrin">
-                    <ng-container
-                      *ngIf="
-                        informeForm.get('capLevanteMaxGanchoPrin')?.value !== 0;
-                        else naCapLevanteMaxGanchoPrin
-                      "
-                    >
-                      <input formControlName="capLevanteMaxGanchoPrin" type="number" />
-                    </ng-container>
-                    <ng-template #naCapLevanteMaxGanchoPrin>
-                      <label class="label-levante">N/A</label>
-                    </ng-template>
+                </ng-container>
+                <ng-template #viewCapLevanteMaxGrua>
+                  <label class="label-levante">{{
+                    informeForm.get("capLevanteMaxGrua")?.value !== 0
+                      ? informeForm.get("capLevanteMaxGrua")?.value
+                      : "N/A"
+                  }}</label>
+                </ng-template>
+                <label class="label-levante">kg</label>
+                <label class="label-levante">Gancho principal</label>
+                <ng-container
+                  *ngIf="isEditing; else viewCapLevanteMaxGanchoPrin"
+                >
+                  <ng-container
+                    *ngIf="
+                      informeForm.get('capLevanteMaxGanchoPrin')?.value !== 0;
+                      else naCapLevanteMaxGanchoPrin
+                    "
+                  >
+                    <input
+                      formControlName="capLevanteMaxGanchoPrin"
+                      type="number"
+                    />
                   </ng-container>
-                  <ng-template #viewCapLevanteMaxGanchoPrin>
-                    <label class="label-levante">{{
-                      informeForm.get("capLevanteMaxGanchoPrin")?.value !== 0
-                        ? informeForm.get("capLevanteMaxGanchoPrin")?.value
-                        : "N/A"
-                    }}</label>
+                  <ng-template #naCapLevanteMaxGanchoPrin>
+                    <label class="label-levante">N/A</label>
                   </ng-template>
-                  <label class="label-levante">kg</label>
-                  <label class="label-levante">Gancho auxiliar</label>
-                  <ng-container *ngIf="isEditing; else viewCapLevanteMaxGanchoAux">
-                    <ng-container
-                      *ngIf="
-                        informeForm.get('capLevanteMaxGanchoAux')?.value !== 0;
-                        else naCapLevanteMaxGanchoAux
-                      "
-                    >
-                      <input formControlName="capLevanteMaxGanchoAux" type="number" />
-                    </ng-container>
-                    <ng-template #naCapLevanteMaxGanchoAux>
-                      <label class="label-levante">N/A</label>
-                    </ng-template>
+                </ng-container>
+                <ng-template #viewCapLevanteMaxGanchoPrin>
+                  <label class="label-levante">{{
+                    informeForm.get("capLevanteMaxGanchoPrin")?.value !== 0
+                      ? informeForm.get("capLevanteMaxGanchoPrin")?.value
+                      : "N/A"
+                  }}</label>
+                </ng-template>
+                <label class="label-levante">kg</label>
+                <label class="label-levante">Gancho auxiliar</label>
+                <ng-container
+                  *ngIf="isEditing; else viewCapLevanteMaxGanchoAux"
+                >
+                  <ng-container
+                    *ngIf="
+                      informeForm.get('capLevanteMaxGanchoAux')?.value !== 0;
+                      else naCapLevanteMaxGanchoAux
+                    "
+                  >
+                    <input
+                      formControlName="capLevanteMaxGanchoAux"
+                      type="number"
+                    />
                   </ng-container>
-                  <ng-template #viewCapLevanteMaxGanchoAux>
-                    <label class="label-levante">{{
-                      informeForm.get("capLevanteMaxGanchoAux")?.value !== 0
-                        ? informeForm.get("capLevanteMaxGanchoAux")?.value
-                        : "N/A"
-                    }}</label>
+                  <ng-template #naCapLevanteMaxGanchoAux>
+                    <label class="label-levante">N/A</label>
                   </ng-template>
-                  <label class="label-levante">kg</label>
-                </div>
+                </ng-container>
+                <ng-template #viewCapLevanteMaxGanchoAux>
+                  <label class="label-levante">{{
+                    informeForm.get("capLevanteMaxGanchoAux")?.value !== 0
+                      ? informeForm.get("capLevanteMaxGanchoAux")?.value
+                      : "N/A"
+                  }}</label>
+                </ng-template>
+                <label class="label-levante">kg</label>
+              </div>
             </div>
-            
 
             <div class="form-row">
               <div class="title">
@@ -352,9 +361,581 @@
                 <strong>(RE)</strong>
               </h3>
             </div>
+
+            <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+              {{ tituloForm[0]?.nombre }}
+            </h2>
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <!-- <button (click)="toggleEditStatusA()">
+                {{ isEditingStatusA ? "Cancelar" : "Editar" }}
+              </button>
+              <button *ngIf="isEditingStatusA" (click)="saveChangesStatusA()">
+                Guardar
+              </button> -->
+            </div>
+            <div class="form-row-A-F">
+              <strong class="center">Item</strong>
+              <strong class="center">Detalle</strong>
+              <strong class="center">Status</strong>
+              <strong class="center">Item</strong>
+              <strong class="center">Detalle</strong>
+              <strong class="center">Status</strong>
+            </div>
+
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 0 : 5;
+                let i = index
+              "
+              class="form-row-A-F"
+            >
+              <!-- Primera columna, numeración del 1 al 5 -->
+              <label class="center"
+                ><strong>{{ i + 1 }}</strong></label
+              >
+              <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+              <div *ngIf="isEditingStatusA; else viewMode">
+                <div class="options-list">
+                  <form>
+                    <label *ngFor="let option of optionStatus">
+                      <input
+                        type="radio"
+                        name="option_{{ i }}"
+                        [value]="option.idStatus"
+                        [checked]="option.alias === item.alias"
+                        (change)="selectStatus(itemsWithStatus[i], option.idStatus.toString(), i)"
+                      />
+                      {{ option.alias }}
+                    </label>
+                  </form>
+                </div>
+              </div>
+              <ng-template #viewMode>
+                <label class="center">{{ item.alias }}</label>
+              </ng-template>
+
+              <!-- Segunda columna, numeración del 6 al 9 -->
+              <ng-container
+                *ngIf="
+                  5 + i < itemsWithStatus.length &&
+                  itemsWithStatus[5 + i].idItem <= 9
+                "
+              >
+                <label class="center"
+                  ><strong>{{ 5 + i + 1 }}</strong></label
+                >
+                <label title="{{ itemsWithStatus[5 + i].detalle }}">{{
+                  itemsWithStatus[5 + i].detalle
+                }}</label>
+                <div *ngIf="isEditingStatusA; else viewMode2">
+                  <div class="options-list">
+                    <form>
+                      <label *ngFor="let option of optionStatus">
+                        <input
+                          type="radio"
+                          name="option_{{ 5 + i }}"
+                          [value]="option.idStatus"
+                          [checked]="
+                            option.alias === itemsWithStatus[5 + i]?.alias
+                          "
+                          (change)="selectStatus(itemsWithStatus[5 + i], option.idStatus.toString(), 5 + i)"
+                        />
+                        {{ option.alias }}
+                      </label>
+                    </form>
+                  </div>
+                </div>
+                <ng-template #viewMode2>
+                  <label class="center">{{
+                    itemsWithStatus[5 + i]?.alias
+                  }}</label>
+                </ng-template>
+              </ng-container>
+            </div>
+
+            <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+              {{ tituloForm[1].nombre }}
+            </h2>
+            <div *ngIf="!isPreviewMode">
+              <!-- <button (click)="toggleEditStatusB()">
+                {{ isEditingStatusB ? "Cancelar" : "Editar" }}
+              </button>
+              <button *ngIf="isEditingStatusB" (click)="saveChangesStatusB()">
+                Guardar
+              </button> -->
+            </div>
+            <div class="form-row-A-F">
+              <strong class="center">Item</strong>
+              <strong class="center">Detalle</strong>
+              <strong class="center">Status</strong>
+              <strong class="center">Item</strong>
+              <strong class="center">Detalle</strong>
+              <strong class="center">Status</strong>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 9 : 17;
+                let i = index
+              "
+              class="form-row-A-F"
+            >
+              <!-- Primera columna, numeración del 10 al 17 -->
+              <label class="center"
+                ><strong>{{ 10 + i }}</strong></label
+              >
+              <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+              <div *ngIf="isEditingStatusB; else viewMode">
+                <div class="options-list">
+                  <form>
+                    <label *ngFor="let option of optionStatus">
+                      <input
+                        type="radio"
+                        name="option_{{ 9 + i }}"
+                        [value]="option.idStatus"
+                        [checked]="option.alias === item.alias"
+                        (change)="selectStatus(itemsWithStatus[9 + i], option.idStatus.toString(), 9 + i)"
+                      />
+                      {{ option.alias }}
+                    </label>
+                  </form>
+                </div>
+              </div>
+              <ng-template #viewMode>
+                <label class="center">{{ item.alias }}</label>
+              </ng-template>
+
+              <!-- Segunda columna, numeración del 16 al 19 -->
+              <ng-container
+                *ngIf="
+                  17 + i < itemsWithStatus.length &&
+                  itemsWithStatus[17 + i].idItem <= 24
+                "
+              >
+                <label class="center"
+                  ><strong>{{ 18 + i }}</strong></label
+                >
+                <label title="{{ itemsWithStatus[15 + i].detalle }}">{{
+                  itemsWithStatus[17 + i].detalle
+                }}</label>
+                <div *ngIf="isEditingStatusB; else viewMode2">
+                  <div class="options-list">
+                    <form>
+                      <label *ngFor="let option of optionStatus">
+                        <input
+                          type="radio"
+                          name="option_{{ 17 + i }}"
+                          [value]="option.idStatus"
+                          [checked]="
+                            option.alias === itemsWithStatus[17 + i]?.alias
+                          "
+                          (change)="selectStatus(itemsWithStatus[17 + i], option.idStatus.toString(), 17 + i)"
+                        />
+                        {{ option.alias }}
+                      </label>
+                    </form>
+                  </div>
+                </div>
+                <ng-template #viewMode2>
+                  <label class="center">{{
+                    itemsWithStatus[17 + i]?.alias
+                  }}</label>
+                </ng-template>
+              </ng-container>
+            </div>
+
           </form>
         </div>
       </div>
+
+      <div class="page">
+        <div class="content">
+          <form class="E-F">
+            <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+              {{ tituloForm[2].nombre }}
+            </h2>
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <!-- <button type="button" (click)="toggleEditStatusC()">
+                {{ isEditingStatusC ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusC"
+                (click)="saveChangesStatusC()"
+              >
+                Guardar
+              </button> -->
+            </div>
+            <div class="form-row-A-F">
+              <strong class="center">Item</strong>
+              <strong class="center">Detalle</strong>
+              <strong class="center">Status</strong>
+              <strong class="center">Item</strong>
+              <strong class="center">Detalle</strong>
+              <strong class="center">Status</strong>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 24 : 29;
+                let i = index
+              "
+              class="form-row-A-F"
+            >
+              <!-- Primera columna, numeración del 25 al 29 -->
+              <label class="center"
+                ><strong>{{ 25 + i }}</strong></label
+              >
+              <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+              <div *ngIf="isEditingStatusC; else viewModeC">
+                <div class="options-list">
+                  <label *ngFor="let option of optionStatus">
+                    <input
+                      type="radio"
+                      name="option_{{ 24 + i }}"
+                      [value]="option.idStatus"
+                      [checked]="option.alias === item.alias"
+                      (change)="selectStatus(itemsWithStatus[24 + i], option.idStatus.toString(), 24 + i)"
+                    />
+                    {{ option.alias }}
+                  </label>
+                </div>
+              </div>
+              <ng-template #viewModeC>
+                <label class="center">{{ item.alias }}</label>
+              </ng-template>
+
+              <!-- Segunda columna, numeración del 30 al 34 -->
+              <ng-container
+                *ngIf="
+                  29 + i < itemsWithStatus.length &&
+                  itemsWithStatus[29 + i].idItem <= 34
+                "
+              >
+                <label class="center"
+                  ><strong>{{ 30 + i }}</strong></label
+                >
+                <label title="{{ itemsWithStatus[35 + i].detalle }}">{{
+                  itemsWithStatus[29 + i].detalle
+                }}</label>
+                <div *ngIf="isEditingStatusC; else viewModeC2">
+                  <div class="options-list">
+                    <form>
+                      <label *ngFor="let option of optionStatus">
+                        <input
+                          type="radio"
+                          name="option_{{ 29 + i }}"
+                          [value]="option.idStatus"
+                          [checked]="
+                            option.alias === itemsWithStatus[29 + i]?.alias
+                          "
+                          (change)="selectStatus(itemsWithStatus[29 + i], option.idStatus.toString(), 29 + i)"
+                        />
+                        {{ option.alias }}
+                      </label>
+                    </form>
+                  </div>
+                </div>
+                <ng-template #viewModeC2>
+                  <label class="center">{{
+                    itemsWithStatus[29 + i]?.alias
+                  }}</label>
+                </ng-template>
+              </ng-container>
+            </div>
+
+            <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+              {{ tituloForm[3].nombre }}
+            </h2>
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <!-- <button type="button" (click)="toggleEditStatusD()">
+                {{ isEditingStatusD ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusD"
+                (click)="saveChangesStatusD()"
+              >
+                Guardar
+              </button> -->
+            </div>
+            <div class="form-row-A-F">
+              <strong class="center">Item</strong>
+              <strong class="center">Detalle</strong>
+              <strong class="center">Status</strong>
+              <strong class="center">Item</strong>
+              <strong class="center">Detalle</strong>
+              <strong class="center">Status</strong>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 34 : 41;
+                let i = index
+              "
+              class="form-row-A-F"
+            >
+              <!-- Primera columna, numeración del 35 al 41 -->
+              <label class="center"
+                ><strong>{{ 35 + i }}</strong></label
+              >
+              <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+              <div *ngIf="isEditingStatusD; else viewModeD">
+                <div class="options-list">
+                  <label *ngFor="let option of optionStatus">
+                    <input
+                      type="radio"
+                      name="option_{{ 34 + i }}"
+                      [value]="option.idStatus"
+                      [checked]="option.alias === item.alias"
+                      (change)="selectStatus(itemsWithStatus[34 + i], option.idStatus.toString(), 34 + i)"
+                    />
+                    {{ option.alias }}
+                  </label>
+                </div>
+              </div>
+              <ng-template #viewModeD>
+                <label class="center">{{ item.alias }}</label>
+              </ng-template>
+
+              <!-- Segunda columna, numeración del 36 al 43 -->
+              <ng-container
+                *ngIf="
+                  41 + i < itemsWithStatus.length &&
+                  itemsWithStatus[41 + i].idItem <= 47
+                "
+              >
+                <label class="center"
+                  ><strong>{{ 42 + i }}</strong></label
+                >
+                <label title="{{ itemsWithStatus[41 + i].detalle }}">{{
+                  itemsWithStatus[41 + i].detalle
+                }}</label>
+                <div *ngIf="isEditingStatusD; else viewModeD2">
+                  <div class="options-list">
+                    <form>
+                      <label *ngFor="let option of optionStatus">
+                        <input
+                          type="radio"
+                          name="option_{{ 41 + i }}"
+                          [value]="option.idStatus"
+                          [checked]="
+                            option.alias === itemsWithStatus[41 + i]?.alias
+                          "
+                          (change)="selectStatus(itemsWithStatus[41 + i], option.idStatus.toString(), 41 + i)"
+                        />
+                        {{ option.alias }}
+                      </label>
+                    </form>
+                  </div>
+                </div>
+                <ng-template #viewModeD2>
+                  <label class="center">{{
+                    itemsWithStatus[41 + i]?.alias
+                  }}</label>
+                </ng-template>
+              </ng-container>
+            </div>
+
+            <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+              {{ tituloForm[4].nombre }}
+            </h2>
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <!-- <button type="button" (click)="toggleEditStatusE()">
+                {{ isEditingStatusE ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusE"
+                (click)="saveChangesStatusE()"
+              >
+                Guardar
+              </button> -->
+            </div>
+            <div class="form-row-A-F">
+              <strong class="center">Item</strong>
+              <strong class="center">Detalle</strong>
+              <strong class="center">Status</strong>
+              <strong class="center">Item</strong>
+              <strong class="center">Detalle</strong>
+              <strong class="center">Status</strong>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 47 : 53;
+                let i = index
+              "
+              class="form-row-A-F"
+            >
+              <!-- Primera columna, numeración del 48 al 53 -->
+              <label class="center"
+                ><strong>{{ 48 + i }}</strong></label
+              >
+              <label title="{{ item.detalle }}" class="detalle-column">{{
+                item.detalle
+              }}</label>
+              <div
+                *ngIf="isEditingStatusE; else viewModeE"
+                class="options-container"
+              >
+                <div class="options-list">
+                  <form>
+                    <label *ngFor="let option of optionStatus">
+                      <input
+                        type="radio"
+                        name="option_{{ 47 + i }}"
+                        [value]="option.idStatus"
+                        [checked]="option.alias === item.alias"
+                        (change)="selectStatus(itemsWithStatus[47 + i], option.idStatus.toString(), 47 + i)"
+                      />
+                      {{ option.alias }}
+                    </label>
+                  </form>
+                </div>
+              </div>
+              <ng-template #viewModeE>
+                <label class="center">{{ item.alias }}</label>
+              </ng-template>
+
+              <!-- Segunda columna, numeración del 49 al 52 -->
+              <ng-container
+                *ngIf="
+                  53 + i < itemsWithStatus.length &&
+                  itemsWithStatus[53 + i].idItem <= 58
+                "
+              >
+                <label class="center"
+                  ><strong>{{ 54 + i }}</strong></label
+                >
+                <label
+                  title="{{ itemsWithStatus[53 + i].detalle }}"
+                  class="detalle-column"
+                  >{{ itemsWithStatus[53 + i].detalle }}</label
+                >
+                <div
+                  *ngIf="isEditingStatusE; else viewModeE2"
+                  class="options-container"
+                >
+                  <div class="options-list">
+                    <form>
+                      <label *ngFor="let option of optionStatus">
+                        <input
+                          type="radio"
+                          name="option_{{ 53 + i }}"
+                          [value]="option.idStatus"
+                          [checked]="
+                            option.alias === itemsWithStatus[53 + i]?.alias
+                          "
+                          (change)="selectStatus(itemsWithStatus[53 + i], option.idStatus.toString(), 53 + i)"
+                        />
+                        {{ option.alias }}
+                      </label>
+                    </form>
+                  </div>
+                </div>
+                <ng-template #viewModeE2>
+                  <label class="center">{{
+                    itemsWithStatus[53 + i]?.alias
+                  }}</label>
+                </ng-template>
+              </ng-container>
+            </div>
+
+            <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+              {{ tituloForm[5].nombre }}
+            </h2>
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <!-- <button type="button" (click)="toggleEditStatusF()">
+                {{ isEditingStatusF ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingStatusF"
+                (click)="saveChangesStatusF()"
+              >
+                Guardar
+              </button> -->
+            </div>
+            <div class="form-row-A-F">
+              <strong class="center">Ítem</strong>
+              <strong class="center">Detalle</strong>
+              <strong class="center">IND.</strong>
+              <strong class="center">Ítem</strong>
+              <strong class="center">Detalle</strong>
+              <strong class="center">IND.</strong>
+            </div>
+            <div
+              *ngFor="
+                let item of itemsWithStatus | slice : 58 : 66;
+                let i = index
+              "
+              class="form-row-A-F"
+            >
+              <!-- Primera columna, numeración del 59 al 66 -->
+              <label class="center"
+                ><strong>{{ 59 + i }}</strong></label
+              >
+              <label title="{{ item.detalle }}">{{ item.detalle }}</label>
+              <div *ngIf="isEditingStatusF; else viewModeF">
+                <div class="options-list">
+                  <form>
+                    <label *ngFor="let option of optionStatus">
+                      <input
+                        type="radio"
+                        name="option_{{ 58 + i }}"
+                        [value]="option.idStatus"
+                        [checked]="option.alias === item.alias"
+                        (change)="selectStatus(itemsWithStatus[58 + i], option.idStatus.toString(), 58 + i)"
+                      />
+                      {{ option.alias }}
+                    </label>
+                  </form>
+                </div>
+              </div>
+              <ng-template #viewModeF>
+                <label class="center">{{ item.alias }}</label>
+              </ng-template>
+
+              <!-- Segunda columna, numeración del 61 al 68 -->
+              <ng-container
+                *ngIf="
+                  66 + i < itemsWithStatus.length &&
+                  itemsWithStatus[66 + i].idItem <= 74
+                "
+              >
+                <label class="center"
+                  ><strong>{{ 67 + i }}</strong></label
+                >
+                <label title="{{ itemsWithStatus[66 + i].detalle }}">{{
+                  itemsWithStatus[66 + i].detalle
+                }}</label>
+                <div *ngIf="isEditingStatusF; else viewModeF2">
+                  <div class="options-list">
+                    <form>
+                      <label *ngFor="let option of optionStatus">
+                        <input
+                          type="radio"
+                          name="option_{{ 66 + i }}"
+                          [value]="option.idStatus"
+                          [checked]="
+                            option.alias === itemsWithStatus[66 + i]?.alias
+                          "
+                          (change)="selectStatus(itemsWithStatus[66 + i], option.idStatus.toString(), 66 + i)"
+                        />
+                        {{ option.alias }}
+                      </label>
+                    </form>
+                  </div>
+                </div>
+                <ng-template #viewModeF2>
+                  <label class="center">{{
+                    itemsWithStatus[66 + i]?.alias
+                  }}</label>
+                </ng-template>
+              </ng-container>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
