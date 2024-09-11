@@ -222,11 +222,11 @@ form {
     }
 
     &:nth-child(odd) {
-      background-color: $primary-row-color;
+      background-color: $secondary-row-color;
     }
 
     &:nth-child(even) {
-      background-color: $secondary-row-color;
+      background-color: $primary-row-color;
     }
   }
 
@@ -382,11 +382,11 @@ form {
     }
 
     &:nth-child(odd) {
-      background-color: $primary-row-color;
+      background-color: $secondary-row-color;
     }
 
     &:nth-child(even) {
-      background-color: $secondary-row-color;
+      background-color: $primary-row-color;
     }
 
   }
@@ -423,11 +423,19 @@ form {
   .union {
     display: grid;
     grid-template-columns: 1fr 0.6fr 0.7fr 0.6fr 0.9fr 1fr 1.4fr 1.4fr;
+    background-color: $primary-row-color;
   }
 
-  .union-gancho {
+  .union-gancho1 {
     display: grid;
     grid-template-columns: 1fr 0.6fr 0.7fr 0.6fr 0.9fr 1fr 1fr 0.4fr 1fr 0.4fr;
+    background-color: $secondary-row-color;
+  }
+
+  .union-gancho2 {
+    display: grid;
+    grid-template-columns: 1fr 0.6fr 0.7fr 0.6fr 0.9fr 1fr 1fr 0.4fr 1fr 0.4fr;
+    background-color: $primary-row-color;
   }
 
   .unionH2 {
@@ -526,6 +534,14 @@ form {
     flex-wrap: nowrap;
   }
 
+  .primary-row-color {
+    background-color: $primary-row-color;
+  }
+
+  .secondary-row-color {
+    background-color: $secondary-row-color;
+  }
+
   .paddingLeft {
     padding-left: 5px;
     align-content: center;
@@ -535,12 +551,17 @@ form {
     display: grid;
     grid-template-columns: 0.5fr 5fr;
     padding: 15px 0px 15px 0px;
+
+    &:nth-child(odd) {
+      background-color: $primary-row-color;
+    }
   }
 
   .capacidad-levante {
     width: 100%;
     display: grid;
     grid-template-columns: 1.4fr 1.1fr 0.5fr 1.4fr 1.1fr 0.5fr 1.4fr 1.1fr 0.5fr;
+    background-color: $secondary-row-color;
   }
 
   .unionLevante {
@@ -557,6 +578,14 @@ form {
   .datos-h1 {
     display: grid;
     grid-template-columns: 1fr 0.5fr 0.5fr 0.5fr 0.5fr 1fr 1fr 1fr;
+
+      &:nth-child(odd) {
+        background-color: $secondary-row-color; // define el color primario en tus variables
+      }
+
+      &:nth-child(even) {
+        background-color: $primary-row-color; // define el color secundario en tus variables
+      }
   }
 
   .check {

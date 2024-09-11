@@ -47,6 +47,8 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   isEditingFormG = false;
   isEditingFormH = false;
   isEditingFormH1 = false;
+  isEditingFormH2 = false;
+  isEditingFormI = false;
   messageText = '';
   savingMessage = '';
   messageType: 'success' | 'error' = 'success';
@@ -59,7 +61,7 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   informeForm: FormGroup;
   formH: FormGroup;
   formH1: FormGroup;
-  // formH2: FormGroup;
+  formH2: FormGroup;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -72,7 +74,7 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
     this.informeForm = this.createFormGroup();
     this.formH = this.createFormH();
     this.formH1 = this.createFormH1();
-    // this.formH2 = this.createFormH2();
+    this.formH2 = this.createFormH2();
   }
 
   private createFormGroup(): FormGroup {
@@ -156,6 +158,36 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
     });
   }
 
+  private createFormH2(): FormGroup {
+    return this.formBuilder.group({
+      longitudUABAntes: [''],
+      longitudUABDesp: [''],
+      longitudDBCAntes: [''],
+      longitudDBCDesp: [''],
+      longitudTABAntes: [''],
+      longitudTABDesp: [''],
+      longitudCBCAntes: [''],
+      longitudCBCDesp: [''],
+      longitudResulDoble: [''],
+      longDABAntes: [''],
+      longDABDesp: [''],
+      longDBCAntes: [''],
+      longDBCDesp: [''],
+      longResulSimple: [''],
+      longGSABAntes: [''],
+      longGSABDesp: [''],
+      longGSBCAntes: [''],
+      longGSBCDesp: [''],
+      longResulSimpleDos: [''],
+      longGSATBAntes: [''],
+      longGSATBDesp: [''],
+      longGSBTCAntes: [''],
+      longGSBTCDesp: [''],
+      longResulSimpleTres: [''],
+      comentariosMG: ['', [Validators.maxLength(500)]],
+    });
+  }
+
   ngOnInit(): void {
     this.informeForm.disable();
     this.getNumeroInformes();
@@ -207,7 +239,7 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
           this.loadItemDetails(informe.idInforme);
           this.loadFormH(informe.idInforme);
           this.loadFormH1(informe.idInforme);
-          // this.loadFormH2(informe.idInforme);
+          this.loadFormH2(informe.idInforme);
           // this.loadSetFotografico(informe.idInforme);
         },
         error: (error) => {
@@ -418,6 +450,48 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error fetching form H1 data:', error);
+        },
+      });
+  }
+
+  private loadFormH2(idInforme: number) {
+    this.telescopicaService
+      .getformH2TelescopicaByIdInforme(idInforme)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.formH2Data = data[0];
+
+          this.formH2.patchValue({
+            longitudUABAntes: this.formH2Data.longitudUABAntes,
+            longitudUABDesp: this.formH2Data.longitudUABDesp,
+            longitudDBCAntes: this.formH2Data.longitudDBCAntes,
+            longitudDBCDesp: this.formH2Data.longitudDBCDesp,
+            longitudTABAntes: this.formH2Data.longitudTABAntes,
+            longitudTABDesp: this.formH2Data.longitudTABDesp,
+            longitudCBCAntes: this.formH2Data.longitudCBCAntes,
+            longitudCBCDesp: this.formH2Data.longitudCBCDesp,
+            longitudResulDoble: this.formH2Data.longitudResulDoble,
+            longDABAntes: this.formH2Data.longDABAntes,
+            longDABDesp: this.formH2Data.longDABDesp,
+            longDBCAntes: this.formH2Data.longDBCAntes,
+            longDBCDesp: this.formH2Data.longDBCDesp,
+            longResulSimple: this.formH2Data.longResulSimple,
+            longGSABAntes: this.formH2Data.longGSABAntes,
+            longGSABDesp: this.formH2Data.longGSABDesp,
+            longGSBCAntes: this.formH2Data.longGSBCAntes,
+            longGSBCDesp: this.formH2Data.longGSBCDesp,
+            longResulSimpleDos: this.formH2Data.longResulSimpleDos,
+            longGSATBAntes: this.formH2Data.longGSATBAntes,
+            longGSATBDesp: this.formH2Data.longGSATBDesp,
+            longGSBTCAntes: this.formH2Data.longGSBTCAntes,
+            longGSBTCDesp: this.formH2Data.longGSBTCDesp,
+            longResulSimpleTres: this.formH2Data.longResulSimpleTres,
+            comentariosMG: this.formH2Data.comentariosMG,
+          });
+        },
+        error: (error) => {
+          console.error('Error fetching form H2 data:', error);
         },
       });
   }
