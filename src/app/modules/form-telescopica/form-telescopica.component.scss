@@ -361,7 +361,7 @@ form {
 }
   .form-row-nominal {
     display: grid;
-    grid-template-columns: 0.734fr 0.3fr 0.3fr 0.1fr 0.3fr 0.3fr 0.1fr 0.3fr 0.3fr 0.1fr;
+    grid-template-columns: 0.596fr 0.3fr 0.45fr 0.1fr 0.3fr 0.45fr 0.1fr;
     align-items: stretch;
     white-space: nowrap;
   }
@@ -422,7 +422,12 @@ form {
 
   .union {
     display: grid;
-    grid-template-columns: 50% 50%;
+    grid-template-columns: 1fr 0.6fr 0.7fr 0.6fr 0.9fr 1fr 1.4fr 1.4fr;
+  }
+
+  .union-gancho {
+    display: grid;
+    grid-template-columns: 1fr 0.6fr 0.7fr 0.6fr 0.9fr 1fr 1fr 0.4fr 1fr 0.4fr;
   }
 
   .unionH2 {
@@ -476,6 +481,10 @@ form {
     text-align: center;
   }
 
+  .align-content-center {
+    align-content: center;
+  }
+
   .centerCuadrado {
     margin-inline: auto;
   }
@@ -523,8 +532,9 @@ form {
   }
 
   .comentario {
-    display: flex;
-    padding: 0px 5px;
+    display: grid;
+    grid-template-columns: 0.5fr 5fr;
+    padding: 15px 0px 15px 0px;
   }
 
   .capacidad-levante {
@@ -581,6 +591,16 @@ form {
       font-family: $font-family;
       font-size: 1.2em;
     }
+  }
+
+  .title-item {
+    align-content: center;
+    padding: 10px 5px 15px 5px;
+  }
+
+  .subtitle-item {
+    align-content: center;
+    padding: 15px;
   }
 }
 

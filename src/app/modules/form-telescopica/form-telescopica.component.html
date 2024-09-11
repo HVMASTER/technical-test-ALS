@@ -1002,8 +1002,8 @@
         </div>
       </div>
 
-      <div>
-        <div>
+      <div class="page">
+        <div class="content">
           <form class="G">
             <h2 class="subtitle" *ngIf="tituloForm.length > 0">
               {{ tituloForm[6].nombre }}
@@ -1030,12 +1030,12 @@
                 *ngFor="let descripcion of descripcionItems"
                 class="form-row-G editInputFormG"
               >
-                <label class="center"><strong>{{ descripcion.idDetalle }}</strong></label>
                 <label class="center"
-                  >{{
-                    getStatusLabel(descripcion.idStatus)
-                  }}</label
+                  ><strong>{{ descripcion.idDetalle }}</strong></label
                 >
+                <label class="center">{{
+                  getStatusLabel(descripcion.idStatus)
+                }}</label>
                 <div *ngIf="isEditingFormG; else viewModeFormG">
                   <input
                     [value]="descripcion.descripcion"
@@ -1077,6 +1077,815 @@
           </form>
         </div>
       </div>
+
+      <div class="page">
+        <div class="content">
+          <form class="H-H1">
+            <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+              {{ tituloForm[7].nombre }}
+            </h2>
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <!-- <button type="button" (click)="toggleEditFormH()">
+                {{ isEditingFormH ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingFormH"
+                (click)="saveFormHChanges()"
+              >
+                Guardar
+              </button> -->
+            </div>
+            <form class="padding-none" [formGroup]="formH">
+              <div class="form-row-H">
+                <label class="paddingLeft"
+                  ><strong>Fecha prueba de carga</strong></label
+                >
+                <ng-container *ngIf="isEditingFormH; else viewModeFecha">
+                  <input formControlName="fechaPC" type="date" />
+                </ng-container>
+                <ng-template #viewModeFecha>
+                  <label>{{ formHData?.fechaPC }}</label>
+                </ng-template>
+              </div>
+              <!-- Campo Vigencia prueba de carga -->
+              <div class="form-row-H">
+                <label class="paddingLeft"
+                  ><strong>Vigencia prueba de carga</strong>
+                </label>
+                <ng-container *ngIf="isEditingFormH; else viewModeVigencia">
+                  <input formControlName="vigenciaPC" type="text" />
+                </ng-container>
+                <ng-template #viewModeVigencia>
+                  <label>{{ formHData?.vigenciaPC }}</label>
+                </ng-template>
+              </div>
+              <!-- Campo Lugar de prueba de carga -->
+              <div class="form-row-H">
+                <label class="paddingLeft"
+                  ><strong>Lugar de prueba de carga</strong></label
+                >
+                <ng-container *ngIf="isEditingFormH; else viewModeLugar">
+                  <input formControlName="lugarPC" type="text" />
+                </ng-container>
+                <ng-template #viewModeLugar>
+                  <label>{{ formHData?.lugarPC }}</label>
+                </ng-template>
+              </div>
+              <div class="form-row-H">
+                <label class="paddingLeft"
+                  ><strong
+                    >Norma para certificación Carga de Prueba</strong
+                  ></label
+                >
+                <!-- Valor fijo -->
+                <label>ASME B30.5-2021, Capítulo 5-2.2.2 </label>
+              </div>
+              <div class="form-row-H equipo-medicion">
+                <div class="titulo-columna">
+                  <h4>Equipos / instrumentos de medición</h4>
+                </div>
+                <div class="equipo-datos">
+                  <div class="equipo-header">
+                    <label><strong>Nombre de equipo</strong></label>
+                    <label><strong>SI</strong></label>
+                    <label><strong>NO</strong></label>
+                    <label><strong>Certificado Número</strong></label>
+                  </div>
+                  <div class="equipo-items">
+                    <!-- Cinta métrica -->
+                    <div class="form-row">
+                      <label>Cinta métrica (flexómetro)</label>
+                      <ng-container
+                        *ngIf="isEditingFormH; else viewModeCintaMetrica"
+                      >
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="cintaMetrica"
+                            value="SI"
+                          />
+                        </label>
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="cintaMetrica"
+                            value="NO"
+                          />
+                        </label>
+                        <input
+                          formControlName="cintaMetricaNCertificado"
+                          type="text"
+                        />
+                      </ng-container>
+                      <ng-template #viewModeCintaMetrica>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.cintaMetrica === "SI" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.cintaMetrica === "NO" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">{{
+                          formHData?.cintaMetricaNCertificado !== "N/A"
+                            ? formHData?.cintaMetricaNCertificado
+                            : "N/A"
+                        }}</label>
+                      </ng-template>
+                    </div>
+                    <!-- Pie de metro -->
+                    <div class="form-row">
+                      <label>Pie de metro (caliper)</label>
+                      <ng-container
+                        *ngIf="isEditingFormH; else viewModePieMetro"
+                      >
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="pie_metro"
+                            value="SI"
+                          />
+                        </label>
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="pie_metro"
+                            value="NO"
+                          />
+                        </label>
+                        <input
+                          formControlName="pie_metroNCertificado"
+                          type="text"
+                        />
+                      </ng-container>
+                      <ng-template #viewModePieMetro>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.pie_metro === "SI" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.pie_metro === "NO" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">{{
+                          formHData?.pie_metroNCertificado !== "N/A"
+                            ? formHData?.pie_metroNCertificado
+                            : "N/A"
+                        }}</label>
+                      </ng-template>
+                    </div>
+                    <!-- Bolsas de agua -->
+                    <div class="form-row">
+                      <label>Bolsas de agua</label>
+                      <ng-container
+                        *ngIf="isEditingFormH; else viewModeBolsasAgua"
+                      >
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="bolsasAgua"
+                            value="SI"
+                          />
+                        </label>
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="bolsasAgua"
+                            value="NO"
+                          />
+                        </label>
+                        <input
+                          formControlName="bolsasAguaNCertificado"
+                          type="text"
+                        />
+                      </ng-container>
+                      <ng-template #viewModeBolsasAgua>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.bolsasAgua === "SI" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.bolsasAgua === "NO" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">{{
+                          formHData?.bolsasAguaNCertificado !== "N/A"
+                            ? formHData?.bolsasAguaNCertificado
+                            : "N/A"
+                        }}</label>
+                      </ng-template>
+                    </div>
+                    <!-- Masas -->
+                    <div class="form-row">
+                      <label>Masas</label>
+                      <ng-container *ngIf="isEditingFormH; else viewModeMasas">
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="masas"
+                            value="SI"
+                          />
+                        </label>
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="masas"
+                            value="NO"
+                          />
+                        </label>
+                        <input
+                          formControlName="masasNCertificado"
+                          type="text"
+                        />
+                      </ng-container>
+                      <ng-template #viewModeMasas>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.masas === "SI" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.masas === "NO" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">{{
+                          formHData?.masasNCertificado !== "N/A"
+                            ? formHData?.masasNCertificado
+                            : "N/A"
+                        }}</label>
+                      </ng-template>
+                    </div>
+                    <!-- Dinamómetro -->
+                    <div class="form-row">
+                      <label>Dinamómetro</label>
+                      <ng-container
+                        *ngIf="isEditingFormH; else viewModeDinamometro"
+                      >
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="dinamometro"
+                            value="SI"
+                          />
+                        </label>
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="dinamometro"
+                            value="NO"
+                          />
+                        </label>
+                        <input
+                          formControlName="dinamometroNCertificado"
+                          type="text"
+                        />
+                      </ng-container>
+                      <ng-template #viewModeDinamometro>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.dinamometro === "SI" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.dinamometro === "NO" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">{{
+                          formHData?.dinamometroNCertificado !== "N/A"
+                            ? formHData?.dinamometroNCertificado
+                            : "N/A"
+                        }}</label>
+                      </ng-template>
+                    </div>
+                    <!-- Caudalímetro -->
+                    <div class="form-row">
+                      <label>Caudalímetro</label>
+                      <ng-container
+                        *ngIf="isEditingFormH; else viewModeCaudalimetro"
+                      >
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="Caudalimetro"
+                            value="SI"
+                          />
+                        </label>
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="Caudalimetro"
+                            value="NO"
+                          />
+                        </label>
+                        <input
+                          formControlName="CaudalimetroNCertificado"
+                          type="text"
+                        />
+                      </ng-container>
+                      <ng-template #viewModeCaudalimetro>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.Caudalimetro === "SI" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.Caudalimetro === "NO" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">{{
+                          formHData?.CaudalimetroNCertificado !== "N/A"
+                            ? formHData?.CaudalimetroNCertificado
+                            : "N/A"
+                        }}</label>
+                      </ng-template>
+                    </div>
+                    <!-- Otro (indicar) -->
+                    <div class="form-row">
+                      <ng-container *ngIf="isEditingFormH; else viewModeOtro">
+                        <!-- Campo editable en modo edición -->
+                        <label class="center">
+                          <input
+                            class="width-fill-available"
+                            type="text"
+                            formControlName="descripcionOtro"
+                            placeholder="Indicar nombre del equipo"
+                          />
+                        </label>
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="otro"
+                            value="SI"
+                          />
+                        </label>
+                        <label class="center">
+                          <input
+                            type="radio"
+                            formControlName="otro"
+                            value="NO"
+                          />
+                        </label>
+                        <input
+                          formControlName="otroNCertificado"
+                          type="text"
+                          placeholder="Certificado Número"
+                        />
+                      </ng-container>
+                      <ng-template #viewModeOtro>
+                        <!-- Vista en modo solo lectura -->
+                        <label>{{
+                          formHData?.descripcionOtro !== "N/A"
+                            ? formHData?.descripcionOtro
+                            : "Otro (indicar)"
+                        }}</label>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.otro === "SI" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">
+                          <span class="cuadrado2">{{
+                            formHData?.otro === "NO" ? "✖" : ""
+                          }}</span>
+                        </label>
+                        <label class="center">{{
+                          formHData?.otroNCertificado !== "N/A"
+                            ? formHData?.otroNCertificado
+                            : "N/A"
+                        }}</label>
+                      </ng-template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row-nominal">
+                <label class="paddingLeft"
+                  ><strong>Capacidad nominal</strong></label
+                >
+                <label><strong>Gancho principal</strong></label>
+
+                <label>{{
+                  informeForm.get("capLevanteMaxGanchoPrin")?.value !== 0
+                    ? informeForm.get("capLevanteMaxGanchoPrin")?.value
+                    : "N/A"
+                }}</label>
+
+                <label>kg</label>
+
+                <label><strong>Gancho aux.</strong></label>
+                <label>{{
+                  informeForm.get("capLevanteMaxGanchoAux")?.value !== 0
+                    ? informeForm.get("capLevanteMaxGanchoAux")?.value
+                    : "N/A"
+                }}</label>
+
+                <label>kg</label>
+              </div>
+
+              <div class="form-row-nominal border-right">
+                <label class="paddingLeft"
+                  ><strong>Contrapesos de la grúa</strong></label
+                >
+                <ng-container *ngIf="isEditingFormH; else viewModeContrapesos">
+                  <input
+                    formControlName="contrapesos"
+                    type="text"
+                    placeholder="Indicar cantidad y peso"
+                  />
+                </ng-container>
+                <ng-template #viewModeContrapesos>
+                  <label>{{ formHData?.contrapasesGrua }}</label>
+                </ng-template>
+                <label>kg</label>
+              </div>
+
+              <!-- Campo para Operador (NOMBRE/RUT) -->
+              <div class="form-row-single">
+                <label class="paddingLeft"
+                  ><strong>Operador (NOMBRE/RUT)</strong></label
+                >
+                <!-- Modo de edición -->
+                <ng-container *ngIf="isEditingFormH; else viewModeOperador">
+                  <input
+                    formControlName="nombreOperador"
+                    placeholder="Ingrese nombre y RUT del operador"
+                  />
+                </ng-container>
+                <!-- Modo de visualización -->
+                <ng-template #viewModeOperador>
+                  <label>{{ formH.get("nombreOperador")?.value }}</label>
+                </ng-template>
+              </div>
+              <!-- Campo para Inspector ALS (NOMBRE/RUT) -->
+              <div class="form-row-single">
+                <label class="paddingLeft"
+                  ><strong>Inspector ALS (NOMBRE/RUT)</strong></label
+                >
+                <!-- Modo de edición -->
+                <ng-container *ngIf="isEditingFormH; else viewModeInspector">
+                  <div class="input-group">
+                    <input
+                      formControlName="nombreInspector"
+                      placeholder="Nombre del Inspector"
+                    />
+                    <input
+                      formControlName="rutInspector"
+                      placeholder="RUT del Inspector"
+                    />
+                  </div>
+                </ng-container>
+                <!-- Modo de visualización -->
+                <ng-template #viewModeInspector>
+                  <label
+                    >{{ formH.get("nombreInspector")?.value }}/{{
+                      formH.get("rutInspector")?.value
+                    }}</label
+                  >
+                </ng-template>
+              </div>
+              <br /><br />
+              <div class="union">
+                <label class="center title-item"><strong>Ítem</strong></label>
+                <label class="center subtitle-item">Radio</label>
+                <label class="center subtitle-item">Extensión pluma</label>
+                <label class="center subtitle-item">Ángulo pluma</label>
+                <label class="center subtitle-item">Cuadrante</label>
+                <label class="center subtitle-item"
+                  >Capacidad según tabla</label
+                >
+                <label class="center subtitle-item"
+                  >Carga de prueba aplicada</label
+                >
+                <label class="center subtitle-item"
+                  >% de la capacidad nominal</label
+                >
+              </div>
+              <div class="union-gancho">
+                <label class="center title-item"
+                  ><strong>Gancho Principal</strong></label
+                >
+                <ng-container
+                  *ngIf="isEditingFormH; else viewModeGanchoPrincipal"
+                >
+                  <label class="center">
+                    <input formControlName="radio" type="text" class="center" />
+                  </label>
+                  <label class="center">
+                    <input
+                      formControlName="extensionPluma"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                  <label class="center">
+                    <input
+                      formControlName="anguloPluma"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                  <label class="center">
+                    <input
+                      formControlName="cuadrante"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                  <label class="center">
+                    <input
+                      formControlName="capacidadSegunTabla"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                  <label class="center">
+                    <input
+                      formControlName="cargaPruebaGancho"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                  <label class="center">
+                    <input
+                      formControlName="porcentajeCapacidadNominal"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                </ng-container>
+                <ng-template #viewModeGanchoPrincipal>
+                  <label class="center align-content-center"
+                    >{{ formHData?.radio }} m</label
+                  >
+                  <label class="center align-content-center"
+                    >{{ formHData?.extensionPluma }} m</label
+                  >
+                  <label class="center align-content-center"
+                    >{{ formHData?.anguloPluma }}°</label
+                  >
+                  <label class="center align-content-center">{{
+                    formHData?.cuadrante
+                  }}</label>
+                  <label class="center align-content-center"
+                    >{{ formHData?.capacidadSegunTabla }} kg</label
+                  >
+                  <label class="center align-content-center"
+                    >{{ formHData?.cargaPruebaGancho }} kg</label
+                  >
+                  <label class="center align-content-center">kg</label>
+                  <label class="center align-content-center">{{
+                    formHData?.porcentajeCapacidadNominal
+                  }}</label>
+                  <label class="center align-content-center">%</label>
+                </ng-template>
+
+                <label class="center title-item"
+                  ><strong>Gancho Auxiliar</strong></label
+                >
+                <ng-container
+                  *ngIf="isEditingFormH; else viewModeGanchoAuxiliar"
+                >
+                  <label class="center title-item"
+                    ><strong>Gancho Auxiliar</strong></label
+                  >
+                  <label class="center">
+                    <input
+                      formControlName="radioAuxiliar"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                  <label class="center">
+                    <input
+                      formControlName="extensionPlumaAuxiliar"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                  <label class="center">
+                    <input
+                      formControlName="anguloPlumaAuxiliar"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                  <label class="center">
+                    <input
+                      formControlName="cuadranteAuxiliar"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                  <label class="center">
+                    <input
+                      formControlName="capacidadSegunTablaAuxiliar"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                  <label class="center">
+                    <input
+                      formControlName="cargaPruebaGanchoAuxiliar"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                  <label class="center">
+                    <input
+                      formControlName="porcentajeCapacidadNominalAuxiliar"
+                      type="text"
+                      class="center"
+                    />
+                  </label>
+                </ng-container>
+                <ng-template #viewModeGanchoAuxiliar>
+                  <label class="center align-content-center"
+                    >{{ formHData?.radioAuxiliar }} m</label
+                  >
+                  <label class="center align-content-center"
+                    >{{ formHData?.extensionPlumaAuxiliar }} m</label
+                  >
+                  <label class="center align-content-center"
+                    >{{ formHData?.anguloPlumaAuxiliar }}°</label
+                  >
+                  <label class="center align-content-center">{{
+                    formHData?.cuadranteAuxiliar
+                  }}</label>
+                  <label class="center align-content-center"
+                    >{{ formHData?.capacidadSegunTablaAuxiliar }} kg</label
+                  >
+                  <label class="center align-content-center"
+                    >{{ formHData?.cargaPruebaGanchoAuxiliar }} kg</label
+                  >
+                  <label class="center align-content-center">kg</label>
+                  <label class="center align-content-center">{{
+                    formHData?.porcentajeCapacidadNominalAuxiliar
+                  }}</label>
+                  <label class="center align-content-center">%</label>
+                </ng-template>
+              </div>
+            </form>
+
+            <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+              <strong>{{ tituloForm[8].nombre }}</strong>
+            </h2>
+            <!-- <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <button type="button" (click)="toggleEditFormH1()">
+                {{ isEditingFormH1 ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingFormH1"
+                (click)="saveFormH1Changes()"
+              >
+                Guardar
+              </button>
+            </div> -->
+            <div class="titulo-h1 center">
+              <label><strong>Medición</strong></label>
+              <label><strong>Antes</strong></label>
+              <label><strong>Después</strong></label>
+              <label><strong>Hora inicio</strong></label>
+              <label><strong>Hora término</strong></label>
+              <label><strong>Resultado</strong></label>
+            </div>
+
+            <form class="padding-none" [formGroup]="formH1">
+              <div class="datos-h1 center">
+                <label><strong>#1</strong></label>
+                <ng-container *ngIf="isEditingFormH1; else viewModeH1">
+                  <div class="editInputFormH1">
+                    <input type="number" formControlName="ganchoAntes" />
+                    <label>cm</label>
+                    <input type="number" formControlName="ganchoDespues" />
+                    <label>cm</label>
+                  </div>
+                  <input
+                    type="number"
+                    formControlName="ganchoHInicio"
+                    min="0"
+                    max="24"
+                    placeholder="00-24"
+                  />
+                  <input
+                    type="number"
+                    formControlName="ganchoHTermino"
+                    min="0"
+                    max="24"
+                    placeholder="00-24"
+                  />
+                  <select formControlName="ganchoResultado">
+                    <option value="satisfactorio">SATISFACTORIO</option>
+                    <option value="insatisfactorio">INSATISFACTORIO</option>
+                  </select>
+                </ng-container>
+                <ng-template #viewModeH1>
+                  <label>{{ formH1.get("ganchoAntes")?.value }}</label>
+                  <label>cm</label>
+                  <label>{{ formH1.get("ganchoDespues")?.value }}</label>
+                  <label>cm</label>
+                  <label>{{ formH1.get("ganchoHInicio")?.value }}:00</label>
+                  <label>{{ formH1.get("ganchoHTermino")?.value }}:00</label>
+                  <label>
+                    {{
+                      formH1.get("ganchoResultado")?.value === "satisfactorio"
+                        ? "SATISFACTORIO"
+                        : formH1.get("ganchoResultado")?.value ===
+                          "insatisfactorio"
+                        ? "INSATISFACTORIO"
+                        : "N/A"
+                    }}
+                  </label>
+                </ng-template>
+              </div>
+
+              <div class="datos-h1 center">
+                <label><strong>#2</strong></label>
+                <ng-container *ngIf="isEditingFormH1; else viewModeH2">
+                  <div class="editInputFormH1">
+                    <input type="number" formControlName="ganchoAuxAntes" />
+                    <label>cm</label>
+                    <input type="number" formControlName="ganchoAuxDespues" />
+                    <label>cm</label>
+                  </div>
+                  <input
+                    type="number"
+                    formControlName="ganchoAuxHInicio"
+                    min="0"
+                    max="24"
+                    placeholder="00-24"
+                  />
+                  <input
+                    type="number"
+                    formControlName="ganchoAuxHTermino"
+                    min="0"
+                    max="24"
+                    placeholder="00-24"
+                  />
+                  <select formControlName="ganchoAuxResultado">
+                    <option value="satisfactorio">SATISFACTORIO</option>
+                    <option value="insatisfactorio">INSATISFACTORIO</option>
+                  </select>
+                </ng-container>
+                <ng-template #viewModeH2>
+  <label>{{ formH1.get("ganchoAuxAntes")?.value !== 0 ? formH1.get("ganchoAuxAntes")?.value : "N/A" }}</label>
+  <label>cm</label>
+  <label>{{ formH1.get("ganchoAuxDespues")?.value !== 0 ? formH1.get("ganchoAuxDespues")?.value : "N/A" }}</label>
+  <label>cm</label>
+  <label>{{ formH1.get("ganchoAuxHInicio")?.value !== 0 ? formH1.get("ganchoAuxHInicio")?.value + ':00' : "N/A" }}</label>
+  <label>{{ formH1.get("ganchoAuxHTermino")?.value !== 0 ? formH1.get("ganchoAuxHTermino")?.value + ':00' : "N/A" }}</label>
+  <label>
+    {{
+      formH1.get("ganchoAuxResultado")?.value === "satisfactorio"
+        ? "SATISFACTORIO"
+        : formH1.get("ganchoAuxResultado")?.value === "insatisfactorio"
+        ? "INSATISFACTORIO"
+        : "N/A"
+    }}
+  </label>
+</ng-template>
+              </div>
+              <!-- Comentarios -->
+              <div class="border-color">
+                <div class="form-row comentario">
+                  <label class="border-none"><strong>Comentarios:</strong></label>
+                  <ng-container *ngIf="isEditingFormH; else viewModeComentarios">
+                    <textarea
+                      formControlName="comentarios"
+                      rows="1"
+                      maxlength="500"
+                      class="inline-textarea"
+                    ></textarea>
+                  </ng-container>
+                  <ng-template #viewModeComentarios>
+                    <label class="border-none">
+                      <strong>{{ formH1Data?.comentarios }}</strong>
+                    </label>
+                  </ng-template>
+                </div>
+              </div>
+            </form>
+          </form>
+        </div>
+      </div>
+
+      <div class="page">
+        <div class="content">
+          <form class="H2-I">
+          </form>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

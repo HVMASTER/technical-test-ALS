@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { TelescopicaService } from './services/telescopica.service';
 import { PdfService } from '../../services/pdf.service';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import html2canvas from 'html2canvas';
@@ -23,6 +23,9 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   selecDetalle: any;
   selecStatus: any;
   selecNumInforme: any;
+  formHData: any;
+  formH1Data: any;
+  formH2Data: any;
   selectedInforme: any | null = null;
   fechaEmisionInforme: string | null = null;
   currentItemIndex: number | null = null;
@@ -42,6 +45,8 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   isEditingStatusE = false;
   isEditingStatusF = false;
   isEditingFormG = false;
+  isEditingFormH = false;
+  isEditingFormH1 = false;
   messageText = '';
   savingMessage = '';
   messageType: 'success' | 'error' = 'success';
@@ -52,8 +57,8 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
     { idStatus: 4, alias: 'RE' },
   ];
   informeForm: FormGroup;
-  // formH: FormGroup;
-  // formH1: FormGroup;
+  formH: FormGroup;
+  formH1: FormGroup;
   // formH2: FormGroup;
   private destroy$ = new Subject<void>();
 
@@ -65,8 +70,8 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
     private datePipe: DatePipe
   ) {
     this.informeForm = this.createFormGroup();
-    // this.formH = this.createFormH();
-    // this.formH1 = this.createFormH1();
+    this.formH = this.createFormH();
+    this.formH1 = this.createFormH1();
     // this.formH2 = this.createFormH2();
   }
 
@@ -90,6 +95,64 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
       fechaInspeccion: [''],
       estado: [''],
       idResul: [''],
+    });
+  }
+
+  private createFormH(): FormGroup {
+    return this.formBuilder.group({
+      fechaPC: [''],
+      vigenciaPC: [''],
+      lugarPC: [''],
+      cintaMetrica: [''],
+      cintaMetricaNCertificado: [''],
+      pie_metro: [''],
+      pie_metroNCertificado: [''],
+      bolsasAgua: [''],
+      bolsasAguaNCertificado: [''],
+      masas: [''],
+      masasNCertificado: [''],
+      dinamometro: [''],
+      dinamometroNCertificado: [''],
+      caudalimetro: [''],
+      caudalimetroNCertificado: [''],
+      otro: [''],
+      otroNCertificado: [''],
+      descripcionOtro: [''],
+      contrapasesGrua: [''],
+      nombreOperador: [''],
+      radio: [''],
+      radioAuxiliar: [''],
+      extensionPluma: [''],
+      extensionPlumaAuxiliar: [''],
+      anguloPluma: [''],
+      anguloPlumaAuxiliar: [''],
+      cuadrante: [''],
+      cuadranteAuxiliar: [''],
+      capacidadSegunTabla: [''],
+      capacidadSegunTablaAuxiliar: [''],
+      cargaPruebaGancho: [''],
+      cargaPruebaGanchoAuxiliar: [''],
+      porcentajeCapacidadNominal: [''],
+      porcentajeCapacidadNominalAuxiliar: [''],
+      nombreInspector: [''],
+      rutInspector: [''],
+      comentarios: ['', [Validators.maxLength(500)]],
+    });
+  }
+
+  private createFormH1(): FormGroup {
+    return this.formBuilder.group({
+      ganchoAntes: [''],
+      ganchoDespues: [''],
+      ganchoHInicio: ['', [Validators.min(0), Validators.max(24)]],
+      ganchoHTermino: ['', [Validators.min(0), Validators.max(24)]],
+      ganchoResultado: ['SATISFACTORIO', Validators.required],
+      ganchoAuxAntes: [''],
+      ganchoAuxDespues: [''],
+      ganchoAuxHInicio: ['', [Validators.min(0), Validators.max(24)]],
+      ganchoAuxHTermino: ['', [Validators.min(0), Validators.max(24)]],
+      ganchoAuxResultado: ['SATISFACTORIO', Validators.required],
+      comentarios: ['', [Validators.maxLength(500)]],
     });
   }
 
@@ -142,8 +205,8 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
             });
 
           this.loadItemDetails(informe.idInforme);
-          // this.loadFormH(informe.idInforme);
-          // this.loadFormH1(informe.idInforme);
+          this.loadFormH(informe.idInforme);
+          this.loadFormH1(informe.idInforme);
           // this.loadFormH2(informe.idInforme);
           // this.loadSetFotografico(informe.idInforme);
         },
@@ -308,6 +371,53 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error fetching descripcion data:', error);
+        },
+      });
+  }
+
+  private loadFormH(idInforme: number) {
+    this.telescopicaService
+      .getformHTelescopicaByIdInforme(idInforme)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.formHData = data[0];
+          // Combina los datos del formHData con selectedInforme
+          this.formH.patchValue({
+            ...this.formHData,
+          });
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error fetching form H data:', error);
+        },
+      });
+  }
+
+  private loadFormH1(idInforme: number) {
+    this.telescopicaService
+      .getformH1TelescopicaByIdInforme(idInforme)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.formH1Data = data[0];
+
+          this.formH1.patchValue({
+            ganchoAntes: this.formH1Data.ganchoAntes,
+            ganchoDespues: this.formH1Data.ganchoDespues,
+            ganchoHInicio: this.formH1Data.ganchoHInicio,
+            ganchoHTermino: this.formH1Data.ganchoHTermino,
+            ganchoResultado: this.formH1Data.ganchoResultado,
+            ganchoAuxAntes: this.formH1Data.ganchoAuxAntes,
+            ganchoAuxDespues: this.formH1Data.ganchoAuxDespues,
+            ganchoAuxHInicio: this.formH1Data.ganchoAuxHInicio,
+            ganchoAuxHTermino: this.formH1Data.ganchoAuxHTermino,
+            ganchoAuxResultado: this.formH1Data.ganchoAuxResultado,
+            comentarios: this.formH1Data.comentarios,
+          });
+        },
+        error: (error) => {
+          console.error('Error fetching form H1 data:', error);
         },
       });
   }
