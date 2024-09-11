@@ -366,12 +366,12 @@
               {{ tituloForm[0]?.nombre }}
             </h2>
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-              <!-- <button (click)="toggleEditStatusA()">
+              <button (click)="toggleEditStatusA()">
                 {{ isEditingStatusA ? "Cancelar" : "Editar" }}
               </button>
               <button *ngIf="isEditingStatusA" (click)="saveChangesStatusA()">
                 Guardar
-              </button> -->
+              </button>
             </div>
             <div class="form-row-A-F">
               <strong class="center">Item</strong>
@@ -470,12 +470,12 @@
               {{ tituloForm[1].nombre }}
             </h2>
             <div *ngIf="!isPreviewMode">
-              <!-- <button (click)="toggleEditStatusB()">
+              <button (click)="toggleEditStatusB()">
                 {{ isEditingStatusB ? "Cancelar" : "Editar" }}
               </button>
               <button *ngIf="isEditingStatusB" (click)="saveChangesStatusB()">
                 Guardar
-              </button> -->
+              </button>
             </div>
             <div class="form-row-A-F">
               <strong class="center">Item</strong>
@@ -580,7 +580,7 @@
               {{ tituloForm[2].nombre }}
             </h2>
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-              <!-- <button type="button" (click)="toggleEditStatusC()">
+              <button type="button" (click)="toggleEditStatusC()">
                 {{ isEditingStatusC ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -589,7 +589,7 @@
                 (click)="saveChangesStatusC()"
               >
                 Guardar
-              </button> -->
+              </button>
             </div>
             <div class="form-row-A-F">
               <strong class="center">Item</strong>
@@ -677,7 +677,7 @@
               {{ tituloForm[3].nombre }}
             </h2>
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-              <!-- <button type="button" (click)="toggleEditStatusD()">
+              <button type="button" (click)="toggleEditStatusD()">
                 {{ isEditingStatusD ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -686,7 +686,7 @@
                 (click)="saveChangesStatusD()"
               >
                 Guardar
-              </button> -->
+              </button>
             </div>
             <div class="form-row-A-F">
               <strong class="center">Item</strong>
@@ -783,7 +783,7 @@
               {{ tituloForm[4].nombre }}
             </h2>
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-              <!-- <button type="button" (click)="toggleEditStatusE()">
+              <button type="button" (click)="toggleEditStatusE()">
                 {{ isEditingStatusE ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -792,7 +792,7 @@
                 (click)="saveChangesStatusE()"
               >
                 Guardar
-              </button> -->
+              </button>
             </div>
             <div class="form-row-A-F">
               <strong class="center">Item</strong>
@@ -902,7 +902,7 @@
               {{ tituloForm[5].nombre }}
             </h2>
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-              <!-- <button type="button" (click)="toggleEditStatusF()">
+              <button type="button" (click)="toggleEditStatusF()">
                 {{ isEditingStatusF ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -911,7 +911,7 @@
                 (click)="saveChangesStatusF()"
               >
                 Guardar
-              </button> -->
+              </button>
             </div>
             <div class="form-row-A-F">
               <strong class="center">Ítem</strong>
@@ -1375,36 +1375,36 @@
                         <label class="center">
                           <input
                             type="radio"
-                            formControlName="Caudalimetro"
+                            formControlName="caudalimetro"
                             value="SI"
                           />
                         </label>
                         <label class="center">
                           <input
                             type="radio"
-                            formControlName="Caudalimetro"
+                            formControlName="caudalimetro"
                             value="NO"
                           />
                         </label>
                         <input
-                          formControlName="CaudalimetroNCertificado"
+                          formControlName="caudalimetroNCertificado"
                           type="text"
                         />
                       </ng-container>
                       <ng-template #viewModeCaudalimetro>
                         <label class="center">
                           <span class="cuadrado2">{{
-                            formHData?.Caudalimetro === "SI" ? "✖" : ""
+                            formHData?.caudalimetro === "SI" ? "✖" : ""
                           }}</span>
                         </label>
                         <label class="center">
                           <span class="cuadrado2">{{
-                            formHData?.Caudalimetro === "NO" ? "✖" : ""
+                            formHData?.caudalimetro === "NO" ? "✖" : ""
                           }}</span>
                         </label>
                         <label class="center">{{
-                          formHData?.CaudalimetroNCertificado !== "N/A"
-                            ? formHData?.CaudalimetroNCertificado
+                          formHData?.caudalimetroNCertificado !== "N/A"
+                            ? formHData?.caudalimetroNCertificado
                             : "N/A"
                         }}</label>
                       </ng-template>
@@ -1650,91 +1650,57 @@
                 </ng-template>
               </div>
               <div class="union-gancho2">
-                <label class="center title-item"
-                  ><strong>Gancho Auxiliar</strong></label
-                >
-                <ng-container
-                  *ngIf="isEditingFormH; else viewModeGanchoAuxiliar"
-                >
-                  <label class="center title-item"
-                    ><strong>Gancho Auxiliar</strong></label
-                  >
-                  <label class="center">
-                    <input
-                      formControlName="radioAuxiliar"
-                      type="text"
-                      class="center"
-                    />
-                  </label>
-                  <label class="center">
-                    <input
-                      formControlName="extensionPlumaAuxiliar"
-                      type="text"
-                      class="center"
-                    />
-                  </label>
-                  <label class="center">
-                    <input
-                      formControlName="anguloPlumaAuxiliar"
-                      type="text"
-                      class="center"
-                    />
-                  </label>
-                  <label class="center">
-                    <input
-                      formControlName="cuadranteAuxiliar"
-                      type="text"
-                      class="center"
-                    />
-                  </label>
-                  <label class="center">
-                    <input
-                      formControlName="capacidadSegunTablaAuxiliar"
-                      type="text"
-                      class="center"
-                    />
-                  </label>
-                  <label class="center">
-                    <input
-                      formControlName="cargaPruebaGanchoAuxiliar"
-                      type="text"
-                      class="center"
-                    />
-                  </label>
-                  <label class="center">
-                    <input
-                      formControlName="porcentajeCapacidadNominalAuxiliar"
-                      type="text"
-                      class="center"
-                    />
-                  </label>
-                </ng-container>
-                <ng-template #viewModeGanchoAuxiliar>
-                  <label class="center align-content-center"
-                    >{{ formHData?.radioAuxiliar }} m</label
-                  >
-                  <label class="center align-content-center"
-                    >{{ formHData?.extensionPlumaAuxiliar }} m</label
-                  >
-                  <label class="center align-content-center"
-                    >{{ formHData?.anguloPlumaAuxiliar }}°</label
-                  >
-                  <label class="center align-content-center">{{
-                    formHData?.cuadranteAuxiliar
-                  }}</label>
-                  <label class="center align-content-center"
-                    >{{ formHData?.capacidadSegunTablaAuxiliar }} kg</label
-                  >
-                  <label class="center align-content-center"
-                    >{{ formHData?.cargaPruebaGanchoAuxiliar }} kg</label
-                  >
-                  <label class="center align-content-center">kg</label>
-                  <label class="center align-content-center">{{
-                    formHData?.porcentajeCapacidadNominalAuxiliar
-                  }}</label>
-                  <label class="center align-content-center">%</label>
-                </ng-template>
-              </div>
+  <label class="center title-item"><strong>Gancho Auxiliar</strong></label>
+  <ng-container *ngIf="isEditingFormH; else viewModeGanchoAuxiliar">
+    <label class="center title-item"><strong>Gancho Auxiliar</strong></label>
+    <label class="center">
+      <input formControlName="radioAuxiliar" type="text" class="center" />
+    </label>
+    <label class="center">
+      <input formControlName="extensionPlumaAuxiliar" type="text" class="center" />
+    </label>
+    <label class="center">
+      <input formControlName="anguloPlumaAuxiliar" type="text" class="center" />
+    </label>
+    <label class="center">
+      <input formControlName="cuadranteAuxiliar" type="text" class="center" />
+    </label>
+    <label class="center">
+      <input formControlName="capacidadSegunTablaAuxiliar" type="text" class="center" />
+    </label>
+    <label class="center">
+      <input formControlName="cargaPruebaGanchoAuxiliar" type="text" class="center" />
+    </label>
+    <label class="center">
+      <input formControlName="porcentajeCapacidadNominalAuxiliar" type="text" class="center" />
+    </label>
+  </ng-container>
+  <ng-template #viewModeGanchoAuxiliar>
+    <label class="center align-content-center">
+      {{ formHData?.radioAuxiliar !== 0 ? formHData?.radioAuxiliar + ' m' : 'N/A' }}
+    </label>
+    <label class="center align-content-center">
+      {{ formHData?.extensionPlumaAuxiliar !== 0 ? formHData?.extensionPlumaAuxiliar + ' m' : 'N/A' }}
+    </label>
+    <label class="center align-content-center">
+      {{ formHData?.anguloPlumaAuxiliar !== 0 ? formHData?.anguloPlumaAuxiliar + '°' : 'N/A' }}
+    </label>
+    <label class="center align-content-center">
+      {{ formHData?.cuadranteAuxiliar !== 0 ? formHData?.cuadranteAuxiliar : 'N/A' }}
+    </label>
+    <label class="center align-content-center">
+      {{ formHData?.capacidadSegunTablaAuxiliar !== 0 ? formHData?.capacidadSegunTablaAuxiliar + ' kg' : 'N/A' }}
+    </label>
+    <label class="center align-content-center">
+      {{ formHData?.cargaPruebaGanchoAuxiliar !== 0 ? formHData?.cargaPruebaGanchoAuxiliar + ' kg' : 'N/A' }}
+    </label>
+    <label class="center align-content-center">kg</label>
+    <label class="center align-content-center">
+      {{ formHData?.porcentajeCapacidadNominalAuxiliar !== 0 ? formHData?.porcentajeCapacidadNominalAuxiliar : 'N/A' }}
+    </label>
+    <label class="center align-content-center">%</label>
+  </ng-template>
+</div>
             </form>
 
             <h2 class="subtitle" *ngIf="tituloForm.length > 0">
@@ -1922,112 +1888,112 @@
             </div> -->
             <form class="padding-none" [formGroup]="formH2">
               <div class="unionH2">
-                <div class="title-part4">
-                  <div class="title-part3">
-                    <label class="paddingLeft"
-                      ><strong>GANCHO DOBLE</strong></label
-                    >
-                    <label class="center justifyCenter"
-                      ><strong>Antes de la prueba</strong></label
-                    >
-                    <label class="center justifyCenter"
-                      ><strong>Después de la prueba</strong></label
-                    >
-                  </div>
-                  <div class="form-row datos-h2">
-                    <label class="paddingLeft"
-                      ><strong>Longitud A-B</strong></label
-                    >
-                    <ng-container *ngIf="isEditingFormH2; else viewModeAB">
-                      <input type="number" formControlName="longitudUABAntes" />
-                      <label class="center">cm</label>
-                      <input type="number" formControlName="longitudUABDesp" />
-                      <label class="center">cm</label>
-                    </ng-container>
-                    <ng-template #viewModeAB>
-                      <label class="center">{{
-                        formH2.get("longitudUABAntes")?.value
-                      }}</label>
-                      <label class="center">cm</label>
-                      <label class="center">{{
-                        formH2.get("longitudUABDesp")?.value
-                      }}</label>
-                      <label class="center">cm</label>
-                    </ng-template>
-                  </div>
-                  <div class="form-row datos-h2">
-                    <label class="paddingLeft"
-                      ><strong>Longitud B-C</strong></label
-                    >
-                    <ng-container *ngIf="isEditingFormH2; else viewModeBC">
-                      <input type="number" formControlName="longitudDBCAntes" />
-                      <label class="center">cm</label>
-                      <input type="number" formControlName="longitudDBCDesp" />
-                      <label class="center">cm</label>
-                    </ng-container>
-                    <ng-template #viewModeBC>
-                      <label class="center">{{
-                        formH2.get("longitudDBCAntes")?.value
-                      }}</label>
-                      <label class="center">cm</label>
-                      <label class="center">{{
-                        formH2.get("longitudDBCDesp")?.value
-                      }}</label>
-                      <label class="center">cm</label>
-                    </ng-template>
-                  </div>
-                  <div class="form-row datos-h2">
-                    <label class="paddingLeft"
-                      ><strong>Longitud A-B'</strong></label
-                    >
-                    <ng-container *ngIf="isEditingFormH2; else viewModeABp">
-                      <input type="number" formControlName="longitudTABAntes" />
-                      <label class="center">cm</label>
-                      <input type="number" formControlName="longitudTABDesp" />
-                      <label class="center">cm</label>
-                    </ng-container>
-                    <ng-template #viewModeABp>
-                      <label class="center">{{
-                        formH2.get("longitudTABAntes")?.value
-                      }}</label>
-                      <label class="center">cm</label>
-                      <label class="center">{{
-                        formH2.get("longitudTABDesp")?.value
-                      }}</label>
-                      <label class="center">cm</label>
-                    </ng-template>
-                  </div>
-                  <div class="form-row datos-h2">
-                    <label class="paddingLeft"
-                      ><strong>Longitud B-C'</strong></label
-                    >
-                    <ng-container *ngIf="isEditingFormH2; else viewModeBCp">
-                      <input type="number" formControlName="longitudCBCAntes" />
-                      <label class="center">cm</label>
-                      <input type="number" formControlName="longitudCBCDesp" />
-                      <label class="center">cm</label>
-                    </ng-container>
-                    <ng-template #viewModeBCp>
-                      <label class="center">{{
-                        formH2.get("longitudCBCAntes")?.value
-                      }}</label>
-                      <label class="center">cm</label>
-                      <label class="center">{{
-                        formH2.get("longitudCBCDesp")?.value
-                      }}</label>
-                      <label class="center">cm</label>
-                    </ng-template>
-                  </div>
-                </div>
-                <label>
-                  <div class="imgH2">
-                    <img
-                      src="assets/formulario_puente/tipo_doble.jpg"
-                      alt="Tipo doble"
-                    />
-                  </div>
-                </label>
-              </div>
+  <div class="title-part4">
+    <div class="title-part3">
+      <label class="paddingLeft"><strong>GANCHO DOBLE</strong></label>
+      <label class="center justifyCenter"><strong>Antes de la prueba</strong></label>
+      <label class="center justifyCenter"><strong>Después de la prueba</strong></label>
+    </div>
+    <div class="form-row datos-h2">
+      <label class="paddingLeft"><strong>Longitud A-B</strong></label>
+      <ng-container *ngIf="isEditingFormH2; else viewModeAB">
+        <input type="number" formControlName="longitudUABAntes" />
+        <label class="center">cm</label>
+        <input type="number" formControlName="longitudUABDesp" />
+        <label class="center">cm</label>
+      </ng-container>
+      <ng-template #viewModeAB>
+        <label class="center">{{
+          formH2.get("longitudUABAntes")?.value !== 0 
+            ? formH2.get("longitudUABAntes")?.value 
+            : "N/A"
+        }}</label>
+        <label class="center">cm</label>
+        <label class="center">{{
+          formH2.get("longitudUABDesp")?.value !== 0 
+            ? formH2.get("longitudUABDesp")?.value 
+            : "N/A"
+        }}</label>
+        <label class="center">cm</label>
+      </ng-template>
+    </div>
+    <div class="form-row datos-h2">
+      <label class="paddingLeft"><strong>Longitud B-C</strong></label>
+      <ng-container *ngIf="isEditingFormH2; else viewModeBC">
+        <input type="number" formControlName="longitudDBCAntes" />
+        <label class="center">cm</label>
+        <input type="number" formControlName="longitudDBCDesp" />
+        <label class="center">cm</label>
+      </ng-container>
+      <ng-template #viewModeBC>
+        <label class="center">{{
+          formH2.get("longitudDBCAntes")?.value !== 0 
+            ? formH2.get("longitudDBCAntes")?.value 
+            : "N/A"
+        }}</label>
+        <label class="center">cm</label>
+        <label class="center">{{
+          formH2.get("longitudDBCDesp")?.value !== 0 
+            ? formH2.get("longitudDBCDesp")?.value 
+            : "N/A"
+        }}</label>
+        <label class="center">cm</label>
+      </ng-template>
+    </div>
+    <div class="form-row datos-h2">
+      <label class="paddingLeft"><strong>Longitud A-B'</strong></label>
+      <ng-container *ngIf="isEditingFormH2; else viewModeABp">
+        <input type="number" formControlName="longitudTABAntes" />
+        <label class="center">cm</label>
+        <input type="number" formControlName="longitudTABDesp" />
+        <label class="center">cm</label>
+      </ng-container>
+      <ng-template #viewModeABp>
+        <label class="center">{{
+          formH2.get("longitudTABAntes")?.value !== 0 
+            ? formH2.get("longitudTABAntes")?.value 
+            : "N/A"
+        }}</label>
+        <label class="center">cm</label>
+        <label class="center">{{
+          formH2.get("longitudTABDesp")?.value !== 0 
+            ? formH2.get("longitudTABDesp")?.value 
+            : "N/A"
+        }}</label>
+        <label class="center">cm</label>
+      </ng-template>
+    </div>
+    <div class="form-row datos-h2">
+      <label class="paddingLeft"><strong>Longitud B-C'</strong></label>
+      <ng-container *ngIf="isEditingFormH2; else viewModeBCp">
+        <input type="number" formControlName="longitudCBCAntes" />
+        <label class="center">cm</label>
+        <input type="number" formControlName="longitudCBCDesp" />
+        <label class="center">cm</label>
+      </ng-container>
+      <ng-template #viewModeBCp>
+        <label class="center">{{
+          formH2.get("longitudCBCAntes")?.value !== 0 
+            ? formH2.get("longitudCBCAntes")?.value 
+            : "N/A"
+        }}</label>
+        <label class="center">cm</label>
+        <label class="center">{{
+          formH2.get("longitudCBCDesp")?.value !== 0 
+            ? formH2.get("longitudCBCDesp")?.value 
+            : "N/A"
+        }}</label>
+        <label class="center">cm</label>
+      </ng-template>
+    </div>
+  </div>
+  <label>
+    <div class="imgH2">
+      <img src="assets/formulario_puente/tipo_doble.jpg" alt="Tipo doble" />
+    </div>
+  </label>
+</div>
+
               <div
                 class="form-row"
                 [ngClass]="{
@@ -2591,6 +2557,48 @@
          
         </div>
       </div>
+
+      <br /><br /><br /><br /><br /><br />
+
+      <div class="page">
+        <div class="content">
+          <div class="center justifyCenter">
+            <h3 class="custom-h3 font-size-25">
+              Este informe se realizó sin prejuicio de ningún tipo y para el
+              interés de quien <br />concierna.
+            </h3>
+          </div>
+          <br /><br /><br /><br /><br /><br />
+          <h4 class="center justifyCenter">
+            Nombre y firma <br />INSPECTOR <br />ALS Inspection Chile SPA
+          </h4>
+        </div>
+      </div>
+
+      <br /><br /><br /><br /><br /><br />
+
+      <div class="page">
+        <div class="content">
+          <form class="J">
+            <h2
+              class="center justifyCenter font-size-xxxlarge"
+              *ngIf="tituloForm.length > 0"
+            >
+              <strong>{{ tituloForm[11].nombre }}</strong>
+            </h2>
+            <div class="photo-grid">
+              <div *ngFor="let photo of photos" class="photo-item">
+                <img
+                  [src]="'data:image/png;base64,' + photo.data"
+                  [alt]="photo.descripcionSF"
+                />
+                <span>{{ photo.descripcionSF }}</span>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

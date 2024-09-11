@@ -66,4 +66,8 @@ export class TelescopicaService {
   editInformeTelescopicas(data: any) {
     return this.http.put<any>(`${this.baseUrl}editInformeTelescopicas`, data);
   }
+
+  editItemTelescopica(data: any) {
+    return this.http.put<any>(`${this.baseUrl}editItemTelescopicas`, data);
+  }
 }
