@@ -70,4 +70,36 @@ export class TelescopicaService {
   editItemTelescopica(data: any) {
     return this.http.put<any>(`${this.baseUrl}editItemTelescopicas`, data);
   }
+
+  editDescripcionTelescopica(data: any) {
+    return this.http.put<any>(`${this.baseUrl}editDescripcionTelescopicas`, data);
+  }
+
+  editFormHTelescopica(data: any) {
+    return this.http.put<any>(`${this.baseUrl}editFormHTelescopicas`, data);
+  }
+
+  editFormH1Telescopica(data: any) {
+    return this.http.put<any>(`${this.baseUrl}editFormH1Telescopicas`, data);
+  }
+
+  editFormH2Telescopica(data: any) {
+    return this.http.put<any>(`${this.baseUrl}editFormH2Telescopicas`, data);
+  }
+
+  postDescripcionTelescopica(data: any) {
+    return this.http.post<any>(`${this.baseUrl}sendDescripcionTelescopica`, data);
+  }
+
+  sendFotosTelescopica(data: any) {
+    return this.http.post<any>(`${this.baseUrl}sendFotosTelescopica`, data);
+  }
+
+  deleteFotoTelescopica(data: any) {
+    return this.http.request<any>('delete',`${this.baseUrl}deleteFotoTelescopicas`, { body: data });
+  }
+
+  deleteDescripcionTelescopica(data: any) {
+    return this.http.request<any>('delete',`${this.baseUrl}deleteDescripcionTelescopicas`, { body: data });
+  }
 }
