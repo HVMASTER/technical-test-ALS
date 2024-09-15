@@ -44,7 +44,7 @@ export class TelescopicaService {
   }
 
   getFotoByIdInformeTelescopica(idInforme: number) {
-    return this.http.get<any>(`${this.baseUrl}getFotoByIdInformeTelescopica/${idInforme}`);
+    return this.http.get<any>(`${this.baseUrl}getFotoByIdInformeTelescopicas/${idInforme}`);
   }
 
   getformHTelescopicaByIdInforme(idInforme: number) {
@@ -101,5 +101,9 @@ export class TelescopicaService {
 
   deleteDescripcionTelescopica(data: any) {
     return this.http.request<any>('delete',`${this.baseUrl}deleteDescripcionTelescopicas`, { body: data });
+  }
+
+  deleteFotoTelescopicasByIdDetalle(data: any) {
+    return this.http.request<any>('delete',`${this.baseUrl}deleteFotoTelescopicasByIdDetalle`, { body: data });
   }
 }

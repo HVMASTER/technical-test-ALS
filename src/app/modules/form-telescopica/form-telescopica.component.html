@@ -35,19 +35,18 @@
     >
     </app-info-message>
 
-    <!-- <app-report-modal-component
-      *ngIf="showModal"
-      [idInforme]="modalInstance?.idInforme"
-      [idDetalle]="modalInstance?.idDetalle"
-      [idStatus]="modalInstance?.idStatus"
-      [numeroInforme]="modalInstance?.numeroInforme"
-      [allowImages]="modalInstance?.allowImages"
-      [uploadImageService]="modalInstance?.uploadImageService"
-      [saveDescriptionService]="modalInstance?.saveDescriptionService"
-      (save)="closeModal($event)"
-      (cancel)="cancelModal()"
-    >
-    </app-report-modal-component> -->
+    <app-report-modal-component
+  *ngIf="showModal && modalInstance"
+  [idInforme]="modalInstance?.idInforme"
+  [idDetalle]="modalInstance?.idDetalle"
+  [idStatus]="modalInstance?.idStatus"
+  [numeroInforme]="modalInstance?.numeroInforme"
+  [allowImages]="modalInstance?.allowImages"
+  [uploadImageService]="modalInstance?.uploadImageService" 
+  (save)="closeModal($event)"
+  (cancel)="cancelModal()"
+>
+</app-report-modal-component>
 
     <div id="contentToConvert">
       <div *ngIf="showHeaderFooter" class="header">

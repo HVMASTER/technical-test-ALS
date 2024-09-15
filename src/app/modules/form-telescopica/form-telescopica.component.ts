@@ -3,7 +3,7 @@ import { TelescopicaService } from './services/telescopica.service';
 import { PdfService } from '../../services/pdf.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { Subject, takeUntil } from 'rxjs';
+import { lastValueFrom, Subject, takeUntil } from 'rxjs';
 import html2canvas from 'html2canvas';
 
 @Component({
@@ -266,30 +266,109 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   );
 
   if (selectedOption) {
-    // Guarda el estado original
+    // Guardar el estado original antes de hacer cambios
     this.originalStatus = { ...item };
 
-    if (selectedIdStatus === '2') {
+    // Verificar si el estado está cambiando de N/C (2) a CU (1)
+    if (selectedIdStatus === '1' && item.idStatus === 2) {
+      const confirmChange = window.confirm(
+        '¿Estás seguro de cambiar el estado de N/C a C/U? Esto eliminará las imágenes y la descripción asociadas a este ítem.'
+      );
+
+      if (confirmChange) {
+        // Eliminar la descripción y las imágenes asociadas
+        this.deleteDescriptionAndPhotos(item);
+
+        // Cambiar el estado a CU
+        item.idStatus = 1;
+        item.alias = 'CU';
+        item.descripcionNoCumple = ''; // Limpiar la descripción de "No Cumple"
+        item.images = []; // Limpiar las imágenes asociadas
+        item.imagesNames = []; // Limpiar los nombres de las imágenes
+      } else {
+        // Si se cancela la confirmación, revertir el estado a N/C
+        item.idStatus = 2;
+      }
+    } else if (selectedIdStatus === '2') {
+      // Abrir el modal si el estado es N/C
       item.idStatus = 2;
       item.alias = 'N/C';
-      this.openModal(item, true); // Permitir fotos y descripción
+      this.openModal(item, true);
     } else if (selectedIdStatus === '4') {
+      // Manejar el estado de revisión especial (RE)
       item.idStatus = 4;
       item.alias = 'RE';
-      this.openModal(item, false); // Solo descripción
-    } else if (selectedIdStatus === '1') {
-      item.idStatus = 1;
-      item.alias = 'CU';
-      item.descripcionNoCumple = ''; // Limpiar la descripción y fotos
+      this.openModal(item, false);
     } else if (selectedIdStatus === '3') {
+      // Si cambia el estado a N/A, limpiar la descripción
       item.idStatus = 3;
       item.alias = 'N/A';
-      item.descripcionNoCumple = ''; // Limpiar la descripción
+      item.descripcionNoCumple = '';
+      item.images = [];
+      item.imagesNames = [];
     }
 
-    this.cdr.detectChanges(); // Forzar la actualización de la vista
+    this.cdr.detectChanges(); // Forzar la actualización visual
   }
 }
+
+  // Método para obtener las fotos y luego eliminarlas
+async deleteDescriptionAndPhotos(item: any) {
+  const idInforme = this.selectedInforme.idInforme;
+  const idDetalle = item.idDetalle;
+  const idStatus = item.idStatus;
+  const numeroInforme = this.selectedInforme.numeroInforme;
+
+  let fotosFiltradas: any[] = [];
+
+  try {
+    // Primero, recuperamos todas las fotos desde el backend
+    const fotosResponse = await lastValueFrom(
+      this.telescopicaService.getFotoByIdInformeTelescopica(idInforme)
+    );
+
+    if (fotosResponse && fotosResponse.photos) {
+      // Filtramos las fotos que correspondan al idDetalle que está siendo modificado
+      fotosFiltradas = fotosResponse.photos.filter((foto: any) => foto.idDetalle === idDetalle);
+
+      console.log('Fotos a eliminar:', fotosFiltradas);
+
+      if (fotosFiltradas.length > 0) {
+        // Iteramos sobre las fotos filtradas y las eliminamos
+        for (const foto of fotosFiltradas) {
+          const fotoData = {
+            idInforme: idInforme,
+            idDetalle: idDetalle,
+            numeroInforme: numeroInforme
+          };
+
+          await lastValueFrom(this.telescopicaService.deleteFotoTelescopicasByIdDetalle(fotoData));
+          console.log(`Foto eliminada para idDetalle: ${idDetalle}`);
+        }
+      } else {
+        console.log('No se encontraron fotos para eliminar.');
+      }
+    } else {
+      console.log('No se encontraron fotos en el backend.');
+    }
+
+    // Luego, eliminamos la descripción
+    const descripcionData = { idInforme, idDetalle, idStatus };
+    const descripcionResponse = await lastValueFrom(
+      this.telescopicaService.deleteDescripcionTelescopica(descripcionData)
+    );
+
+    if (descripcionResponse.success) {
+      console.log('Descripción eliminada exitosamente.');
+    } else {
+      console.error('Error al eliminar la descripción:', descripcionResponse.message);
+    }
+
+  } catch (error) {
+    console.error('Error al eliminar fotos o descripción:', error);
+  }
+}
+
 
   private getTitulosForm() {
     this.telescopicaService
@@ -603,7 +682,7 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   //   }
   // }
 
-  private addNotMetDescription(descriptionData: any): void {
+   private addNotMetDescription(descriptionData: any): void {
     this.telescopicaService
       .postDescripcionTelescopica(descriptionData)
       .pipe(takeUntil(this.destroy$))
@@ -794,6 +873,17 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
     }
   }
 
+  convertBase64ToBlob(base64: string): Blob {
+  const byteString = atob(base64.split(',')[1]);
+  const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  return new Blob([ab], { type: mimeString });
+}
+
   saveChanges() {
     if (this.informeForm.valid && this.selectedInforme) {
       // Obtiene todos los datos del formulario
@@ -833,11 +923,15 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
     this.savingMessage = 'Guardando cambios, por favor espere...';
 
     const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
+
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
     const itemsToUpdate = this.itemsWithStatus
       .slice(0, 9)
       .filter((item, index) => {
-        const globalIndex = index; // Ajusta el índice global para comparación
+        const globalIndex = index;
         const originalItem = this.originalValues[globalIndex];
         return originalItem && item.idStatus !== originalItem.idStatus;
       });
@@ -848,7 +942,36 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const imageUploadPromises: Promise<any>[] = [];
     const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.telescopicaService.sendFotosTelescopica(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
       return {
         idStatus: item.idStatus,
         idInforme: idInforme,
@@ -856,39 +979,28 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
       };
     });
 
-    // Llamar al servicio para actualizar los ítems sin subir imágenes o descripciones
-    this.telescopicaService.editItemTelescopica(itemsData).subscribe({
-      next: (response) => {
-        if (response.success) {
-          console.log('Datos actualizados exitosamente.');
-          this.showMessage = true;
-          this.messageText = 'Datos actualizados exitosamente.';
-          this.messageType = 'success';
-          this.isAnyEditing = false;
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.telescopicaService.editItemTelescopica(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
+            console.log('Ítems actualizados exitosamente.');
 
-          // Refrescar los datos
-          this.refreshNonConformities();
-          this.refreshStatus();
-        } else {
-          this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          this.refreshStatus();
-          this.restoreOriginalValues();
-        }
-      },
-      error: (error) => {
-        this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-        this.messageType = 'error';
-        console.error('Error actualizando los datos:', error);
-        this.refreshStatus();
-        this.restoreOriginalValues();
-      },
-      complete: () => {
-        setTimeout(() => (this.showMessage = false), 3000);
-        this.isSaving = false;
-        this.isEditingStatusA = false;
-        this.isAnyEditing = false;
-      },
+            // Ahora subir las descripciones si existen
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            } else {
+              this.finalizeSaveChanges();
+            }
+          } else {
+            this.handleSaveError();
+          }
+        },
+        error: (error) => {
+          this.handleSaveError(error);
+        },
+      });
     });
   }
 }
@@ -1565,50 +1677,62 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   const idDetalle = item.idDetalle;
   const idStatus = item.idStatus;
 
-  // Verifica si tienes todos los datos requeridos
   if (!idInforme || !numeroInforme || !idDetalle || !idStatus) {
     console.error('Datos faltantes al intentar abrir el modal.');
     return;
   }
 
-  //guardar el estado original del item
   this.originalStatus = { ...item };
 
-  // Asignar valores a las propiedades del modal
   this.selecInforme = idInforme;
   this.selecNumInforme = numeroInforme;
   this.selecDetalle = idDetalle;
   this.selecStatus = idStatus;
-
-  // Determinar si se permiten imágenes o solo la descripción
   this.allowImages = allowImages;
 
-  // Mostrar el modal
   this.showModal = true;
   this.currentItemIndex = this.itemsWithStatus.indexOf(item);
 
-  // Agregar logs para verificar la correcta asignación
   console.log('Modal abierto con los siguientes datos:');
   console.log('idInforme:', idInforme);
   console.log('numeroInforme:', numeroInforme);
   console.log('idDetalle:', idDetalle);
   console.log('idStatus:', idStatus);
-  console.log('allowImages:', allowImages); // Verificación de permisos de imágenes
+  console.log('allowImages:', allowImages);
+
+  // Aquí pasamos el servicio al modal
+  this.modalInstance = {
+    idInforme: idInforme,
+    idDetalle: idDetalle,
+    idStatus: idStatus,
+    numeroInforme: numeroInforme,
+    allowImages: allowImages,
+    uploadImageService: this.telescopicaService.sendFotosTelescopica.bind(this.telescopicaService), // Servicio de subida
+  };
 }
 
-  closeModal(modalData: { description: string; images: string[]; imagesNames: any[] }): void {
+  closeModal(modalData: { description: string; images: string[]; imagesNames: string[] }): void {
   if (this.currentItemIndex !== null) {
     const currentItem = this.itemsWithStatus[this.currentItemIndex];
+
+    // Actualizar la descripción
     currentItem.descripcionNoCumple = modalData.description;
 
-    if (this.allowImages) {
-      currentItem.images = modalData.images;
-      currentItem.imagesNames = modalData.imagesNames;
+    // Reiniciar las imágenes antes de agregar las nuevas para evitar duplicados
+    currentItem.images = [...modalData.images];
+    currentItem.imagesNames = [...modalData.imagesNames];
+
+    // Verificar que no se estén duplicando imágenes antes de subir
+    if (currentItem.images.length > 0 && currentItem.imagesNames.length === currentItem.images.length) {
+      console.log('Imágenes almacenadas en el item:', currentItem.images);
+      console.log('Nombres de imágenes almacenados en el item:', currentItem.imagesNames);
+    } else {
+      console.error('Error: Las imágenes y los nombres de las imágenes no coinciden.');
     }
 
     this.showModal = false;
     this.currentItemIndex = null;
-    this.cdr.detectChanges(); // Actualizar la vista
+    this.cdr.detectChanges(); // Forzar la actualización visual
   }
 }
 
@@ -1627,6 +1751,52 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
 
   // Actualizar la vista para reflejar los cambios
   this.cdr.detectChanges();
+}
+
+private uploadDescripciones(descripciones: any[]) {
+  // Enviar el array de descripciones al backend
+  this.telescopicaService.postDescripcionTelescopica({ descripciones }).subscribe({
+    next: (response) => {
+      if (response.success) {
+        console.log('Descripciones subidas exitosamente.');
+        this.finalizeSaveChanges();
+      } else {
+        console.error('Error al subir las descripciones:', response.message);
+        this.handleSaveError();
+      }
+    },
+    error: (error) => {
+      console.error('Error al subir las descripciones:', error);
+      this.handleSaveError();
+    },
+  });
+}
+
+private finalizeSaveChanges() {
+  this.showMessage = true;
+  this.messageText = 'Datos actualizados exitosamente.';
+  this.messageType = 'success';
+  this.isAnyEditing = false;
+
+  // Refrescar los datos
+  this.refreshNonConformities();
+  this.refreshStatus();
+
+  setTimeout(() => (this.showMessage = false), 3000);
+  this.isSaving = false;
+  this.isEditingStatusA = false;
+  this.isAnyEditing = false;
+}
+
+private handleSaveError(error?: any) {
+  this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+  this.messageType = 'error';
+  console.error('Error al actualizar los datos:', error);
+  this.refreshStatus();
+  this.restoreOriginalValues();
+  this.isSaving = false;
+  this.isEditingStatusA = false;
+  this.isAnyEditing = false;
 }
 
 } 

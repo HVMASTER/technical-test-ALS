@@ -15,7 +15,7 @@
       </div>
 
       <!-- Input para subir una imagen solo si hay menos de 5 imágenes -->
-      <input *ngIf="images.length < 5" type="file" (change)="onFileSelected($event)" />
+      <input *ngIf="images.length < 3" type="file" (change)="onFileSelected($event)" />
     </div>
 
     <!-- Botones para guardar y cancelar -->
