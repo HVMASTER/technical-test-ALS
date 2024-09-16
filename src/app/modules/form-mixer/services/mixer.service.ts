@@ -48,6 +48,12 @@ export class MixerService {
     );
   }
 
+  getFotoByIdInformeMixer(idInforme: number) {
+    return this.http.get<any>(
+      `${this.baseUrl}getFotoByIdInformeMixer/${idInforme}`
+    );
+  }
+
   getSetFotograficoByIdInformeMixer(idInforme: number) {
     return this.http.get<any>(
       `${this.baseUrl}getSetFotograficoByIdInformeMixer/${idInforme}`
@@ -108,6 +114,16 @@ export class MixerService {
       { 
        body: fotoData
       }  
+    );
+  }
+
+  deleteFotoMixerByIdDetalle(fotoData: any) {
+    return this.http.request<any>(
+      'delete',
+      `${this.baseUrl}deleteFotoMixerByIdDetalle`,
+      {
+        body: fotoData,
+      }
     );
   }
 
