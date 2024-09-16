@@ -7,8 +7,8 @@ import { DatePipe } from '@angular/common';
 import { AppComponent } from './app.component';
 import { FormModule } from './modules/form/form.module';
 import { FormMixerModule } from './modules/form-mixer/form-mixer.module';
+import { FormTelescopicaModule } from './modules/form-telescopica/form-telescopica.module';
 import { FormularioSelectorComponent } from './modules/formulario-selector/formulario-selector.component';
-import { ReportModalComponentComponent } from './modules/components/report-modal-component/report-modal-component.component';
 
 @NgModule({
   declarations: [
@@ -21,6 +21,7 @@ import { ReportModalComponentComponent } from './modules/components/report-modal
     AppRoutingModule,
     FormModule,
     FormMixerModule,
+    FormTelescopicaModule
   ],
   providers: [DatePipe],
   bootstrap: [AppComponent]

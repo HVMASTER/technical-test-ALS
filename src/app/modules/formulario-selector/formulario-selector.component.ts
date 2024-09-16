@@ -11,7 +11,8 @@ export class FormularioSelectorComponent {
   // Lista de tipos de formularios
   tiposFormularios = [
     { nombre: 'Formulario Puente', ruta: 'puente' },
-    { nombre: 'Formulario Mixer', ruta: 'mixer' }
+    { nombre: 'Formulario Mixer', ruta: 'mixer' },
+    { nombre: 'Formulario Telescopica', ruta: 'telescopica' }
   ];
 
   constructor(private router: Router) {}
