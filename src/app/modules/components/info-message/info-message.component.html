@@ -1,5 +1,18 @@
-<div *ngIf="show" [ngClass]="messageClass" class="message">
-  <span>{{ message }}</span>
-  <button class="close-btn" (click)="show = false">X</button>
-</div>
+<div *ngIf="show">
+  <!-- Modal bloqueante para 'warning' -->
+  <div *ngIf="type === 'warning'" class="modal-backdrop">
+    <div class="modal-content">
+      <span>{{ message }}</span>
+      <div class="modal-actions">
+        <button (click)="onAccept()">Aceptar</button>
+        <button (click)="onCancel()">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
+  <!-- Mensajes de tipo 'success' o 'error' sin modal -->
+  <div *ngIf="type !== 'warning'" class="message-box" [ngClass]="{'message-success': type === 'success', 'message-error': type === 'error'}">
+    <span>{{ message }}</span>
+    <button class="close-btn" (click)="show = false">X</button>
+  </div>
+</div>

@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { lastValueFrom, Subject, takeUntil } from 'rxjs';
 import html2canvas from 'html2canvas';
+import { InfoMessageComponent } from '../components/info-message/info-message.component';
 
 @Component({
   selector: 'app-form-telescopica',
@@ -71,6 +72,8 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   defaultEmptyRows = new Array(7);
   selectedItem: any = null;
   modalInstance: any = null;
+  onAccept: () => void = () => {};
+  onCancel: () => void = () => {};
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -78,7 +81,7 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
     private pdfService: PdfService,
     private cdr: ChangeDetectorRef,
     private formBuilder: FormBuilder,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
   ) {
     this.informeForm = this.createFormGroup();
     this.formH = this.createFormH();
@@ -266,69 +269,88 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
   );
 
   if (selectedOption) {
-    // Guardar el estado original antes de hacer cambios
-    this.originalStatus = { ...item };
+    const previousStatus = item.idStatus;  // Guardamos el estado anterior
+    const previousAlias = item.alias;      // Guardamos el alias anterior
 
-    if (item.idStatus === 2 && (selectedIdStatus === '1' || selectedIdStatus === '3')) {
-      // Caso 1: De N/C a CU o N/A
-      const confirmChange = window.confirm(
-        '¿Estás seguro de cambiar el estado de N/C? Esto eliminará las imágenes y la descripción asociadas a este ítem.'
-      );
+    // Mensaje de confirmación según el estado previo
+    const confirmMessage =
+      previousStatus === 2 && ['1', '3', '4'].includes(selectedIdStatus)
+        ? '¿Estás seguro de cambiar el estado de N/C? Esto eliminará las imágenes y la descripción asociadas a este ítem.'
+        : previousStatus === 4 && ['1', '2', '3'].includes(selectedIdStatus)
+        ? '¿Estás seguro de cambiar el estado de RE? Esto eliminará la descripción asociada a este ítem.'
+        : null;
 
-      if (confirmChange) {
-        this.deletePhotosAndDescription(item, this.originalStatus.idStatus); // Pasamos el idStatus original (N/C)
-
-        // Cambiar el estado a CU o N/A
-        item.idStatus = selectedIdStatus === '1' ? 1 : 3;
-        item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
-        item.descripcionNoCumple = ''; // Limpiar la descripción
-        item.images = []; // Limpiar las imágenes asociadas
-        item.imagesNames = []; // Limpiar los nombres de las imágenes
-      } else {
-        // Revertir el estado a N/C si se cancela la confirmación
-        item.idStatus = 2;
-      }
-    } else if (item.idStatus === 4 && (selectedIdStatus === '1' || selectedIdStatus === '3')) {
-      // Caso 2: De RE a CU o N/A
-      const confirmChange = window.confirm(
-        '¿Estás seguro de cambiar el estado de RE? Esto eliminará la descripción asociada a este ítem.'
-      );
-
-      if (confirmChange) {
-        this.deleteDescription(item, this.originalStatus.idStatus); // Pasamos el idStatus original (RE)
-
-        // Cambiar el estado a CU o N/A
-        item.idStatus = selectedIdStatus === '1' ? 1 : 3;
-        item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
-        item.descripcionNoCumple = ''; // Limpiar la descripción
-      } else {
-        // Revertir el estado a RE si se cancela la confirmación
-        item.idStatus = 4;
-      }
-    } else if (selectedIdStatus === '2') {
-      // Si el estado es N/C, abrir el modal con imágenes requeridas
-      item.idStatus = 2;
-      item.alias = 'N/C';
-      this.openModal(item, true);
-    } else if (selectedIdStatus === '4') {
-      // Si el estado es RE, abrir el modal sin imágenes requeridas
-      item.idStatus = 4;
-      item.alias = 'RE';
-      this.openModal(item, false);
-    } else if (selectedIdStatus === '1' || selectedIdStatus === '3') {
-      // Si el estado es CU o N/A, solo cambiar el estado
-      item.idStatus = selectedOption.idStatus;
-      item.alias = selectedOption.alias;
+    if (confirmMessage) {
+      // Mostrar mensaje de advertencia
+      this.showWarningMessage(confirmMessage).then((confirmed) => {
+        if (confirmed) {
+          // Aplicar el cambio de estado solo si el usuario confirma
+          this.handleStatusChange(item, selectedIdStatus, previousStatus);
+        } else {
+          // Si el usuario cancela, revertimos el estado a su valor anterior
+          item.idStatus = previousStatus;
+          item.alias = previousAlias;
+          this.cdr.detectChanges();  // Forzar la actualización visual
+        }
+      });
+    } else {
+      // Si no es necesario confirmar, aplicar el cambio directamente
+      this.handleStatusChange(item, selectedIdStatus, previousStatus);
     }
-
-    this.cdr.detectChanges(); // Forzar la actualización visual
   }
+}
+
+handleStatusChange(item: any, selectedIdStatus: string, previousStatus: number): void {
+  // Solo realizamos la eliminación de fotos o descripciones después de confirmar el cambio
+  if (previousStatus === 2 && selectedIdStatus === '4') {
+    // De N/C a RE (Eliminar fotos y descripción)
+    this.deletePhotosAndDescription(item, previousStatus);
+    item.idStatus = 4;
+    item.alias = 'RE';
+    this.openModal(item, false); // Abrir modal para ingresar una nueva descripción
+
+  } else if (previousStatus === 4 && selectedIdStatus === '2') {
+    // De RE a N/C (Eliminar solo la descripción)
+    this.deleteDescription(item, previousStatus);
+    item.idStatus = 2;
+    item.alias = 'N/C';
+    this.openModal(item, true); // Abrir modal para ingresar descripción e imágenes
+
+  } else if (previousStatus === 2 && ['1', '3'].includes(selectedIdStatus)) {
+    // De N/C a CU o N/A (Eliminar fotos y descripción)
+    this.deletePhotosAndDescription(item, previousStatus);
+    item.idStatus = selectedIdStatus === '1' ? 1 : 3;
+    item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
+    item.descripcionNoCumple = ''; // Limpiar la descripción
+    item.images = []; // Limpiar las imágenes asociadas
+    item.imagesNames = []; // Limpiar los nombres de las imágenes
+
+  } else if (previousStatus === 4 && ['1', '3'].includes(selectedIdStatus)) {
+    // De RE a CU o N/A (Eliminar solo la descripción)
+    this.deleteDescription(item, previousStatus);
+    item.idStatus = selectedIdStatus === '1' ? 1 : 3;
+    item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
+    item.descripcionNoCumple = ''; // Limpiar la descripción
+
+  } else if (selectedIdStatus === '2' || selectedIdStatus === '4') {
+    // Si es RE o N/C, abrir el modal con la lógica correspondiente
+    item.idStatus = selectedIdStatus;
+    item.alias = selectedIdStatus === '2' ? 'N/C' : 'RE';
+    const requireImages = selectedIdStatus === '2'; // Si es N/C, requiere imágenes
+    this.openModal(item, requireImages); // Abrir modal para RE o N/C según sea necesario
+  } else {
+    // Otros cambios de estado (CU, N/A)
+    item.idStatus = selectedIdStatus === '1' ? 1 : 3;
+    item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
+  }
+
+  this.cdr.detectChanges(); // Forzar la actualización visual
 }
 
 // Eliminar fotos y descripción para el caso N/C a CU o N/A
 async deletePhotosAndDescription(item: any, originalStatus: number) {
   await this.deletePhotos(item);
-  await this.deleteDescription(item, originalStatus); // Pasamos el idStatus original
+  await this.deleteDescription(item, originalStatus);
 }
 
 async deleteDescription(item: any, originalStatus: number) {
@@ -336,7 +358,7 @@ async deleteDescription(item: any, originalStatus: number) {
   const idDetalle = item.idDetalle;
 
   try {
-    const descripcionData = { idInforme, idDetalle, idStatus: originalStatus }; // Usamos el idStatus original
+    const descripcionData = { idInforme, idDetalle, idStatus: originalStatus };
     const descripcionResponse = await lastValueFrom(
       this.telescopicaService.deleteDescripcionTelescopica(descripcionData)
     );
@@ -504,9 +526,9 @@ async deletePhotos(item: any) {
             this.informeForm.get(controlName)?.disable(); // Deshabilitar por defecto
           });
 
-          // Añadir filas vacías si son necesarias
+          // Añadir filas vacías
           this.addDefaultRows();
-          this.cdr.detectChanges(); // Actualizar la vista
+          this.cdr.detectChanges();
         },
         error: (error) => {
           console.error('Error al cargar las no conformidades:', error);
@@ -522,7 +544,6 @@ async deletePhotos(item: any) {
       const remainingRows = minRows - this.descripcionItems.length;
       this.defaultEmptyRows = new Array(remainingRows);
     } else {
-      // Si ya hay más de 7 descripciones, no necesito añadir filas vacías adicionales
       this.defaultEmptyRows = [];
     }
   }
@@ -1956,7 +1977,17 @@ private uploadDescripciones(descripciones: any[]) {
     next: (response) => {
       if (response.success) {
         console.log('Descripciones subidas exitosamente.');
-        this.finalizeSaveChanges();
+        this.showMessage = true;
+        this.messageText = 'Datos actualizados exitosamente.';
+        this.messageType = 'success';
+        this.isAnyEditing = false;
+
+        this.refreshNonConformities();
+        this.refreshStatus();
+
+        setTimeout(() => (this.showMessage = false), 3000);
+        this.isSaving = false;
+        this.isAnyEditing = false;
       } else {
         console.error('Error al subir las descripciones:', response.message);
         this.handleSaveError();
@@ -1992,8 +2023,26 @@ private handleSaveError(error?: any) {
   this.refreshStatus();
   this.restoreOriginalValues();
   this.isSaving = false;
-  this.isEditingStatusA = false;
   this.isAnyEditing = false;
+}
+
+  showWarningMessage(message: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    this.messageText = message;
+    this.messageType = 'warning';
+    this.showMessage = true; // Mostrar el modal
+
+    // Configurar las funciones de aceptación y cancelación para el mensaje
+    this.onAccept = () => {
+      resolve(true);  // Confirmar la acción
+      this.showMessage = false;  // Ocultar el modal
+    };
+
+    this.onCancel = () => {
+      resolve(false);  // Cancelar la acción
+      this.showMessage = false;  // Ocultar el modal
+    };
+  });
 }
 
 } 
