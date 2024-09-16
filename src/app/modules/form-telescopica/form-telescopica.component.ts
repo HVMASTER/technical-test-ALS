@@ -269,91 +269,74 @@ export class FormTelescopicaComponent implements OnInit, OnDestroy {
     // Guardar el estado original antes de hacer cambios
     this.originalStatus = { ...item };
 
-    // Verificar si el estado está cambiando de N/C (2) a CU (1)
-    if (selectedIdStatus === '1' && item.idStatus === 2) {
+    if (item.idStatus === 2 && (selectedIdStatus === '1' || selectedIdStatus === '3')) {
+      // Caso 1: De N/C a CU o N/A
       const confirmChange = window.confirm(
-        '¿Estás seguro de cambiar el estado de N/C a C/U? Esto eliminará las imágenes y la descripción asociadas a este ítem.'
+        '¿Estás seguro de cambiar el estado de N/C? Esto eliminará las imágenes y la descripción asociadas a este ítem.'
       );
 
       if (confirmChange) {
-        // Eliminar la descripción y las imágenes asociadas
-        this.deleteDescriptionAndPhotos(item);
+        this.deletePhotosAndDescription(item, this.originalStatus.idStatus); // Pasamos el idStatus original (N/C)
 
-        // Cambiar el estado a CU
-        item.idStatus = 1;
-        item.alias = 'CU';
-        item.descripcionNoCumple = ''; // Limpiar la descripción de "No Cumple"
+        // Cambiar el estado a CU o N/A
+        item.idStatus = selectedIdStatus === '1' ? 1 : 3;
+        item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
+        item.descripcionNoCumple = ''; // Limpiar la descripción
         item.images = []; // Limpiar las imágenes asociadas
         item.imagesNames = []; // Limpiar los nombres de las imágenes
       } else {
-        // Si se cancela la confirmación, revertir el estado a N/C
+        // Revertir el estado a N/C si se cancela la confirmación
         item.idStatus = 2;
       }
+    } else if (item.idStatus === 4 && (selectedIdStatus === '1' || selectedIdStatus === '3')) {
+      // Caso 2: De RE a CU o N/A
+      const confirmChange = window.confirm(
+        '¿Estás seguro de cambiar el estado de RE? Esto eliminará la descripción asociada a este ítem.'
+      );
+
+      if (confirmChange) {
+        this.deleteDescription(item, this.originalStatus.idStatus); // Pasamos el idStatus original (RE)
+
+        // Cambiar el estado a CU o N/A
+        item.idStatus = selectedIdStatus === '1' ? 1 : 3;
+        item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
+        item.descripcionNoCumple = ''; // Limpiar la descripción
+      } else {
+        // Revertir el estado a RE si se cancela la confirmación
+        item.idStatus = 4;
+      }
     } else if (selectedIdStatus === '2') {
-      // Abrir el modal si el estado es N/C
+      // Si el estado es N/C, abrir el modal con imágenes requeridas
       item.idStatus = 2;
       item.alias = 'N/C';
       this.openModal(item, true);
     } else if (selectedIdStatus === '4') {
-      // Manejar el estado de revisión especial (RE)
+      // Si el estado es RE, abrir el modal sin imágenes requeridas
       item.idStatus = 4;
       item.alias = 'RE';
       this.openModal(item, false);
-    } else if (selectedIdStatus === '3') {
-      // Si cambia el estado a N/A, limpiar la descripción
-      item.idStatus = 3;
-      item.alias = 'N/A';
-      item.descripcionNoCumple = '';
-      item.images = [];
-      item.imagesNames = [];
+    } else if (selectedIdStatus === '1' || selectedIdStatus === '3') {
+      // Si el estado es CU o N/A, solo cambiar el estado
+      item.idStatus = selectedOption.idStatus;
+      item.alias = selectedOption.alias;
     }
 
     this.cdr.detectChanges(); // Forzar la actualización visual
   }
 }
 
-  // Método para obtener las fotos y luego eliminarlas
-async deleteDescriptionAndPhotos(item: any) {
+// Eliminar fotos y descripción para el caso N/C a CU o N/A
+async deletePhotosAndDescription(item: any, originalStatus: number) {
+  await this.deletePhotos(item);
+  await this.deleteDescription(item, originalStatus); // Pasamos el idStatus original
+}
+
+async deleteDescription(item: any, originalStatus: number) {
   const idInforme = this.selectedInforme.idInforme;
   const idDetalle = item.idDetalle;
-  const idStatus = item.idStatus;
-  const numeroInforme = this.selectedInforme.numeroInforme;
-
-  let fotosFiltradas: any[] = [];
 
   try {
-    // Primero, recuperamos todas las fotos desde el backend
-    const fotosResponse = await lastValueFrom(
-      this.telescopicaService.getFotoByIdInformeTelescopica(idInforme)
-    );
-
-    if (fotosResponse && fotosResponse.photos) {
-      // Filtramos las fotos que correspondan al idDetalle que está siendo modificado
-      fotosFiltradas = fotosResponse.photos.filter((foto: any) => foto.idDetalle === idDetalle);
-
-      console.log('Fotos a eliminar:', fotosFiltradas);
-
-      if (fotosFiltradas.length > 0) {
-        // Iteramos sobre las fotos filtradas y las eliminamos
-        for (const foto of fotosFiltradas) {
-          const fotoData = {
-            idInforme: idInforme,
-            idDetalle: idDetalle,
-            numeroInforme: numeroInforme
-          };
-
-          await lastValueFrom(this.telescopicaService.deleteFotoTelescopicasByIdDetalle(fotoData));
-          console.log(`Foto eliminada para idDetalle: ${idDetalle}`);
-        }
-      } else {
-        console.log('No se encontraron fotos para eliminar.');
-      }
-    } else {
-      console.log('No se encontraron fotos en el backend.');
-    }
-
-    // Luego, eliminamos la descripción
-    const descripcionData = { idInforme, idDetalle, idStatus };
+    const descripcionData = { idInforme, idDetalle, idStatus: originalStatus }; // Usamos el idStatus original
     const descripcionResponse = await lastValueFrom(
       this.telescopicaService.deleteDescripcionTelescopica(descripcionData)
     );
@@ -363,11 +346,46 @@ async deleteDescriptionAndPhotos(item: any) {
     } else {
       console.error('Error al eliminar la descripción:', descripcionResponse.message);
     }
-
   } catch (error) {
-    console.error('Error al eliminar fotos o descripción:', error);
+    console.error('Error al eliminar la descripción:', error);
   }
 }
+
+// Método para eliminar solo las fotos
+async deletePhotos(item: any) {
+  const idInforme = this.selectedInforme.idInforme;
+  const idDetalle = item.idDetalle;
+  const numeroInforme = this.selectedInforme.numeroInforme;
+
+  try {
+    const fotosResponse = await lastValueFrom(
+      this.telescopicaService.getFotoByIdInformeTelescopica(idInforme)
+    );
+
+    if (fotosResponse && fotosResponse.photos) {
+      const fotosFiltradas = fotosResponse.photos.filter((foto: any) => foto.idDetalle === idDetalle);
+
+      if (fotosFiltradas.length > 0) {
+        for (const foto of fotosFiltradas) {
+          const fotoData = {
+            idInforme: idInforme,
+            idDetalle: idDetalle,
+            numeroInforme: numeroInforme
+          };
+          await lastValueFrom(this.telescopicaService.deleteFotoTelescopicasByIdDetalle(fotoData));
+          console.log(`Foto eliminada para idDetalle: ${idDetalle}`);
+        }
+      } else {
+        console.log('No se encontraron fotos para eliminar.');
+      }
+    } else {
+      console.log('No se encontraron fotos en el backend.');
+    }
+  } catch (error) {
+    console.error('Error al eliminar las fotos:', error);
+  }
+}
+
 
 
   private getTitulosForm() {
@@ -667,21 +685,6 @@ async deleteDescriptionAndPhotos(item: any) {
     });
   }
 
-  // addItemToG(item: any) {
-  //   const existingItem = this.descripcionItems.find(
-  //     (descItem) => descItem.idDetalle === item.idDetalle
-  //   );
-
-  //   if (!existingItem) {
-  //     this.descripcionItems.push({
-  //       idDetalle: item.idDetalle,
-  //       idStatus: item.idStatus,
-  //       descripcion: '', // Descripción vacía para que el usuario la complete
-  //       idInforme: this.selectedInforme?.idInforme,
-  //     });
-  //   }
-  // }
-
    private addNotMetDescription(descriptionData: any): void {
     this.telescopicaService
       .postDescripcionTelescopica(descriptionData)
@@ -917,7 +920,7 @@ async deleteDescriptionAndPhotos(item: any) {
     }
   }
 
-  saveChangesStatusA() {
+ saveChangesStatusA() {
   if (this.selectedInforme) {
     this.isSaving = true; // Activa el spinner
     this.savingMessage = 'Guardando cambios, por favor espere...';
@@ -931,9 +934,18 @@ async deleteDescriptionAndPhotos(item: any) {
     const itemsToUpdate = this.itemsWithStatus
       .slice(0, 9)
       .filter((item, index) => {
-        const globalIndex = index;
-        const originalItem = this.originalValues[globalIndex];
-        return originalItem && item.idStatus !== originalItem.idStatus;
+        const originalItem = this.originalValues[index];
+
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${index}.`);
+          return false;
+        }
+
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
     if (itemsToUpdate.length === 0) {
@@ -985,20 +997,36 @@ async deleteDescriptionAndPhotos(item: any) {
       this.telescopicaService.editItemTelescopica(itemsData).subscribe({
         next: (response) => {
           if (response.success) {
-            console.log('Ítems actualizados exitosamente.');
+            this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
 
-            // Ahora subir las descripciones si existen
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false;
+            this.isEditingStatusA = false;
+            this.isAnyEditing = false;
+
             if (descripciones.length > 0) {
               this.uploadDescripciones(descripciones);
-            } else {
-              this.finalizeSaveChanges();
             }
+
           } else {
-            this.handleSaveError();
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';           
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusA = false;
+            this.isAnyEditing = false;
           }
         },
         error: (error) => {
-          this.handleSaveError(error);
+          console.error('Error al actualizar los datos:', error);
         },
       });
     });
@@ -1006,53 +1034,81 @@ async deleteDescriptionAndPhotos(item: any) {
 }
 
   saveChangesStatusB() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activa el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Ajustar los índices según los ítems que quieres actualizar (del 10 al 24, índices 9 al 23)
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(9, 24)
-        .filter((item, index) => {
-          const globalIndex = 9 + index; // Ajustar el índice global
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla B.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Ajustar los índices para la tabla B (del 10 al 24, índice 9 al 23)
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(9, 24)
+      .filter((item, index) => {
+        const globalIndex = 9 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-        // Si el estado es NO CUMPLE o REVISIÓN ESPECIAL, agregar descripción
-        if (item.idStatus === 2 || item.idStatus === 4) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          // Llamar al método para agregar la descripción
-          this.addNotMetDescription(descripcionData);
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      // Llamar al servicio para actualizar los ítems
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla B.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.telescopicaService.sendFotosTelescopica(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
       this.telescopicaService.editItemTelescopica(itemsData).subscribe({
         next: (response) => {
           if (response.success) {
@@ -1060,83 +1116,114 @@ async deleteDescriptionAndPhotos(item: any) {
             this.messageText = 'Datos actualizados exitosamente.';
             this.messageType = 'success';
             this.isAnyEditing = false;
-            // Refrescar los datos para ver los cambios
+
+            // Refrescar los datos
+            this.refreshNonConformities();
             this.refreshStatus();
+
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false;
+            this.isEditingStatusB = false;
+            this.isAnyEditing = false;
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
           } else {
-            this.messageText =
-              'Error al guardar algunos datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';           
             this.refreshStatus();
             this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusB = false;
+            this.isAnyEditing = false;
           }
         },
         error: (error) => {
-          this.messageText =
-            'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          console.error('Error actualizando los datos:', error);
-          this.refreshStatus();
-          this.restoreOriginalValues();
-        },
-        complete: () => {
-          this.showMessage = true;
-          setTimeout(() => (this.showMessage = false), 3000);
-          this.isSaving = false; // Desactivar el spinner
-          this.isEditingStatusB = false;
-          this.isAnyEditing = false;
+          console.error('Error al actualizar los datos:', error);
         },
       });
-    }
+    });
   }
+}
 
   saveChangesStatusC() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activa el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Ajustar los índices para los ítems del 25 al 34, que corresponde a slice(24, 34)
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(24, 34)
-        .filter((item, index) => {
-          const globalIndex = 24 + index; // Ajustar el índice global para comparación
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla C.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Ajustar los índices para la tabla C (del 25 al 34, índice 24 al 33)
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(24, 34)
+      .filter((item, index) => {
+        const globalIndex = 24 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-        // Si el estado es NO CUMPLE o REVISIÓN ESPECIAL, agregar descripción
-        if (item.idStatus === 2 || item.idStatus === 4) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          // Llamar al método para agregar la descripción
-          //this.addNotMetDescription(descripcionData);
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      // Llamar al servicio para actualizar los ítems
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla C.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.telescopicaService.sendFotosTelescopica(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
       this.telescopicaService.editItemTelescopica(itemsData).subscribe({
         next: (response) => {
           if (response.success) {
@@ -1144,83 +1231,114 @@ async deleteDescriptionAndPhotos(item: any) {
             this.messageText = 'Datos actualizados exitosamente.';
             this.messageType = 'success';
             this.isAnyEditing = false;
-            // Refrescar los datos para ver los cambios
+
+            // Refrescar los datos
+            this.refreshNonConformities();
             this.refreshStatus();
+
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false;
+            this.isEditingStatusC = false;
+            this.isAnyEditing = false;
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
           } else {
-            this.messageText =
-              'Error al guardar algunos datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';           
             this.refreshStatus();
             this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusC = false;
+            this.isAnyEditing = false;
           }
         },
         error: (error) => {
-          this.messageText =
-            'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          console.error('Error actualizando los datos:', error);
-          this.refreshStatus();
-          this.restoreOriginalValues();
-        },
-        complete: () => {
-          this.showMessage = true;
-          setTimeout(() => (this.showMessage = false), 3000);
-          this.isSaving = false; // Desactivar el spinner
-          this.isEditingStatusC = false;
-          this.isAnyEditing = false;
+          console.error('Error al actualizar los datos:', error);
         },
       });
-    }
+    });
   }
+}
 
   saveChangesStatusD() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activa el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Ajustar los índices para los ítems del 35 al 47, que corresponde a slice(34, 47)
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(34, 47)
-        .filter((item, index) => {
-          const globalIndex = 34 + index; // Ajustar el índice global para comparación
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla D.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Ajustar los índices para los ítems del 35 al 47 (índice 34 al 46)
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(34, 47)
+      .filter((item, index) => {
+        const globalIndex = 34 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-        // Si el estado es NO CUMPLE o REVISIÓN ESPECIAL, agregar descripción
-        if (item.idStatus === 2 || item.idStatus === 4) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          // Llamar al método para agregar la descripción
-          //this.addNotMetDescription(descripcionData);
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      // Llamar al servicio para actualizar los ítems
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla D.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.telescopicaService.sendFotosTelescopica(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
       this.telescopicaService.editItemTelescopica(itemsData).subscribe({
         next: (response) => {
           if (response.success) {
@@ -1228,83 +1346,114 @@ async deleteDescriptionAndPhotos(item: any) {
             this.messageText = 'Datos actualizados exitosamente.';
             this.messageType = 'success';
             this.isAnyEditing = false;
-            // Refrescar los datos para ver los cambios
+
+            // Refrescar los datos
+            this.refreshNonConformities();
             this.refreshStatus();
+
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false;
+            this.isEditingStatusD = false;
+            this.isAnyEditing = false;
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
           } else {
-            this.messageText =
-              'Error al guardar algunos datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';           
             this.refreshStatus();
             this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusD = false;
+            this.isAnyEditing = false;
           }
         },
         error: (error) => {
-          this.messageText =
-            'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          console.error('Error actualizando los datos:', error);
-          this.refreshStatus();
-          this.restoreOriginalValues();
-        },
-        complete: () => {
-          this.showMessage = true;
-          setTimeout(() => (this.showMessage = false), 3000);
-          this.isSaving = false; // Desactivar el spinner
-          this.isEditingStatusD = false;
-          this.isAnyEditing = false;
+          console.error('Error al actualizar los datos:', error);
         },
       });
-    }
+    });
   }
+}
 
   saveChangesStatusE() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activa el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Ajustar los índices para los ítems del 48 al 58, que corresponde a slice(47, 58)
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(47, 58)
-        .filter((item, index) => {
-          const globalIndex = 47 + index; // Ajustar el índice global para comparación
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla E.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Ajustar los índices para los ítems del 48 al 58 (índice 47 al 57)
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(47, 58)
+      .filter((item, index) => {
+        const globalIndex = 47 + index; // Ajustar el índice global para comparación
+        const originalItem = this.originalValues[globalIndex];
 
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-        // Si el estado es NO CUMPLE o REVISIÓN ESPECIAL, agregar descripción
-        if (item.idStatus === 2 || item.idStatus === 4) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          // Llamar al método para agregar la descripción
-          //this.addNotMetDescription(descripcionData);
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      // Llamar al servicio para actualizar los ítems
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla E.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.telescopicaService.sendFotosTelescopica(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
       this.telescopicaService.editItemTelescopica(itemsData).subscribe({
         next: (response) => {
           if (response.success) {
@@ -1312,83 +1461,114 @@ async deleteDescriptionAndPhotos(item: any) {
             this.messageText = 'Datos actualizados exitosamente.';
             this.messageType = 'success';
             this.isAnyEditing = false;
-            // Refrescar los datos para ver los cambios
+
+            // Refrescar los datos
+            this.refreshNonConformities();
             this.refreshStatus();
+
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false;
+            this.isEditingStatusE = false;
+            this.isAnyEditing = false;
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
           } else {
-            this.messageText =
-              'Error al guardar algunos datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';           
             this.refreshStatus();
             this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusE = false;
+            this.isAnyEditing = false;
           }
         },
         error: (error) => {
-          this.messageText =
-            'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          console.error('Error actualizando los datos:', error);
-          this.refreshStatus();
-          this.restoreOriginalValues();
-        },
-        complete: () => {
-          this.showMessage = true;
-          setTimeout(() => (this.showMessage = false), 3000);
-          this.isSaving = false; // Desactivar el spinner
-          this.isEditingStatusE = false;
-          this.isAnyEditing = false;
+          console.error('Error al actualizar los datos:', error);
         },
       });
-    }
+    });
   }
+}
 
   saveChangesStatusF() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activa el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Ajustar los índices para los ítems del 59 al 74, que corresponde a slice(58, 74)
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(58, 74)
-        .filter((item, index) => {
-          const globalIndex = 58 + index; // Ajustar el índice global para comparación
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla F.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Ajustar los índices para los ítems del 59 al 74 (índice 58 al 73)
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(58, 74)
+      .filter((item, index) => {
+        const globalIndex = 58 + index; // Ajustar el índice global para comparación
+        const originalItem = this.originalValues[globalIndex];
 
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-        // Si el estado es NO CUMPLE o REVISIÓN ESPECIAL, agregar descripción
-        if (item.idStatus === 2 || item.idStatus === 4) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          // Llamar al método para agregar la descripción
-          //this.addNotMetDescription(descripcionData);
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      // Llamar al servicio para actualizar los ítems
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla F.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.telescopicaService.sendFotosTelescopica(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
       this.telescopicaService.editItemTelescopica(itemsData).subscribe({
         next: (response) => {
           if (response.success) {
@@ -1396,34 +1576,37 @@ async deleteDescriptionAndPhotos(item: any) {
             this.messageText = 'Datos actualizados exitosamente.';
             this.messageType = 'success';
             this.isAnyEditing = false;
-            // Refrescar los datos para ver los cambios
+
+            // Refrescar los datos
+            this.refreshNonConformities();
             this.refreshStatus();
+
+            setTimeout(() => (this.showMessage = false), 3000);
+            this.isSaving = false;
+            this.isEditingStatusF = false;
+            this.isAnyEditing = false;
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
           } else {
-            this.messageText =
-              'Error al guardar algunos datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';           
             this.refreshStatus();
             this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusF = false;
+            this.isAnyEditing = false;
           }
         },
         error: (error) => {
-          this.messageText =
-            'Error al actualizar los datos. Inténtalo de nuevo.';
-          this.messageType = 'error';
-          console.error('Error actualizando los datos:', error);
-          this.refreshStatus();
-          this.restoreOriginalValues();
-        },
-        complete: () => {
-          this.showMessage = true;
-          setTimeout(() => (this.showMessage = false), 3000);
-          this.isSaving = false; // Desactivar el spinner
-          this.isEditingStatusF = false;
-          this.isAnyEditing = false;
+          console.error('Error al actualizar los datos:', error);
         },
       });
-    }
+    });
   }
+}
 
   saveFormHChanges() {
     if (this.formH.valid) {
@@ -1463,6 +1646,25 @@ async deleteDescriptionAndPhotos(item: any) {
       this.telescopicaService.editFormH1Telescopica(updatedData).subscribe({
         next: (response) => {
           console.log('Formulario H1 actualizado exitosamente:', response);
+
+          // Actualizar los valores en el formulario después de guardar
+          this.formH1.patchValue({
+            comentarios: updatedData.comentarios,
+            ganchoAntes: updatedData.ganchoAntes,
+            ganchoDespues: updatedData.ganchoDespues,
+            ganchoHInicio: updatedData.ganchoHInicio,
+            ganchoHTermino: updatedData.ganchoHTermino,
+            ganchoResultado: updatedData.ganchoResultado,
+            ganchoAuxAntes: updatedData.ganchoAuxAntes,
+            ganchoAuxDespues: updatedData.ganchoAuxDespues,
+            ganchoAuxHInicio: updatedData.ganchoAuxHInicio,
+            ganchoAuxHTermino: updatedData.ganchoAuxHTermino,
+            ganchoAuxResultado: updatedData.ganchoAuxResultado
+          });
+
+          // Actualizar la variable de visualización de comentarios
+          this.formH1Data.comentarios = updatedData.comentarios;
+
           this.isEditingFormH1 = false;
           this.showMessage = true;
           this.messageText = 'Datos actualizados exitosamente.';
@@ -1471,8 +1673,7 @@ async deleteDescriptionAndPhotos(item: any) {
         },
         error: (error) => {
           console.error('Error al actualizar el formulario H1:', error);
-          this.messageText =
-            'Error al actualizar los datos. Inténtalo de nuevo.';
+          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
           this.messageType = 'error';
           this.showMessage = true;
         },
@@ -1480,7 +1681,7 @@ async deleteDescriptionAndPhotos(item: any) {
     } else {
       alert('Por favor completa todos los campos antes de guardar.');
     }
-  }
+}
 
   saveFormH2Changes() {
     if (this.formH2.valid) {
@@ -1514,58 +1715,50 @@ async deleteDescriptionAndPhotos(item: any) {
   }
 
   saveChangesDescription() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const descripcionesToUpdate = this.descripcionItems
-        .map((item, index) => {
-          const descripcionNueva = this.informeForm.get(
-            `descripcion_${index}`
-          )?.value;
-          if (descripcionNueva !== item.descripcion) {
-            return {
-              descripcion: descripcionNueva,
-              idInforme: this.selectedInforme.idInforme,
-              idDetalle: item.idDetalle,
-            };
-          }
-          return null;
-        })
-        .filter((item) => item !== null); // Filtrar las descripciones que no han cambiado
+    const descripcionesToUpdate = this.descripcionItems
+      .map((item, index) => {
+        const descripcionNueva = this.informeForm.get(
+          `descripcion_${index}`
+        )?.value;
+        if (descripcionNueva !== item.descripcion) {
+          return {
+            descripcion: descripcionNueva,
+            idInforme: this.selectedInforme.idInforme,
+            idDetalle: item.idDetalle,
+          };
+        }
+        return null;
+      })
+      .filter((item) => item !== null); // Filtrar las descripciones que no han cambiado
 
-      if (descripcionesToUpdate.length === 0) {
-        console.log(
-          'No se encontraron descripciones modificadas para actualizar.'
-        );
-        this.isSaving = false;
-        this.isEditingDescription = false;
-        return;
-      }
+    if (descripcionesToUpdate.length === 0) {
+      console.log('No se encontraron descripciones modificadas para actualizar.');
+      this.isSaving = false;
+      this.isEditingFormG = false; // Usar isEditingFormG en vez de isEditingDescription
+      return;
+    }
 
-      // Enviar las descripciones modificadas al backend
-      let success = true;
-      descripcionesToUpdate.forEach((descripcionData) => {
-        this.telescopicaService
-          .editDescripcionTelescopica(descripcionData)
-          .subscribe({
-            next: (response) => {
-              if (!response.success) {
-                success = false;
-                console.error(
-                  'Error al actualizar algunas descripciones:',
-                  response.message
-                );
-              }
-            },
-            error: (error) => {
+    let success = true;
+    descripcionesToUpdate.forEach((descripcionData, index) => {
+      this.telescopicaService
+        .editDescripcionTelescopica(descripcionData)
+        .subscribe({
+          next: (response) => {
+            if (!response.success) {
               success = false;
-              console.error(
-                'Error al actualizar algunas descripciones:',
-                error
-              );
-            },
-            complete: () => {
+              console.error('Error al actualizar algunas descripciones:', response.message);
+            }
+          },
+          error: (error) => {
+            success = false;
+            console.error('Error al actualizar algunas descripciones:', error);
+          },
+          complete: () => {
+            if (index === descripcionesToUpdate.length - 1) {
               if (success) {
                 this.showMessage = true;
                 this.messageText = 'Datos actualizados exitosamente.';
@@ -1573,19 +1766,19 @@ async deleteDescriptionAndPhotos(item: any) {
                 this.refreshNonConformities();
                 this.isAnyEditing = false;
               } else {
-                this.messageText =
-                  'Error al guardar algunos datos. Inténtalo de nuevo.';
+                this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
                 this.messageType = 'error';
               }
 
               this.isSaving = false;
-              this.isEditingDescription = false;
+              this.isEditingFormG = false; // Cambiar a isEditingFormG en vez de isEditingDescription
               setTimeout(() => (this.showMessage = false), 3000);
-            },
-          });
-      });
-    }
+            }
+          },
+        });
+    });
   }
+}
 
   saveFormIChanges() {
     if (this.informeForm.get('idResul')?.valid) {
@@ -1718,18 +1911,22 @@ async deleteDescriptionAndPhotos(item: any) {
     // Actualizar la descripción
     currentItem.descripcionNoCumple = modalData.description;
 
-    // Reiniciar las imágenes antes de agregar las nuevas para evitar duplicados
-    currentItem.images = [...modalData.images];
-    currentItem.imagesNames = [...modalData.imagesNames];
+    // Si allowImages es true, manejar las imágenes, de lo contrario, ignorarlas
+    if (this.allowImages) {
+      // Reiniciar las imágenes antes de agregar las nuevas para evitar duplicados
+      currentItem.images = [...modalData.images];
+      currentItem.imagesNames = [...modalData.imagesNames];
 
-    // Verificar que no se estén duplicando imágenes antes de subir
-    if (currentItem.images.length > 0 && currentItem.imagesNames.length === currentItem.images.length) {
-      console.log('Imágenes almacenadas en el item:', currentItem.images);
-      console.log('Nombres de imágenes almacenados en el item:', currentItem.imagesNames);
-    } else {
-      console.error('Error: Las imágenes y los nombres de las imágenes no coinciden.');
+      // Verificar que no se estén duplicando imágenes antes de subir
+      if (currentItem.images.length > 0 && currentItem.imagesNames.length === currentItem.images.length) {
+        console.log('Imágenes almacenadas en el item:', currentItem.images);
+        console.log('Nombres de imágenes almacenados en el item:', currentItem.imagesNames);
+      } else {
+        console.error('Error: Las imágenes y los nombres de las imágenes no coinciden.');
+      }
     }
 
+    // Cerrar el modal y restablecer el índice actual
     this.showModal = false;
     this.currentItemIndex = null;
     this.cdr.detectChanges(); // Forzar la actualización visual

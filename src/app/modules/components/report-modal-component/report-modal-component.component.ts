@@ -29,7 +29,7 @@ export class ReportModalComponentComponent {
 
   // Propiedad para habilitar/deshabilitar el botón de guardar
   get canSave(): boolean {
-    return this.description.trim().length > 0 && this.images.length == 2;
+    return this.description.trim().length > 0 && (!this.allowImages || this.images.length === 2);
   }
 
   // Manejo de archivos seleccionados
@@ -64,16 +64,16 @@ export class ReportModalComponentComponent {
 
   // Guardar datos del modal
   onSave() {
-  if (this.description && this.images.length >= 2) {
-    this.save.emit({
-      description: this.description,
-      images: this.images,  // Solo mandamos las imágenes base64 para almacenarlas temporalmente
-      imagesNames: this.imageNames  // Los nombres de las imágenes también
-    });
-  } else {
-    alert('Por favor, ingrese una descripción y suba al menos 2 imágenes.');
+    if (this.description && (!this.allowImages || this.images.length === 2)) {
+      this.save.emit({
+        description: this.description,
+        images: this.images,
+        imagesNames: this.imageNames  
+      });
+    } else {
+      alert(this.allowImages ? 'Por favor, ingrese una descripción y suba al menos 2 imágenes.' : 'Por favor, ingrese una descripción.');
+    }
   }
-}
 
   // Cancelar acción
   onCancel() {
