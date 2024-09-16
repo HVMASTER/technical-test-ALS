@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { Subject } from 'rxjs';
+import { lastValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MixerService } from './services/mixer.service';
@@ -61,6 +61,8 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   isLoadingPdf = false;
   showMessage = false;
   showModal = false;
+  onAccept: () => void = () => {};
+  onCancel: () => void = () => {};
   defaultEmptyRows = new Array(7);
   retryCount = 0;
   messageText = '';
@@ -344,49 +346,57 @@ export class FormMixerComponent implements OnInit, OnDestroy {
     }
   }
 
-  selectStatus(item: any, selectedIdStatus: string, index: number): void {
-    const selectedOption = this.optionStatus.find(
-      (option) => option.idStatus.toString() === selectedIdStatus
-    );
+  async selectStatus(item: any, selectedIdStatus: string, previousStatus: number): Promise<void> {
+  const selectedOption = this.optionStatus.find(
+    (option) => option.idStatus.toString() === selectedIdStatus
+  );
 
-    if (selectedOption) {
-      // Guardar el estado original antes de abrir el modal
-      this.originalStatus = { ...item };
+  if (selectedOption) {
+    const originalStatus = item.idStatus; // Guardar el estado original
 
-      if (selectedIdStatus === '2') {
-        // Solo abrir el modal si se selecciona "No Cumple" (N/C)
-        item.idStatus = 2; // Actualizar el idStatus a "No Cumple"
-        item.alias = 'N/C'; // Asignar el alias
-        this.openModal(item);
-      } else if (selectedIdStatus === '1' && item.idStatus === 2) {
-        // Si se intenta cambiar de "No Cumple" a "Cumple" (N/C -> CU)
-        const confirmChange = window.confirm(
-          '¿Estás seguro de cambiar el estado de N/C a C/U? Esto eliminará las imágenes y la descripción asociadas a este ítem.'
-        );
+    if (selectedIdStatus === '2') {
+      // Si se selecciona "No Cumple" (N/C)
+      item.idStatus = 2; // Actualizar el idStatus a "No Cumple"
+      item.alias = 'N/C'; // Asignar el alias
+      this.openModal(item); // Abrir el modal para ingresar descripciones o imágenes
 
-        if (confirmChange) {
-          // Borrar descripción y fotos
-          this.deleteDescriptionAndPhotos(item);
+    } else if (selectedIdStatus === '1' && originalStatus === 2) {
+      // Si se intenta cambiar de "No Cumple" a "Cumple" (N/C -> CU)
+      const confirmChange = await this.showWarningMessage(
+        '¿Estás seguro de cambiar el estado de N/C a C/U? Esto eliminará las imágenes y la descripción asociadas a este ítem.'
+      );
 
-          // Actualizar el estado a "Cumple"
-          item.idStatus = 1;
-          item.alias = 'CU';
-          item.descripcionNoCumple = ''; // Limpiar la descripción de "No Cumple"
-          item.images = []; // Limpiar las imágenes asociadas
-        } else {
-          // Si el usuario cancela, restaurar el estado a "No Cumple"
-          item.idStatus = 2;
-        }
-      } else if (selectedIdStatus === '1') {
-        // Si es "Cumple", actualizar el estado directamente (sin haber sido N/C)
-        item.idStatus = 1; // Actualizar a "Cumple"
-        item.alias = 'CU'; // Asignar el alias
+      if (confirmChange) {
+        this.isSaving = true; // Activar el spinner
+        this.savingMessage = 'Eliminando datos y actualizando, por favor espere...';
+
+        // Eliminar descripción y fotos
+        await this.deletePhotosAndDescription(item, originalStatus); // Pasar el estado original
+
+        // Actualizar el estado a "Cumple"
+        item.idStatus = 1;
+        item.alias = 'CU';
         item.descripcionNoCumple = ''; // Limpiar la descripción de "No Cumple"
+        item.images = []; // Limpiar las imágenes asociadas
+
+        this.isSaving = false; // Desactivar el spinner
+      } else {
+        // Si el usuario cancela, restaurar el estado a "No Cumple"
+        item.idStatus = 2;
+        item.alias = 'N/C';
       }
 
-      this.cdr.detectChanges(); // Forzar la actualización visual
+    } else if (selectedIdStatus === '1') {
+      // Si se selecciona "Cumple" directamente (sin haber sido N/C)
+      item.idStatus = 1; // Actualizar a "Cumple"
+      item.alias = 'CU'; // Asignar el alias
+      item.descripcionNoCumple = ''; // Limpiar la descripción de "No Cumple"
     }
+
+    this.cdr.detectChanges(); // Forzar la actualización visual
   }
+}
+
 
   private addNotMetDescription(descriptionData: any): void {
     this.mixerService
@@ -916,6 +926,46 @@ export class FormMixerComponent implements OnInit, OnDestroy {
     }
   }
 
+  convertBase64ToBlob(base64: string): Blob {
+  const byteString = atob(base64.split(',')[1]);
+  const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  return new Blob([ab], { type: mimeString });
+}
+
+  private uploadDescripciones(descripciones: any[]) {
+  // Enviar el array de descripciones al backend
+  this.mixerService.postDescripcionMixer({ descripciones }).subscribe({
+    next: (response) => {
+      if (response.success) {
+        console.log('Descripciones subidas exitosamente.');
+        this.showMessage = true;
+        this.messageText = 'Datos actualizados exitosamente.';
+        this.messageType = 'success';
+        this.isAnyEditing = false;
+
+        this.refreshNonConformities();
+        this.refreshStatus();
+
+        setTimeout(() => (this.showMessage = false), 3000);
+        this.isSaving = false;
+        this.isAnyEditing = false;
+      } else {
+        console.error('Error al subir las descripciones:', response.message);
+        this.handleError();
+      }
+    },
+    error: (error) => {
+      console.error('Error al subir las descripciones:', error);
+      this.handleError();
+    },
+  });
+}
+
   saveChanges() {
     if (this.formMixerMain.valid && this.selectedInforme) {
       const InformeData = {
@@ -950,1150 +1000,1506 @@ export class FormMixerComponent implements OnInit, OnDestroy {
   }
 
   saveChangesStatusA() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activa el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Filtrar solo los ítems que han sido modificados
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(0, 19)
-        .filter((item, index) => {
-          const originalItem = this.originalValues[index];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla A.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(0, 19) // Cambia según la cantidad de ítems en la tabla A
+      .filter((item, index) => {
+        const originalItem = this.originalValues[index];
 
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-        // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${index}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      // Llamada al servicio para actualizar los ítems
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-              // Actualizar la lista de no conformidades
-              this.refreshNonConformities();
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
-            }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
-            this.refreshStatus();
-            this.restoreOriginalValues();
-          },
-          complete: () => {
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla A.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusA = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';           
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusA = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
   }
+}
 
   saveChangesStatusB() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Filtrar solo los ítems que han sido modificados, ajustando el índice
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(19, 28)
-        .filter((item, index) => {
-          const globalIndex = 19 + index; // Ajustar el índice
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla B.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Filtrar los ítems que han sido modificados, ajustando el rango
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(19, 28) // Cambiar el rango para los ítems de la tabla B
+      .filter((item, index) => {
+        const globalIndex = 19 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
-            }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
-            this.refreshStatus();
-            this.restoreOriginalValues();
-          },
-          complete: () => {
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla B.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusB = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusB = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
   }
+}
 
   saveChangesStatusC() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Filtrar solo los ítems que han sido modificados
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(28, 39)
-        .filter((item, index) => {
-          const globalIndex = 28 + index; // Ajuste de índice
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla C.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Filtrar los ítems que han sido modificados, ajustando el rango para la tabla C
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(28, 39) // Cambiar el rango para los ítems de la tabla C
+      .filter((item, index) => {
+        const globalIndex = 28 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
-            }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
-            this.refreshStatus();
-            this.restoreOriginalValues();
-          },
-          complete: () => {
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla C.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusC = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusC = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
   }
+}
+
 
   saveChangesStatusD() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Filtrar solo los ítems que han sido modificados
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(39, 49)
-        .filter((item, index) => {
-          const globalIndex = 39 + index; // Ajuste de índice
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla D.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Filtrar los ítems que han sido modificados, ajustando el rango para la tabla D
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(39, 49) // Cambiar el rango para los ítems de la tabla D
+      .filter((item, index) => {
+        const globalIndex = 39 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
-            }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
-            this.refreshStatus();
-            this.restoreOriginalValues();
-          },
-          complete: () => {
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla D.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusD = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusD = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
   }
+}
 
   saveChangesStatusE() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Filtrar solo los ítems que han sido modificados
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(49, 60)
-        .filter((item, index) => {
-          const globalIndex = 49 + index; // Ajuste de índice
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla E.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Filtrar los ítems que han sido modificados, ajustando el rango para la tabla E
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(49, 60) // Cambiar el rango para los ítems de la tabla E
+      .filter((item, index) => {
+        const globalIndex = 49 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
-            }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
-            this.refreshStatus();
-            this.restoreOriginalValues();
-          },
-          complete: () => {
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla E.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusE = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusE = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
   }
+}
 
   saveChangesStatusF() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Filtrar solo los ítems que han sido modificados
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(60, 67)
-        .filter((item, index) => {
-          const globalIndex = 60 + index; // Ajuste de índice
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla F.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Filtrar los ítems que han sido modificados, ajustando el rango para la tabla F
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(60, 67) // Cambiar el rango para los ítems de la tabla F
+      .filter((item, index) => {
+        const globalIndex = 60 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
-            }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
-            this.refreshStatus();
-            this.restoreOriginalValues();
-          },
-          complete: () => {
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla F.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusF = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusF = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
   }
+}
+
 
   saveChangesStatusG() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Filtrar solo los ítems que han sido modificados
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(67, 72)
-        .filter((item, index) => {
-          const globalIndex = 67 + index; // Ajuste de índice
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla G.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Filtrar los ítems que han sido modificados, ajustando el rango para la tabla G
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(67, 72) // Cambiar el rango para los ítems de la tabla G
+      .filter((item, index) => {
+        const globalIndex = 67 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
-            }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
-            this.refreshStatus();
-            this.restoreOriginalValues();
-          },
-          complete: () => {
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla G.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusG = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusG = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
   }
+}
+
 
   saveChangesStatusH() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Filtrar solo los ítems que han sido modificados
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(72, 87)
-        .filter((item, index) => {
-          const globalIndex = 72 + index; // Ajuste de índice
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla H.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Filtrar los ítems que han sido modificados, ajustando el rango para la tabla H
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(72, 87) // Cambiar el rango para los ítems de la tabla H
+      .filter((item, index) => {
+        const globalIndex = 72 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
-            }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
-            this.refreshStatus();
-            this.restoreOriginalValues();
-          },
-          complete: () => {
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla H.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusH = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusH = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
   }
+}
+
 
   saveChangesStatusI() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Filtrar solo los ítems que han sido modificados
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(87, 96)
-        .filter((item, index) => {
-          const globalIndex = 87 + index; // Ajuste de índice
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla I.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Filtrar los ítems que han sido modificados, ajustando el rango para la tabla I
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(87, 96) // Cambiar el rango para los ítems de la tabla I
+      .filter((item, index) => {
+        const globalIndex = 87 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
-            }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
-            this.refreshStatus();
-            this.restoreOriginalValues();
-          },
-          complete: () => {
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla I.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusI = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusI = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
   }
+}
+
 
   saveChangesStatusJ() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Filtrar solo los ítems que han sido modificados
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(96, 101)
-        .filter((item, index) => {
-          const globalIndex = 96 + index; // Ajuste de índice
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla J.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Filtrar los ítems que han sido modificados, ajustando el rango para la tabla J
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(96, 101) // Cambiar el rango para los ítems de la tabla J
+      .filter((item, index) => {
+        const globalIndex = 96 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
-            }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
-            this.refreshStatus();
-            this.restoreOriginalValues();
-          },
-          complete: () => {
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla J.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusJ = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusJ = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
   }
+}
+
 
   saveChangesStatusK() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Filtrar solo los ítems que han sido modificados
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(101, 106)
-        .filter((item, index) => {
-          const globalIndex = 101 + index; // Ajuste de índice
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla K.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Filtrar los ítems que han sido modificados, ajustando el rango para la tabla K
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(101, 106) // Cambiar el rango para los ítems de la tabla K
+      .filter((item, index) => {
+        const globalIndex = 101 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
-            }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
-            this.refreshStatus();
-            this.restoreOriginalValues();
-          },
-          complete: () => {
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla K.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusK = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusK = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
   }
+}
+
 
   saveChangesStatusL() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
 
-      const idInforme = this.selectedInforme.idInforme;
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
-      // Filtrar solo los ítems que han sido modificados
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(106, 113)
-        .filter((item, index) => {
-          const globalIndex = 106 + index; // Ajuste de índice
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
 
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla L.'
-        );
-        this.isSaving = false;
-        return;
-      }
+    // Filtrar los ítems que han sido modificados, ajustando el rango para la tabla L
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(106, 113) // Cambiar el rango para los ítems de la tabla L
+      .filter((item, index) => {
+        const globalIndex = 106 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
 
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
         }
 
-        return itemData;
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
       });
 
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
-            }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
-            this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
-            this.refreshStatus();
-            this.restoreOriginalValues();
-          },
-          complete: () => {
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla L.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusL = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
-  }
 
-  saveChangesStatusM() {
-    if (this.selectedInforme) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Guardando cambios, por favor espere...';
-
-      const idInforme = this.selectedInforme.idInforme;
-
-      // Filtrar solo los ítems que han sido modificados
-      const itemsToUpdate = this.itemsWithStatus
-        .slice(113, 123)
-        .filter((item, index) => {
-          const globalIndex = 113 + index; // Ajuste de índice
-          const originalItem = this.originalValues[globalIndex];
-          return originalItem && item.idStatus !== originalItem.idStatus;
-        });
-
-      if (itemsToUpdate.length === 0) {
-        console.log(
-          'No se encontraron ítems modificados para actualizar en la tabla M.'
-        );
-        this.isSaving = false;
-        return;
-      }
-
-      // array con los datos de los ítems
-      const itemsData = itemsToUpdate.map((item) => {
-        const itemData = {
-          idStatus: item.idStatus,
-          idInforme: idInforme,
-          idDetalle: item.idDetalle,
-        };
-
-      // Si el estado es NO CUMPLE, llamar al método para agregar la descripción
-        if (item.idStatus === 2) {
-          const descripcionData = {
-            descripcion: item.descripcionNoCumple || 'Descripción pendiente',
-            idInforme: idInforme,
-            idStatus: item.idStatus,
-            idDetalle: item.idDetalle,
-          };
-
-          const descripcionesArray = {
-            descripciones: [descripcionData],
-          };
-
-          this.addNotMetDescription(descripcionesArray); // Llamada al método post de descripciones
-        }
-
-        return itemData;
-      });
-
-      this.mixerService
-        .editItemMixer(itemsData)
-        .pipe()
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.showMessage = true;
-              this.messageText = 'Datos actualizados exitosamente.';
-              this.messageType = 'success';
-              this.isAnyEditing = false;
-            } else {
-              this.messageText =
-                'Error al guardar algunos datos. Inténtalo de nuevo.';
-              this.messageType = 'error';
-              this.refreshStatus();
-              this.restoreOriginalValues();
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
             }
-          },
-          error: (error) => {
-            this.messageText =
-              'Error al actualizar los datos. Inténtalo de nuevo.';
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
             this.messageType = 'error';
-            console.error('Error actualizando los datos:', error);
             this.refreshStatus();
             this.restoreOriginalValues();
-          },
-          complete: () => {
+            this.isSaving = false;
+            this.isEditingStatusL = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
+  }
+}
+
+
+  saveChangesStatusM() {
+  if (this.selectedInforme) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Guardando cambios, por favor espere...';
+
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
+
+    // Array para almacenar las descripciones que se enviarán al backend
+    const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
+
+    // Filtrar los ítems que han sido modificados, ajustando el rango para la tabla M
+    const itemsToUpdate = this.itemsWithStatus
+      .slice(113, 123) // Cambiar el rango para los ítems de la tabla M
+      .filter((item, index) => {
+        const globalIndex = 113 + index; // Ajustar el índice global
+        const originalItem = this.originalValues[globalIndex];
+
+        // Asegurarse de que originalItem existe
+        if (!originalItem) {
+          console.log(`No se encontró el ítem original en la posición ${globalIndex}.`);
+          return false;
+        }
+
+        // Verificar si el estado ha cambiado
+        const estadoCambiado = item.idStatus !== originalItem.idStatus;
+
+        return estadoCambiado;
+      });
+
+    if (itemsToUpdate.length === 0) {
+      console.log('No se encontraron ítems modificados para actualizar en la tabla M.');
+      this.isSaving = false;
+      return;
+    }
+
+    const imageUploadPromises: Promise<any>[] = [];
+    const itemsData = itemsToUpdate.map((item) => {
+      // Guardar las imágenes en memoria para subirlas después
+      if (item.imagesNames?.length > 0 && item.images?.length > 0) {
+        item.images.forEach((image: string, index: number) => {
+          const formData = new FormData();
+          formData.append('idInforme', idInforme.toString());
+          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('idDetalle', item.idDetalle.toString());
+          formData.append('foto', item.imagesNames[index]);
+          formData.append('data', this.convertBase64ToBlob(item.images[index]));
+          formData.append('numero', (index + 1).toString()); // Número de imagen
+          formData.append('idStatus', item.idStatus.toString());
+
+          const imageUploadPromise = lastValueFrom(this.mixerService.sendFotosMixer(formData));
+          imageUploadPromises.push(imageUploadPromise);
+        });
+      }
+
+      // Guardar las descripciones en el array
+      if (item.descripcionNoCumple) {
+        descripciones.push({
+          descripcion: item.descripcionNoCumple,
+          idInforme: idInforme,
+          idDetalle: item.idDetalle,
+          idStatus: item.idStatus
+        });
+      }
+
+      // Construir el objeto de datos del ítem (sin imágenes ni descripciones)
+      return {
+        idStatus: item.idStatus,
+        idInforme: idInforme,
+        idDetalle: item.idDetalle,
+      };
+    });
+
+    // Subir las imágenes primero
+    Promise.all(imageUploadPromises).then(() => {
+      // Subir los ítems modificados
+      this.mixerService.editItemMixer(itemsData).subscribe({
+        next: (response) => {
+          if (response.success) {
             this.showMessage = true;
+            this.messageText = 'Datos actualizados exitosamente.';
+            this.messageType = 'success';
+            this.isAnyEditing = false;
+
+            // Refrescar los datos
+            this.refreshNonConformities();
+            this.refreshStatus();
+
             setTimeout(() => (this.showMessage = false), 3000);
-            this.isSaving = false; // Desactivar el spinner
+            this.isSaving = false;
             this.isEditingStatusM = false;
             this.isAnyEditing = false;
-          },
-        });
-    }
+
+            if (descripciones.length > 0) {
+              this.uploadDescripciones(descripciones);
+            }
+
+          } else {
+            this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+            this.messageType = 'error';
+            this.refreshStatus();
+            this.restoreOriginalValues();
+            this.isSaving = false;
+            this.isEditingStatusM = false;
+            this.isAnyEditing = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar los datos:', error);
+        },
+      });
+    });
   }
+}
+
 
   saveChangesTorque() {
     const descriptionData = {
@@ -2377,59 +2783,82 @@ export class FormMixerComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges(); // Forzar actualización visual
   }
 
-  // Método para eliminar la descripción y las fotos asociadas
-  deleteDescriptionAndPhotos(item: any) {
-    const idInforme = this.selectedInforme.idInforme;
-    const idDetalle = item.idDetalle;
-    const idStatus = item.idStatus;
+  // Método para eliminar las fotos asociadas
+  async deletePhotos(item: any) {
+  const idInforme = this.selectedInforme.idInforme;
+  const idDetalle = item.idDetalle;
+  const numeroInforme = this.selectedInforme.numeroInforme;
 
-    // Asegúrate de que los valores están correctos
-    console.log('Datos enviados al eliminar descripción:', {
-      idInforme,
-      idDetalle,
-      idStatus,
-    });
+  try {
+    const fotosResponse = await lastValueFrom(
+      this.mixerService.getFotoByIdInformeMixer(idInforme)
+    );
 
-    console.log('idInforme:', idInforme, 'Tipo:', typeof idInforme);
-    console.log('idDetalle:', idDetalle, 'Tipo:', typeof idDetalle);
-    console.log('idStatus:', idStatus, 'Tipo:', typeof idStatus);
+    if (fotosResponse && fotosResponse.photos) {
+      const fotosFiltradas = fotosResponse.photos.filter((foto: any) => foto.idDetalle === idDetalle);
 
-    // Objeto para eliminar la descripción
-    const descripcionData = {
-      idInforme: idInforme,
-      idDetalle: idDetalle,
-      idStatus: idStatus,
+      if (fotosFiltradas.length > 0) {
+        for (const foto of fotosFiltradas) {
+          const fotoData = {
+            idInforme: idInforme,
+            idDetalle: idDetalle,
+            numeroInforme: numeroInforme
+          };
+          await lastValueFrom(this.mixerService.deleteFotoMixerByIdDetalle(fotoData));
+          console.log(`Foto eliminada para idDetalle: ${idDetalle}`);
+        }
+      } else {
+        console.log('No se encontraron fotos para eliminar.');
+      }
+    } else {
+      console.log('No se encontraron fotos en el backend.');
+    }
+  } catch (error) {
+    console.error('Error al eliminar las fotos:', error);
+  }
+}
+
+  async deleteDescription(item: any, originalStatus: number) {
+  const idInforme = this.selectedInforme.idInforme;
+  const idDetalle = item.idDetalle;
+
+  try {
+    const descripcionData = { idInforme, idDetalle, idStatus: originalStatus };
+    const descripcionResponse = await lastValueFrom(
+      this.mixerService.deleteDescripcionMixer(descripcionData)
+    );
+
+    if (descripcionResponse.success) {
+      console.log('Descripción eliminada exitosamente.');
+    } else {
+      console.error('Error al eliminar la descripción:', descripcionResponse.message);
+    }
+  } catch (error) {
+    console.error('Error al eliminar la descripción:', error);
+  }
+}
+
+  async deletePhotosAndDescription(item: any, originalStatus: number) {
+  await this.deletePhotos(item);
+  await this.deleteDescription(item, originalStatus);
+}
+
+  showWarningMessage(message: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    this.messageText = message;
+    this.messageType = 'warning';
+    this.showMessage = true; // Mostrar el modal
+
+    // Configurar las funciones de aceptación y cancelación para el mensaje
+    this.onAccept = () => {
+      resolve(true);  // Confirmar la acción
+      this.showMessage = false;  // Ocultar el modal
     };
 
-    this.mixerService.deleteDescripcionMixer(descripcionData).subscribe({
-      next: (response) => {
-        console.log('Descripción eliminada:', response);
-      },
-      error: (error) => {
-        console.error('Error al eliminar la descripción:', error);
-      },
-    });
-
-    if (item.imagesNames && item.images && item.images.length > 0) {
-      item.imagesNames.forEach((fotoNombre: string) => {
-        const fotoData = {
-          idInforme: idInforme,
-          idDetalle: idDetalle,
-          foto: fotoNombre,
-          numeroInforme: this.selectedInforme.numeroInforme,
-        };
-
-        this.mixerService.deleteFotoMixer(fotoData).subscribe({
-          next: (response) => {
-            console.log('Foto eliminada:', response);
-          },
-          error: (error) => {
-            console.error('Error al eliminar la foto:', error);
-          },
-        });
-      });
-    } else {
-      console.log('No se encontraron fotos para eliminar.');
-    }
-  }
+    this.onCancel = () => {
+      resolve(false);  // Cancelar la acción
+      this.showMessage = false;  // Ocultar el modal
+    };
+  });
+}
 }
