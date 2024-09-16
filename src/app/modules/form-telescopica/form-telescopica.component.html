@@ -32,6 +32,9 @@
       [type]="messageType"
       [show]="showMessage"
       [duration]="5000"
+
+      (accept)="onAccept()"
+      (cancel)="onCancel()"
     >
     </app-info-message>
 
