@@ -381,7 +381,7 @@ form {
 }
   .form-row-nominal {
     display: grid;
-    grid-template-columns: 0.734fr 0.3fr 0.3fr 0.1fr 0.3fr 0.3fr 0.1fr 0.3fr 0.3fr 0.1fr;
+    grid-template-columns: 0.56fr 0.4fr 0.3fr 0.1fr 0.4fr 0.3fr 0.1fr;
     align-items: stretch;
     white-space: nowrap;
   }
@@ -450,6 +450,36 @@ form {
     grid-template-columns: 80% 20%;
   } 
 
+  .union-E {
+    display: grid;
+    grid-template-columns: 1fr 0.6fr 0.7fr 2fr 2fr;
+    background-color: $primary-row-color;
+  }
+
+  .union-gancho1 {
+    display: grid;
+    grid-template-columns: 1fr 0.6fr 0.7fr 1.5fr 0.5fr 2fr;
+    background-color: $secondary-row-color;
+
+    input[type="text"] {
+      display: inline-flex;
+      max-width: 50px; 
+
+    }
+  }
+
+  .union-gancho2 {
+    display: grid;
+    grid-template-columns: 1fr 0.6fr 0.7fr 0.6fr 0.9fr 1fr;
+    background-color: $primary-row-color;
+
+    input[type="text"] {
+      display: inline-flex;
+      max-width: 50px; 
+
+    }
+  }
+
   .title-part3 {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -515,6 +545,16 @@ form {
 
   .upper {
     text-transform: uppercase;
+  }
+
+  .font-bold {
+    font-weight: bold;
+  }
+
+  .font-weight-100 {
+    h3 {
+      font-weight: 100;
+    }
   }
 
   .paddingLeft {
@@ -677,3 +717,40 @@ form {
     }
   }
 }
+
+table.custom-table {
+    width: 50%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: auto;
+  }
+
+  th, td {
+    padding: 8px;
+  }
+
+  thead th {
+    border-bottom: 2px solid black; /* Borde inferior grueso para el encabezado */
+    font-weight: bold;
+  }
+
+  /* Borde superior grueso de la tabla */
+  table.custom-table {
+    border-top: 2px solid black;
+    border-bottom: 1px solid black; /* Borde inferior de la tabla más fino */
+  }
+
+  /* Celdas de la primera columna (SWL) */
+  td:first-child {
+    border-right: 1px solid black; /* Separador entre la primera y segunda columna */
+  }
+
+  /* Borde superior e inferior más grueso para las filas */
+  tr:first-child td {
+    border-top: 2px solid black;
+  }
+  
+  tr:last-child td {
+    border-bottom: 2px solid black; /* Borde inferior más grueso */
+  }

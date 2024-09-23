@@ -33,7 +33,10 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   isEditingStatusA = false;
   isEditingStatusB = false;
   isEditingStatusC = false;
+  isEditingStatusD = false;
+  isEditingStatusE = false;
   isEditingFormD = false;
+  isEditingFormE = false;
   isLoading = false;
   isLoadingPdf = false;
   isSaving = false;
@@ -44,6 +47,8 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   showModal = false;
   isAnyEditing = false;
   showMessage = false;
+  showGanchoPrincipal = false;
+  showGanchoAuxiliar = false;
   messageType: 'success' | 'error' | 'warning' = 'success';
   messageText = '';
   savingMessage = '';
@@ -226,6 +231,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
       cargaPruebaAplicadaAux: [''],
       porcentajeCapacidadNominalAux: [''],
       comentarios: ['', [Validators.maxLength(500)]],
+      nombreRutInspector: ['', [Validators.required, Validators.maxLength(100)]],
     });
   }
 
@@ -258,7 +264,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
             });
 
           this.loadItemDetails(informe.idInforme);
-          // this.loadFormE(informe.idInforme);
+          this.loadFormE(informe.idInforme);
           // this.loadFormE1(informe.idInforme);
           // this.loadSetFotografico(informe.idInforme);
         },
@@ -490,7 +496,8 @@ async deletePhotos(item: any) {
           const fotoData = {
             idInforme: idInforme,
             idDetalle: idDetalle,
-            numeroInforme: numeroInforme
+            numeroInforme: numeroInforme,
+            foto: foto.foto,
           };
           await lastValueFrom(this.puertoService.deleteFotoPuertoByIdDetalle(fotoData));
           console.log(`Foto eliminada para idDetalle: ${idDetalle}`);
@@ -505,6 +512,24 @@ async deletePhotos(item: any) {
     console.error('Error al eliminar las fotos:', error);
   }
 }
+
+  private loadFormE(idInforme: number) {
+    this.puertoService
+      .getformEPuertoByIdInforme(idInforme)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.formEData = data[0];
+          this.formE.patchValue({
+            ...this.formEData,
+          });
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error fetching form H data:', error);
+        },
+      });
+  }
 
   private loadNonConformities(idInforme: number): void {
     this.puertoService
@@ -579,6 +604,20 @@ async deletePhotos(item: any) {
         this.informeForm.disable(); // Deshabilitar el formulario fuera del modo edición
     }
     this.isEditing = !this.isEditing;
+  }
+
+  // Método para mostrar/ocultar la fila de Gancho Principal
+  toggleGanchoPrincipal() {
+    if (this.formEData?.ganchoPrincipal > 0) {
+      this.showGanchoPrincipal = !this.showGanchoPrincipal;
+    }
+  }
+
+  // Método para mostrar/ocultar la fila de Gancho Auxiliar
+  toggleGanchoAuxiliar() {
+    if (this.formEData?.ganchoAuxiliar > 0) {
+      this.showGanchoAuxiliar = !this.showGanchoAuxiliar;
+    }
   }
 
   saveChanges() {
@@ -656,15 +695,12 @@ async deletePhotos(item: any) {
   closeModal(modalData: { description: string; images: string[]; imagesNames: string[] }): void {
   if (this.currentItemIndex !== null) {
     const currentItem = this.itemsWithStatus[this.currentItemIndex];
-
-    // Actualizar la descripción
     currentItem.descripcionNoCumple = modalData.description;
 
     // Si allowImages es true, manejar las imágenes, de lo contrario, ignorarlas
     if (this.allowImages) {
-      // Reiniciar las imágenes antes de agregar las nuevas para evitar duplicados
       currentItem.images = [...modalData.images];
-      currentItem.imagesNames = [...modalData.imagesNames];
+      currentItem.imagesNames = modalData.images.map((index) => `${Date.now()}.png`);
 
       // Verificar que no se estén duplicando imágenes antes de subir
       if (currentItem.images.length > 0 && currentItem.imagesNames.length === currentItem.images.length) {
