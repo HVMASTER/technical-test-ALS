@@ -15,6 +15,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   informes: any[] = [];
   informeForm: FormGroup;
   formE: FormGroup;
+  formE1: FormGroup;
   modalInstance: any = null;
   selectedInforme: any | null = null;
   fechaEmisionInforme: string | null = null;
@@ -30,6 +31,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   selecStatus: any;
   selecNumInforme: any;
   formEData: any;
+  formE1Data: any;
   isEditingStatusA = false;
   isEditingStatusB = false;
   isEditingStatusC = false;
@@ -37,6 +39,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   isEditingStatusE = false;
   isEditingFormD = false;
   isEditingFormE = false;
+  isEditingFormE1 = false;
   isLoading = false;
   isLoadingPdf = false;
   isSaving = false;
@@ -72,6 +75,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   ) { 
       this.informeForm = this.createFormGroup();
       this.formE = this.createFormE();
+      this.formE1 = this.createFormE1();
     }
 
   ngOnInit(): void {
@@ -235,6 +239,36 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
     });
   }
 
+  private createFormE1(): FormGroup {
+    return this.formBuilder.group({
+      longitudUABAntes: [''],
+      longitudUABDesp: [''],
+      longitudDBCAntes: [''],
+      longitudDBCDesp: [''],
+      longitudTABAntes: [''],
+      longitudTABDesp: [''],
+      longitudCBCAntes: [''],
+      longitudCBCDesp: [''],
+      longitudResulDoble: [''],
+      longDABAntes: [''],
+      longDABDesp: [''],
+      longDBCAntes: [''],
+      longDBCDesp: [''],
+      longResulSimple: [''],
+      longGSABAntes: [''],
+      longGSABDesp: [''],
+      longGSBCAntes: [''],
+      longGSBCDesp: [''],
+      longResulSimpleDos: [''],
+      longGSATBAntes: [''],
+      longGSATBDesp: [''],
+      longGSBTCAntes: [''],
+      longGSBTCDesp: [''],
+      longResulSimpleTres: [''],
+      comentariosMG: ['', [Validators.maxLength(500)]],
+    });
+  }
+
   async getNumeroInformes() {
     await this.puertoService
       .getRegistroFormPuerto()
@@ -265,7 +299,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
 
           this.loadItemDetails(informe.idInforme);
           this.loadFormE(informe.idInforme);
-          // this.loadFormE1(informe.idInforme);
+          this.loadFormE1(informe.idInforme);
           // this.loadSetFotografico(informe.idInforme);
         },
         error: (error) => {
@@ -527,6 +561,48 @@ async deletePhotos(item: any) {
         },
         error: (error) => {
           console.error('Error fetching form H data:', error);
+        },
+      });
+  }
+
+  private loadFormE1(idInforme: number) {
+    this.puertoService
+      .getformE1PuertoByIdInforme(idInforme)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.formE1Data = data[0];
+
+          this.formE1.patchValue({
+            longitudUABAntes: this.formE1Data.longitudUABAntes,
+            longitudUABDesp: this.formE1Data.longitudUABDesp,
+            longitudDBCAntes: this.formE1Data.longitudDBCAntes,
+            longitudDBCDesp: this.formE1Data.longitudDBCDesp,
+            longitudTABAntes: this.formE1Data.longitudTABAntes,
+            longitudTABDesp: this.formE1Data.longitudTABDesp,
+            longitudCBCAntes: this.formE1Data.longitudCBCAntes,
+            longitudCBCDesp: this.formE1Data.longitudCBCDesp,
+            longitudResulDoble: this.formE1Data.longitudResulDoble,
+            longDABAntes: this.formE1Data.longDABAntes,
+            longDABDesp: this.formE1Data.longDABDesp,
+            longDBCAntes: this.formE1Data.longDBCAntes,
+            longDBCDesp: this.formE1Data.longDBCDesp,
+            longResulSimple: this.formE1Data.longResulSimple,
+            longGSABAntes: this.formE1Data.longGSABAntes,
+            longGSABDesp: this.formE1Data.longGSABDesp,
+            longGSBCAntes: this.formE1Data.longGSBCAntes,
+            longGSBCDesp: this.formE1Data.longGSBCDesp,
+            longResulSimpleDos: this.formE1Data.longResulSimpleDos,
+            longGSATBAntes: this.formE1Data.longGSATBAntes,
+            longGSATBDesp: this.formE1Data.longGSATBDesp,
+            longGSBTCAntes: this.formE1Data.longGSBTCAntes,
+            longGSBTCDesp: this.formE1Data.longGSBTCDesp,
+            longResulSimpleTres: this.formE1Data.longResulSimpleTres,
+            comentariosMG: this.formE1Data.comentariosMG,
+          });
+        },
+        error: (error) => {
+          console.error('Error fetching form E1 data:', error);
         },
       });
   }

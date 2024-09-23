@@ -1450,8 +1450,637 @@
               </p>
             </div>
 
-            
+            <h2 class="subtitle" *ngIf="tituloForm.length > 0">
+              <strong>{{ tituloForm[5].nombre }}</strong>
+            </h2>
+            <!-- <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <button type="button" (click)="toggleEditFormE1()">
+                {{ isEditingFormE1 ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingFormE1"
+                (click)="saveFormE1Changes()"
+              >
+                Guardar
+              </button>
+            </div> -->
+            <form class="padding-none" [formGroup]="formE1">
+              <div class="unionH2">
+                <div class="title-part4">
+                  <div class="title-part3">
+                    <label class="paddingLeft"
+                      ><strong>GANCHO DOBLE</strong></label
+                    >
+                    <label class="center justifyCenter"
+                      ><strong>Antes de la prueba</strong></label
+                    >
+                    <label class="center justifyCenter"
+                      ><strong>Después de la prueba</strong></label
+                    >
+                  </div>
+                  <div class="form-row datos-h2">
+                    <label class="paddingLeft"
+                      ><strong>Longitud A-B</strong></label
+                    >
+                    <ng-container *ngIf="isEditingFormE1; else viewModeAB">
+                      <input type="number" formControlName="longitudUABAntes" />
+                      <label class="center">cm</label>
+                      <input type="number" formControlName="longitudUABDesp" />
+                      <label class="center">cm</label>
+                    </ng-container>
+                    <ng-template #viewModeAB>
+                      <label class="center">{{
+                        formE1.get("longitudUABAntes")?.value !== 0
+                          ? formE1.get("longitudUABAntes")?.value
+                          : "N/A"
+                      }}</label>
+                      <label class="center">cm</label>
+                      <label class="center">{{
+                        formE1.get("longitudUABDesp")?.value !== 0
+                          ? formE1.get("longitudUABDesp")?.value
+                          : "N/A"
+                      }}</label>
+                      <label class="center">cm</label>
+                    </ng-template>
+                  </div>
+                  <div class="form-row datos-h2">
+                    <label class="paddingLeft"
+                      ><strong>Longitud B-C</strong></label
+                    >
+                    <ng-container *ngIf="isEditingFormE1; else viewModeBC">
+                      <input type="number" formControlName="longitudDBCAntes" />
+                      <label class="center">cm</label>
+                      <input type="number" formControlName="longitudDBCDesp" />
+                      <label class="center">cm</label>
+                    </ng-container>
+                    <ng-template #viewModeBC>
+                      <label class="center">{{
+                        formE1.get("longitudDBCAntes")?.value !== 0
+                          ? formE1.get("longitudDBCAntes")?.value
+                          : "N/A"
+                      }}</label>
+                      <label class="center">cm</label>
+                      <label class="center">{{
+                        formE1.get("longitudDBCDesp")?.value !== 0
+                          ? formE1.get("longitudDBCDesp")?.value
+                          : "N/A"
+                      }}</label>
+                      <label class="center">cm</label>
+                    </ng-template>
+                  </div>
+                  <div class="form-row datos-h2">
+                    <label class="paddingLeft"
+                      ><strong>Longitud A-B'</strong></label
+                    >
+                    <ng-container *ngIf="isEditingFormE1; else viewModeABp">
+                      <input type="number" formControlName="longitudTABAntes" />
+                      <label class="center">cm</label>
+                      <input type="number" formControlName="longitudTABDesp" />
+                      <label class="center">cm</label>
+                    </ng-container>
+                    <ng-template #viewModeABp>
+                      <label class="center">{{
+                        formE1.get("longitudTABAntes")?.value !== 0
+                          ? formE1.get("longitudTABAntes")?.value
+                          : "N/A"
+                      }}</label>
+                      <label class="center">cm</label>
+                      <label class="center">{{
+                        formE1.get("longitudTABDesp")?.value !== 0
+                          ? formE1.get("longitudTABDesp")?.value
+                          : "N/A"
+                      }}</label>
+                      <label class="center">cm</label>
+                    </ng-template>
+                  </div>
+                  <div class="form-row datos-h2">
+                    <label class="paddingLeft"
+                      ><strong>Longitud B-C'</strong></label
+                    >
+                    <ng-container *ngIf="isEditingFormE1; else viewModeBCp">
+                      <input type="number" formControlName="longitudCBCAntes" />
+                      <label class="center">cm</label>
+                      <input type="number" formControlName="longitudCBCDesp" />
+                      <label class="center">cm</label>
+                    </ng-container>
+                    <ng-template #viewModeBCp>
+                      <label class="center">{{
+                        formE1.get("longitudCBCAntes")?.value !== 0
+                          ? formE1.get("longitudCBCAntes")?.value
+                          : "N/A"
+                      }}</label>
+                      <label class="center">cm</label>
+                      <label class="center">{{
+                        formE1.get("longitudCBCDesp")?.value !== 0
+                          ? formE1.get("longitudCBCDesp")?.value
+                          : "N/A"
+                      }}</label>
+                      <label class="center">cm</label>
+                    </ng-template>
+                  </div>
+                </div>
+                <label>
+                  <div class="imgH2">
+                    <img
+                      src="assets/formulario_puente/tipo_doble.jpg"
+                      alt="Tipo doble"
+                    />
+                  </div>
+                </label>
+              </div>
 
+              <div
+                class="form-row"
+                [ngClass]="{
+                  resultadoH2: !isEditingFormE1,
+                  flex: isEditingFormE1
+                }"
+              >
+                <label class="text-right"><strong>Resultado (X)</strong></label>
+                <ng-container *ngIf="isEditingFormE1; else viewModeResultDoble">
+                  <label class="cursor-pointer">
+                    <input
+                      type="radio"
+                      formControlName="longitudResulDoble"
+                      [checked]="
+                        formE1.get('longitudResulDoble')?.value ===
+                        'satisfactorio'
+                      "
+                      value="satisfactorio"
+                    />
+                    Satisfactorio
+                  </label>
+                  <label class="cursor-pointer">
+                    <input
+                      type="radio"
+                      formControlName="longitudResulDoble"
+                      [checked]="
+                        formE1.get('longitudResulDoble')?.value ===
+                        'insatisfactorio'
+                      "
+                      value="insatisfactorio"
+                    />
+                    Insatisfactorio
+                  </label>
+                </ng-container>
+                <ng-template #viewModeResultDoble>
+                  <label class="text-right">Satisfactorio</label>
+                  <label class="center">
+                    <span class="cuadradoH2">
+                      <span
+                        *ngIf="
+                          formE1.get('longitudResulDoble')?.value ===
+                          'satisfactorio'
+                        "
+                        >✖</span
+                      >
+                    </span>
+                  </label>
+                  <label class="text-right">Insatisfactorio</label>
+                  <label class="center">
+                    <span class="cuadradoH2">
+                      <span
+                        *ngIf="
+                          formE1.get('longitudResulDoble')?.value ===
+                          'insatisfactorio'
+                        "
+                        >✖</span
+                      >
+                    </span>
+                  </label>
+                </ng-template>
+              </div>
+              <div class="unionH2">
+                <div class="title-part4">
+                  <div class="title-part3">
+                    <label class="paddingLeft"
+                      ><strong>GANCHO SIMPLE</strong></label
+                    >
+                    <label class="center justifyCenter"
+                      ><strong>Antes de la prueba</strong></label
+                    >
+                    <label class="center justifyCenter"
+                      ><strong>Después de la prueba</strong></label
+                    >
+                  </div>
+                  <div class="form-row datos-h2">
+                    <label class="paddingLeft"
+                      ><strong>Longitud A-B</strong></label
+                    >
+                    <ng-container
+                      *ngIf="isEditingFormE1; else viewModeSimpleAB"
+                    >
+                      <input type="number" formControlName="longDABAntes" />
+                      <label class="center">cm</label>
+                      <input type="number" formControlName="longDABDesp" />
+                      <label class="center">cm</label>
+                    </ng-container>
+                    <ng-template #viewModeSimpleAB>
+                      <label class="center">{{
+                        formE1.get("longDABAntes")?.value
+                      }}</label>
+                      <label class="center">cm</label>
+                      <label class="center">{{
+                        formE1.get("longDABDesp")?.value
+                      }}</label>
+                      <label class="center">cm</label>
+                    </ng-template>
+                  </div>
+                  <div class="form-row datos-h2">
+                    <label class="paddingLeft"
+                      ><strong>Longitud B-C</strong></label
+                    >
+                    <ng-container
+                      *ngIf="isEditingFormE1; else viewModeSimpleBC"
+                    >
+                      <input type="number" formControlName="longDBCAntes" />
+                      <label class="center">cm</label>
+                      <input type="number" formControlName="longDBCDesp" />
+                      <label class="center">cm</label>
+                    </ng-container>
+                    <ng-template #viewModeSimpleBC>
+                      <label class="center">{{
+                        formE1.get("longDBCAntes")?.value
+                      }}</label>
+                      <label class="center">cm</label>
+                      <label class="center">{{
+                        formE1.get("longDBCDesp")?.value
+                      }}</label>
+                      <label class="center">cm</label>
+                    </ng-template>
+                  </div>
+                </div>
+                <label>
+                  <div class="imgH2">
+                    <img
+                      src="assets/formulario_puente/tipo_simple.jpg"
+                      alt="Tipo simple"
+                    />
+                  </div>
+                </label>
+              </div>
+              <!-- Resultado para Gancho Simple -->
+              <div
+                class="form-row"
+                [ngClass]="{
+                  resultadoH2: !isEditingFormE1,
+                  flex: isEditingFormE1
+                }"
+              >
+                <label class="text-right"><strong>Resultado (X)</strong></label>
+                <ng-container
+                  *ngIf="isEditingFormE1; else viewModeResultSimple"
+                >
+                  <label class="cursor-pointer">
+                    <input
+                      type="radio"
+                      formControlName="longResulSimple"
+                      [checked]="
+                        formE1.get('longResulSimple')?.value === 'satisfactorio'
+                      "
+                      value="satisfactorio"
+                    />
+                    Satisfactorio
+                  </label>
+                  <label class="cursor-pointer">
+                    <input
+                      type="radio"
+                      formControlName="longResulSimple"
+                      [checked]="
+                        formE1.get('longResulSimple')?.value ===
+                        'insatisfactorio'
+                      "
+                      value="insatisfactorio"
+                    />
+                    Insatisfactorio
+                  </label>
+                </ng-container>
+                <ng-template #viewModeResultSimple>
+                  <label class="text-right">Satisfactorio</label>
+                  <label class="center">
+                    <span class="cuadradoH2">
+                      <span
+                        *ngIf="
+                          formE1.get('longResulSimple')?.value ===
+                          'satisfactorio'
+                        "
+                        >✖</span
+                      >
+                    </span>
+                  </label>
+                  <label class="text-right">Insatisfactorio</label>
+                  <label class="center">
+                    <span class="cuadradoH2">
+                      <span
+                        *ngIf="
+                          formE1.get('longResulSimple')?.value ===
+                          'insatisfactorio'
+                        "
+                        >✖</span
+                      >
+                    </span>
+                  </label>
+                </ng-template>
+              </div>
+              <div class="unionH2">
+                <div class="title-part4">
+                  <div class="title-part3">
+                    <label class="paddingLeft"
+                      ><strong>GANCHO SIMPLE</strong></label
+                    >
+                    <label class="center justifyCenter"
+                      ><strong>Antes de la prueba</strong></label
+                    >
+                    <label class="center justifyCenter"
+                      ><strong>Después de la prueba</strong></label
+                    >
+                  </div>
+                  <!-- Longitud A-B -->
+                  <div class="form-row datos-h2">
+                    <label class="paddingLeft"
+                      ><strong>Longitud A-B</strong></label
+                    >
+                    <ng-container
+                      *ngIf="
+                        isEditingFormE1 && formE1Data?.longGSABAntes !== 0;
+                        else viewModeGSAB
+                      "
+                    >
+                      <input type="number" formControlName="longGSABAntes" />
+                      <label class="center">cm</label>
+                      <input type="number" formControlName="longGSABDesp" />
+                      <label class="center">cm</label>
+                    </ng-container>
+                    <ng-template #viewModeGSAB>
+                      <label class="center">{{
+                        formE1Data?.longGSABAntes === 0
+                          ? "N/A"
+                          : formE1Data?.longGSABAntes
+                      }}</label>
+                      <label class="center">cm</label>
+                      <label class="center">{{
+                        formE1Data?.longGSABDesp === 0
+                          ? "N/A"
+                          : formE1Data?.longGSABDesp
+                      }}</label>
+                      <label class="center">cm</label>
+                    </ng-template>
+                  </div>
+                  <!-- Longitud B-C -->
+                  <div class="form-row datos-h2">
+                    <label class="paddingLeft"
+                      ><strong>Longitud B-C</strong></label
+                    >
+                    <ng-container
+                      *ngIf="
+                        isEditingFormE1 && formE1Data?.longGSBCAntes !== 0;
+                        else viewModeGSBC
+                      "
+                    >
+                      <input type="number" formControlName="longGSBCAntes" />
+                      <label class="center">cm</label>
+                      <input type="number" formControlName="longGSBCDesp" />
+                      <label class="center">cm</label>
+                    </ng-container>
+                    <ng-template #viewModeGSBC>
+                      <label class="center">{{
+                        formE1Data?.longGSBCAntes === 0
+                          ? "N/A"
+                          : formE1Data?.longGSBCAntes
+                      }}</label>
+                      <label class="center">cm</label>
+                      <label class="center">{{
+                        formE1Data?.longGSBCDesp === 0
+                          ? "N/A"
+                          : formE1Data?.longGSBCDesp
+                      }}</label>
+                      <label class="center">cm</label>
+                    </ng-template>
+                  </div>
+                </div>
+                <label>
+                  <div class="imgH2">
+                    <img
+                      src="assets/formulario_puente/tipo_simple.jpg"
+                      alt="Tipo simple"
+                    />
+                  </div>
+                </label>
+              </div>
+              <!-- Resultado para Gancho Simple -->
+              <div
+                class="form-row"
+                [ngClass]="{
+                  resultadoH2: !isEditingFormE1,
+                  flex: isEditingFormE1
+                }"
+              >
+                <label class="text-right"><strong>Resultado (X)</strong></label>
+                <ng-container
+                  *ngIf="
+                    isEditingFormE1 && formE1Data?.longResulSimpleDos !== 'N/A';
+                    else viewModeResultSimpleDos
+                  "
+                >
+                  <label class="cursor-pointer">
+                    <input
+                      type="radio"
+                      formControlName="longResulSimpleDos"
+                      [checked]="
+                        formE1Data?.longResulSimpleDos === 'satisfactorio'
+                      "
+                      value="satisfactorio"
+                    />
+                    Satisfactorio
+                  </label>
+                  <label class="cursor-pointer">
+                    <input
+                      type="radio"
+                      formControlName="longResulSimpleDos"
+                      [checked]="
+                        formE1Data?.longResulSimpleDos === 'insatisfactorio'
+                      "
+                      value="insatisfactorio"
+                    />
+                    Insatisfactorio
+                  </label>
+                </ng-container>
+                <ng-template #viewModeResultSimpleDos>
+                  <label class="text-right">Satisfactorio</label>
+                  <label class="center">
+                    <span class="cuadradoH2">
+                      <span
+                        *ngIf="
+                          formE1Data?.longResulSimpleDos === 'satisfactorio'
+                        "
+                        >✖</span
+                      >
+                    </span>
+                  </label>
+                  <label class="text-right">Insatisfactorio</label>
+                  <label class="center">
+                    <span class="cuadradoH2">
+                      <span
+                        *ngIf="
+                          formE1Data?.longResulSimpleDos === 'insatisfactorio'
+                        "
+                        >✖</span
+                      >
+                    </span>
+                  </label>
+                </ng-template>
+              </div>
+              <div class="unionH2">
+                <div class="title-part4">
+                  <div class="title-part3">
+                    <label class="paddingLeft"
+                      ><strong>GANCHO SIMPLE TRES</strong></label
+                    >
+                    <label class="center justifyCenter"
+                      ><strong>Antes de la prueba</strong></label
+                    >
+                    <label class="center justifyCenter"
+                      ><strong>Después de la prueba</strong></label
+                    >
+                  </div>
+                  <!-- Longitud A-B -->
+                  <div class="form-row datos-h2">
+                    <label class="paddingLeft"
+                      ><strong>Longitud A-B</strong></label
+                    >
+                    <ng-container
+                      *ngIf="
+                        isEditingFormE1 && formE1Data?.longGSATBAntes !== 0;
+                        else viewModeGSATB
+                      "
+                    >
+                      <input type="number" formControlName="longGSATBAntes" />
+                      <label class="center">cm</label>
+                      <input type="number" formControlName="longGSATBDesp" />
+                      <label class="center">cm</label>
+                    </ng-container>
+                    <ng-template #viewModeGSATB>
+                      <label class="center">{{
+                        formE1Data?.longGSATBAntes === 0
+                          ? "N/A"
+                          : formE1Data?.longGSATBAntes
+                      }}</label>
+                      <label class="center">cm</label>
+                      <label class="center">{{
+                        formE1Data?.longGSATBDesp === 0
+                          ? "N/A"
+                          : formE1Data?.longGSATBDesp
+                      }}</label>
+                      <label class="center">cm</label>
+                    </ng-template>
+                  </div>
+                  <!-- Longitud B-C -->
+                  <div class="form-row datos-h2">
+                    <label class="paddingLeft"
+                      ><strong>Longitud B-C</strong></label
+                    >
+                    <ng-container
+                      *ngIf="
+                        isEditingFormE1 && formE1Data?.longGSBTCAntes !== 0;
+                        else viewModeGSBTC
+                      "
+                    >
+                      <input type="number" formControlName="longGSBTCAntes" />
+                      <label class="center">cm</label>
+                      <input type="number" formControlName="longGSBTCDesp" />
+                      <label class="center">cm</label>
+                    </ng-container>
+                    <ng-template #viewModeGSBTC>
+                      <label class="center">{{
+                        formE1Data?.longGSBTCAntes === 0
+                          ? "N/A"
+                          : formE1Data?.longGSBTCAntes
+                      }}</label>
+                      <label class="center">cm</label>
+                      <label class="center">{{
+                        formE1Data?.longGSBTCDesp === 0
+                          ? "N/A"
+                          : formE1Data?.longGSBTCDesp
+                      }}</label>
+                      <label class="center">cm</label>
+                    </ng-template>
+                  </div>
+                </div>
+                <label>
+                  <div class="imgH2">
+                    <img
+                      src="assets/formulario_puente/tipo_simple.jpg"
+                      alt="Tipo simple tres"
+                    />
+                  </div>
+                </label>
+              </div>
+              <!-- Resultado para Gancho Simple Tres -->
+              <div
+                class="form-row"
+                [ngClass]="{
+                  resultadoH2: !isEditingFormE1,
+                  flex: isEditingFormE1
+                }"
+              >
+                <label class="text-right"><strong>Resultado (X)</strong></label>
+                <ng-container
+                  *ngIf="
+                    isEditingFormE1 &&
+                      formE1Data?.longResulSimpleTres !== 'N/A';
+                    else viewModeResultSimpleTres
+                  "
+                >
+                  <label class="cursor-pointer">
+                    <input
+                      type="radio"
+                      formControlName="longResulSimpleTres"
+                      [checked]="
+                        formE1Data?.longResulSimpleTres === 'satisfactorio'
+                      "
+                      value="satisfactorio"
+                    />
+                    Satisfactorio
+                  </label>
+                  <label class="cursor-pointer">
+                    <input
+                      type="radio"
+                      formControlName="longResulSimpleTres"
+                      [checked]="
+                        formE1Data?.longResulSimpleTres === 'insatisfactorio'
+                      "
+                      value="insatisfactorio"
+                    />
+                    Insatisfactorio
+                  </label>
+                </ng-container>
+                <ng-template #viewModeResultSimpleTres>
+                  <label class="text-right">Satisfactorio</label>
+                  <label class="center">
+                    <span class="cuadradoH2">
+                      <span
+                        *ngIf="
+                          formE1Data?.longResulSimpleTres === 'satisfactorio'
+                        "
+                        >✖</span
+                      >
+                    </span>
+                  </label>
+                  <label class="text-right">Insatisfactorio</label>
+                  <label class="center">
+                    <span class="cuadradoH2">
+                      <span
+                        *ngIf="
+                          formE1Data?.longResulSimpleTres === 'insatisfactorio'
+                        "
+                        >✖</span
+                      >
+                    </span>
+                  </label>
+                </ng-template>
+              </div>
+            </form>
           </form>
         </div>
       </div>
