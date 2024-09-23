@@ -754,3 +754,41 @@ table.custom-table {
   tr:last-child td {
     border-bottom: 2px solid black; /* Borde inferior más grueso */
   }
+
+.custom-table-container{
+.custom-table {
+  width: 90%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+
+  th, td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid black; /* Bordes para todas las celdas */
+  }
+
+  th {
+    font-weight: bold;
+  }
+
+  .highlight-antiguedad {
+    background-color: #fce4d6; /* Color de fondo de la columna "ANTIGÜEDAD" */
+  }
+
+  .highlight-cargas {
+    background-color: #B4D5F0; /* Color de fondo de la columna "CARGAS HABITUALES LEVANTADAS" */
+  }
+
+  .highlight-ambiente {
+    background-color: #FFFF00; /* Color de fondo de la columna "AMBIENTE DE TRABAJO" */
+  }
+
+  .validity {
+    font-weight: bold;
+  }
+
+  .text-sm {
+    font-size: 12px;
+  }
+}}
