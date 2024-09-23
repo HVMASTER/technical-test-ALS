@@ -4,12 +4,14 @@ import { FormularioSelectorComponent } from './modules/formulario-selector/formu
 import { FormComponent } from './modules/form/form.component';
 import { FormMixerComponent } from './modules/form-mixer/form-mixer.component';
 import { FormTelescopicaComponent } from './modules/form-telescopica/form-telescopica.component';
+import { FormPuertoComponent } from './modules/form-puerto/form-puerto.component';
 
 const routes: Routes = [
   { path: '', component: FormularioSelectorComponent }, // Ruta por defecto
   { path: 'puente', component: FormComponent },
   { path: 'mixer', component: FormMixerComponent },
   { path: 'telescopica', component: FormTelescopicaComponent },
+  { path: 'puerto', component: FormPuertoComponent },
   { path: '**', redirectTo: '' } // Redireccionar cualquier ruta no existente a la selección de formulario
 ];
 @NgModule({

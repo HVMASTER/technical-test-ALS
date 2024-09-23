@@ -8,7 +8,9 @@ import { AppComponent } from './app.component';
 import { FormModule } from './modules/form/form.module';
 import { FormMixerModule } from './modules/form-mixer/form-mixer.module';
 import { FormTelescopicaModule } from './modules/form-telescopica/form-telescopica.module';
+import { FormPuertoModule } from './modules/form-puerto/form-puerto.module';
 import { FormularioSelectorComponent } from './modules/formulario-selector/formulario-selector.component';
+
 
 @NgModule({
   declarations: [
@@ -21,7 +23,8 @@ import { FormularioSelectorComponent } from './modules/formulario-selector/formu
     AppRoutingModule,
     FormModule,
     FormMixerModule,
-    FormTelescopicaModule
+    FormTelescopicaModule,
+    FormPuertoModule
   ],
   providers: [DatePipe],
   bootstrap: [AppComponent]
