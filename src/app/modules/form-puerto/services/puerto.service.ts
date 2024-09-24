@@ -59,6 +59,18 @@ export class PuertoService {
     return this.http.get<any>(`${this.baseUrl}getSetFotograficoByIdInformePuerto/${idInforme}`);
   }
 
+  editInformePuerto(data: any) {
+    return this.http.put<any>(`${this.baseUrl}editInformePuerto`, data);
+  }
+
+  editItemPuerto(data: any) {
+    return this.http.put<any>(`${this.baseUrl}editItemPuerto`, data);
+  }
+
+  editDescripcionPuerto(data: any) {
+    return this.http.put<any>(`${this.baseUrl}editDescripcionPuerto`, data);
+  }
+
   sendFotosPuerto(data: any) {
     return this.http.post<any>(`${this.baseUrl}sendFotosPuerto`, data);
   }

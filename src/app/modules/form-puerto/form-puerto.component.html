@@ -10,7 +10,7 @@
 
 <button (click)="deselectInforme()" class="back-button">Volver</button>
 <button (click)="togglePreview()">Vista Previa</button>
-<button (click)="generatePDF()">Exportar a PDF</button>
+<button (click)="generatePDF()">Exportar a PDF</button> 
 <div *ngIf="isLoading" class="loading-bar">
   <div class="spinner"></div>
 </div>
@@ -26,10 +26,36 @@
       <p>Generando PDF, por favor espere...</p>
       <div class="spinner"></div>
     </div>
+
+    <app-info-message
+      [message]="messageText"
+      [type]="messageType"
+      [show]="showMessage"
+      [duration]="5000"
+
+      (accept)="onAccept()"
+      (cancel)="onCancel()"
+    >
+    </app-info-message>
+
+    <app-report-modal-component
+      *ngIf="showModal && modalInstance"
+      [idInforme]="modalInstance?.idInforme"
+      [idDetalle]="modalInstance?.idDetalle"
+      [idStatus]="modalInstance?.idStatus"
+      [numeroInforme]="modalInstance?.numeroInforme"
+      [allowImages]="modalInstance?.allowImages"
+      [uploadImageService]="modalInstance?.uploadImageService" 
+      (save)="closeModal($event)"
+      (cancel)="cancelModal()"
+    >
+    </app-report-modal-component>
+
     <div id="contentToConvert">
       <div *ngIf="showHeaderFooter" class="header">
         <app-header></app-header>
       </div>
+
       <div class="title-main">
         <h1>
           INFORME DE INSPECCIÓN Y PRUEBA DE CARGA A GRÚAS FIJAS y MÓVILES EN
@@ -237,14 +263,14 @@
             <h2 class="subtitle" *ngIf="tituloForm.length > 0">
               {{ tituloForm[0]?.nombre }}
             </h2>
-            <!-- <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
               <button (click)="toggleEditStatusA()">
                 {{ isEditingStatusA ? "Cancelar" : "Editar" }}
               </button>
               <button *ngIf="isEditingStatusA" (click)="saveChangesStatusA()">
                 Guardar
               </button>
-            </div> -->
+            </div>
             <div class="form-row-A-F">
               <strong class="center">Item</strong>
               <strong class="center">Detalle</strong>
@@ -335,14 +361,14 @@
             <h2 class="subtitle" *ngIf="tituloForm.length > 0">
               {{ tituloForm[1].nombre }}
             </h2>
-            <!-- <div *ngIf="!isPreviewMode">
+            <div *ngIf="!isPreviewMode">
               <button (click)="toggleEditStatusB()">
                 {{ isEditingStatusB ? "Cancelar" : "Editar" }}
               </button>
               <button *ngIf="isEditingStatusB" (click)="saveChangesStatusB()">
                 Guardar
               </button>
-            </div> -->
+            </div>
             <div class="form-row-A-F">
               <strong class="center">Item</strong>
               <strong class="center">Detalle</strong>
@@ -445,7 +471,7 @@
             <h2 class="subtitle" *ngIf="tituloForm.length > 0">
               {{ tituloForm[2].nombre }}
             </h2>
-            <!-- <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
               <button type="button" (click)="toggleEditStatusC()">
                 {{ isEditingStatusC ? "Cancelar" : "Editar" }}
               </button>
@@ -456,7 +482,7 @@
               >
                 Guardar
               </button>
-            </div> -->
+            </div>
             <div class="form-row-A-F">
               <strong class="center">Item</strong>
               <strong class="center">Detalle</strong>
@@ -542,18 +568,18 @@
             <h2 class="subtitle" *ngIf="tituloForm.length > 0">
               {{ tituloForm[3].nombre }}
             </h2>
-            <!-- <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
               <button type="button" (click)="toggleEditDescription()">
-                {{ isEditingFormG ? "Cancelar" : "Editar" }}
+                {{ isEditingFormD ? "Cancelar" : "Editar" }}
               </button>
               <button
                 type="button"
-                *ngIf="isEditingFormG"
+                *ngIf="isEditingFormD"
                 (click)="saveChangesDescription()"
               >
                 Guardar
               </button>
-            </div> -->
+            </div>
             <form class="padding-none">
               <div class="form-row-G">
                 <strong class="center">ÍTEM</strong>
