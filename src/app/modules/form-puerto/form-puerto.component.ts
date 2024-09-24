@@ -32,6 +32,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   selecNumInforme: any;
   formEData: any;
   formE1Data: any;
+  photos: any;
   isEditingStatusA = false;
   isEditingStatusB = false;
   isEditingStatusC = false;
@@ -40,6 +41,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   isEditingFormD = false;
   isEditingFormE = false;
   isEditingFormE1 = false;
+  isEditingFormF = false;
   isLoading = false;
   isLoadingPdf = false;
   isSaving = false;
@@ -52,6 +54,8 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   showMessage = false;
   showGanchoPrincipal = false;
   showGanchoAuxiliar = false;
+  showGanchoAuxiliarE1 = false;
+  showGanchoTres = false;
   messageType: 'success' | 'error' | 'warning' = 'success';
   messageText = '';
   savingMessage = '';
@@ -300,7 +304,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
           this.loadItemDetails(informe.idInforme);
           this.loadFormE(informe.idInforme);
           this.loadFormE1(informe.idInforme);
-          // this.loadSetFotografico(informe.idInforme);
+          this.loadSetFotografico(informe.idInforme);
         },
         error: (error) => {
           console.error('Error fetching informe details:', error);
@@ -652,6 +656,22 @@ async deletePhotos(item: any) {
     }
   }
 
+  private loadSetFotografico(idInforme: number) {
+    this.puertoService
+      .getSetFotograficoByIdInformePuerto(idInforme)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.photos.length > 0) {
+            this.photos = response.photos;
+          }
+        },
+        error: (error) => {
+          console.error('Error fetching set fotografico:', error);
+        },
+      });
+  }
+
   refreshStatus() {
     if (this.selectedInforme) {
       this.loadItemDetails(this.selectedInforme.idInforme);
@@ -694,6 +714,14 @@ async deletePhotos(item: any) {
     if (this.formEData?.ganchoAuxiliar > 0) {
       this.showGanchoAuxiliar = !this.showGanchoAuxiliar;
     }
+  }
+
+  toggleGanchoAuxiliarE1() {
+    this.showGanchoAuxiliarE1 = !this.showGanchoAuxiliarE1;
+  }
+
+  toggleGanchoTres() {
+    this.showGanchoTres = !this.showGanchoTres;
   }
 
   saveChanges() {
