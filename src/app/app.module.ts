@@ -12,10 +12,12 @@ import { FormPuertoModule } from './modules/form-puerto/form-puerto.module';
 import { FormularioSelectorComponent } from './modules/formulario-selector/formulario-selector.component';
 
 
+
 @NgModule({
   declarations: [
     AppComponent,
     FormularioSelectorComponent,
+
   ],
   imports: [
     BrowserModule,

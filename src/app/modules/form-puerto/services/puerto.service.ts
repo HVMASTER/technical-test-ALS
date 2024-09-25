@@ -83,6 +83,10 @@ export class PuertoService {
     return this.http.post<any>(`${this.baseUrl}sendFotosPuerto`, data);
   }
 
+  sendSetFotograficoPuerto(data: any) {
+    return this.http.post<any>(`${this.baseUrl}sendSetFotograficoPuerto`, data);
+  }
+
   postDescripcionPuerto(data: any) {
     return this.http.post<any>(`${this.baseUrl}sendDescripcionPuerto`, data);
   }

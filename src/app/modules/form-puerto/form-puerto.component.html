@@ -51,6 +51,8 @@
     >
     </app-report-modal-component>
 
+    
+
     <div id="contentToConvert">
       <div *ngIf="showHeaderFooter" class="header">
         <app-header></app-header>
@@ -2260,6 +2262,8 @@
             >
               <strong>{{ tituloForm[7].nombre }}</strong>
             </h2>
+            <!-- Botón para abrir el modal -->
+            <button (click)="openSetFotograficoModal()">Agregar Imágenes</button>
             <div class="photo-grid">
               <div *ngFor="let photo of photos" class="photo-item">
                 <img
@@ -2269,6 +2273,17 @@
                 <span>{{ photo.descripcionSF }}</span>
               </div>
             </div>
+
+            <app-photographic-set-modal
+              *ngIf="showSetFotograficoModal && modalInstance"
+              [idInforme]="modalInstance?.idInforme"
+              [numeroInforme]="modalInstance?.numeroInforme"
+              [allowImages]="modalInstance?.allowImages"
+              [uploadImageService]="modalInstance?.uploadImageService"
+              (save)="onSaveSetFotografico($event)"
+              (cancel)="onCancelSetFotografico()"
+            ></app-photographic-set-modal>
+
           </form>
         </div>
       </div>
