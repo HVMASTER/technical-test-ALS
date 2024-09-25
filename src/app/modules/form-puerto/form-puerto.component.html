@@ -658,7 +658,7 @@
             <h2 class="subtitle" *ngIf="tituloForm.length > 0">
               {{ tituloForm[4].nombre }}
             </h2>
-            <!-- <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
               <button type="button" (click)="toggleEditFormE()">
                 {{ isEditingFormE ? "Cancelar" : "Editar" }}
               </button>
@@ -669,17 +669,17 @@
               >
                 Guardar
               </button>
-            </div> -->
+            </div>
             <form class="padding-none" [formGroup]="formE">
               <div class="form-row-H">
                 <label class="paddingLeft"
                   ><strong>Fecha prueba de carga</strong></label
                 >
                 <ng-container *ngIf="isEditingFormE; else viewModeFecha">
-                  <input formControlName="fechaPC" type="date" />
+                  <input formControlName="fecha" type="date" />
                 </ng-container>
                 <ng-template #viewModeFecha>
-                  <label>{{ formEData?.fecha }}</label>
+                  <label>{{ formatDate(formEData?.fecha) }}</label>
                 </ng-template>
               </div>
               <!-- Campo Vigencia prueba de carga -->
@@ -688,10 +688,10 @@
                   ><strong>Vigencia prueba de carga</strong>
                 </label>
                 <ng-container *ngIf="isEditingFormE; else viewModeVigencia">
-                  <input formControlName="vigencia" type="text" />
+                  <input formControlName="vigencia" type="date" />
                 </ng-container>
                 <ng-template #viewModeVigencia>
-                  <label>{{ formEData?.vigencia }}</label>
+                  <label>{{ formatDate(formEData?.vigencia) }}</label>
                 </ng-template>
               </div>
               <!-- Campo Lugar de prueba de carga -->
@@ -1145,27 +1145,28 @@
               </div>
               <br /><br />
 
-              <!-- Botón para mostrar/ocultar Gancho Principal si es mayor a 0 -->
-              <ng-container *ngIf="formEData?.ganchoPrincipal > 0">
-                <button (click)="toggleGanchoPrincipal()">
-                  {{
-                    showGanchoPrincipal
-                      ? "Ocultar Gancho Principal"
-                      : "Mostrar Gancho Principal"
-                  }}
-                </button>
-              </ng-container>
-
-              <!-- Botón para mostrar/ocultar Gancho Auxiliar si es mayor a 0 -->
-              <ng-container *ngIf="formEData?.ganchoAuxiliar > 0">
-                <button (click)="toggleGanchoAuxiliar()">
-                  {{
-                    showGanchoAuxiliar
-                      ? "Ocultar Gancho Auxiliar"
-                      : "Mostrar Gancho Auxiliar"
-                  }}
-                </button>
-              </ng-container>
+              <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+                <!-- Botón para mostrar/ocultar Gancho Principal si es mayor a 0 -->
+                <ng-container *ngIf="formEData?.ganchoPrincipal > 0">
+                  <button (click)="toggleGanchoPrincipal()">
+                    {{
+                      showGanchoPrincipal
+                        ? "Ocultar Gancho Principal"
+                        : "Mostrar Gancho Principal"
+                    }}
+                  </button>
+                </ng-container>
+                <!-- Botón para mostrar/ocultar Gancho Auxiliar si es mayor a 0 -->
+                <ng-container *ngIf="formEData?.ganchoAuxiliar > 0">
+                  <button (click)="toggleGanchoAuxiliar()">
+                    {{
+                      showGanchoAuxiliar
+                        ? "Ocultar Gancho Auxiliar"
+                        : "Mostrar Gancho Auxiliar"
+                    }}
+                  </button>
+                </ng-container>
+              </div>
 
               <div class="union-E">
                 <label class="center title-item"><strong>Ítem</strong></label>
@@ -1263,6 +1264,7 @@
                       class="center"
                     />
                   </label>
+                  <label>kg</label>
                   <label class="center">
                     <input
                       formControlName="porcentajeCapacidadNominalPrin"
@@ -1325,6 +1327,7 @@
                       class="center"
                     />
                   </label>
+                  <label>kg</label>
                   <label class="center">
                     <input
                       formControlName="porcentajeCapacidadNominalAux"
@@ -1479,7 +1482,7 @@
             <h2 class="subtitle" *ngIf="tituloForm.length > 0">
               <strong>{{ tituloForm[5].nombre }}</strong>
             </h2>
-            <!-- <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
               <button type="button" (click)="toggleEditFormE1()">
                 {{ isEditingFormE1 ? "Cancelar" : "Editar" }}
               </button>
@@ -1490,13 +1493,14 @@
               >
                 Guardar
               </button>
-            </div> -->
-            <button (click)="toggleGanchoAuxiliarE1()">
-              {{ showGanchoAuxiliarE1 ? 'Ocultar Gancho Simple Auxiliar' : 'Mostrar Gancho Simple Auxiliar' }}
-            </button>
-            <button (click)="toggleGanchoTres()">
-              {{ showGanchoTres ? 'Ocultar Gancho Simple Tres' : 'Mostrar Gancho Simple Tres' }}
-            </button>
+              <button (click)="toggleGanchoAuxiliarE1()">
+                {{ showGanchoAuxiliarE1 ? 'Ocultar Gancho Simple Auxiliar' : 'Mostrar Gancho Simple Auxiliar' }}
+              </button>
+              <button (click)="toggleGanchoTres()">
+                {{ showGanchoTres ? 'Ocultar Gancho Simple Tres' : 'Mostrar Gancho Simple Tres' }}
+              </button>
+            </div>
+            
             <form class="padding-none" [formGroup]="formE1">
               <div class="unionH2">
                 <div class="title-part4">
@@ -1516,9 +1520,9 @@
                       ><strong>Longitud A-B</strong></label
                     >
                     <ng-container *ngIf="isEditingFormE1; else viewModeAB">
-                      <input type="number" formControlName="longitudUABAntes" />
+                      <input type="number" formControlName="longitudUABAntes" min="0" />
                       <label class="center">cm</label>
-                      <input type="number" formControlName="longitudUABDesp" />
+                      <input type="number" formControlName="longitudUABDesp" min="0" />
                       <label class="center">cm</label>
                     </ng-container>
                     <ng-template #viewModeAB>
@@ -1541,9 +1545,9 @@
                       ><strong>Longitud B-C</strong></label
                     >
                     <ng-container *ngIf="isEditingFormE1; else viewModeBC">
-                      <input type="number" formControlName="longitudDBCAntes" />
+                      <input type="number" formControlName="longitudDBCAntes" min="0" />
                       <label class="center">cm</label>
-                      <input type="number" formControlName="longitudDBCDesp" />
+                      <input type="number" formControlName="longitudDBCDesp" min="0" />
                       <label class="center">cm</label>
                     </ng-container>
                     <ng-template #viewModeBC>
@@ -1566,9 +1570,9 @@
                       ><strong>Longitud A-B'</strong></label
                     >
                     <ng-container *ngIf="isEditingFormE1; else viewModeABp">
-                      <input type="number" formControlName="longitudTABAntes" />
+                      <input type="number" formControlName="longitudTABAntes" min="0" />
                       <label class="center">cm</label>
-                      <input type="number" formControlName="longitudTABDesp" />
+                      <input type="number" formControlName="longitudTABDesp" min="0" />
                       <label class="center">cm</label>
                     </ng-container>
                     <ng-template #viewModeABp>
@@ -1591,9 +1595,9 @@
                       ><strong>Longitud B-C'</strong></label
                     >
                     <ng-container *ngIf="isEditingFormE1; else viewModeBCp">
-                      <input type="number" formControlName="longitudCBCAntes" />
+                      <input type="number" formControlName="longitudCBCAntes" min="0" />
                       <label class="center">cm</label>
-                      <input type="number" formControlName="longitudCBCDesp" />
+                      <input type="number" formControlName="longitudCBCDesp" min="0" />
                       <label class="center">cm</label>
                     </ng-container>
                     <ng-template #viewModeBCp>
@@ -1655,6 +1659,14 @@
                     />
                     Insatisfactorio
                   </label>
+                  <label class="cursor-pointer">
+                    <input
+                      type="radio"
+                      formControlName="longitudResulDoble"
+                      value=""
+                    />
+                    Ninguno
+                  </label>
                 </ng-container>
                 <ng-template #viewModeResultDoble>
                   <label class="text-right">Satisfactorio</label>
@@ -1705,9 +1717,9 @@
                     <ng-container
                       *ngIf="isEditingFormE1; else viewModeSimpleAB"
                     >
-                      <input type="number" formControlName="longDABAntes" />
+                      <input type="number" formControlName="longDABAntes"  min="0"/>
                       <label class="center">cm</label>
-                      <input type="number" formControlName="longDABDesp" />
+                      <input type="number" formControlName="longDABDesp" min="0"/>
                       <label class="center">cm</label>
                     </ng-container>
                     <ng-template #viewModeSimpleAB>
@@ -1728,9 +1740,9 @@
                     <ng-container
                       *ngIf="isEditingFormE1; else viewModeSimpleBC"
                     >
-                      <input type="number" formControlName="longDBCAntes" />
+                      <input type="number" formControlName="longDBCAntes" min="0"/>
                       <label class="center">cm</label>
-                      <input type="number" formControlName="longDBCDesp" />
+                      <input type="number" formControlName="longDBCDesp" min="0"/>
                       <label class="center">cm</label>
                     </ng-container>
                     <ng-template #viewModeSimpleBC>
@@ -1789,6 +1801,14 @@
                     />
                     Insatisfactorio
                   </label>
+                  <label class="cursor-pointer">
+                    <input
+                      type="radio"
+                      formControlName="longResulSimple"
+                      value=""
+                    />
+                    Ninguno
+                  </label>
                 </ng-container>
                 <ng-template #viewModeResultSimple>
                   <label class="text-right">Satisfactorio</label>
@@ -1839,14 +1859,10 @@
                         ><strong>Longitud A-B</strong></label
                       >
                       <ng-container
-                        *ngIf="
-                          isEditingFormE1 && formE1Data?.longGSABAntes !== 0;
-                          else viewModeGSAB
-                        "
-                      >
-                        <input type="number" formControlName="longGSABAntes" />
+                        *ngIf="isEditingFormE1; else viewModeGSAB">
+                        <input type="number" formControlName="longGSABAntes" min="0"/>
                         <label class="center">cm</label>
-                        <input type="number" formControlName="longGSABDesp" />
+                        <input type="number" formControlName="longGSABDesp" min="0"/>
                         <label class="center">cm</label>
                       </ng-container>
                       <ng-template #viewModeGSAB>
@@ -1871,13 +1887,10 @@
                       >
                       <ng-container
                         *ngIf="
-                          isEditingFormE1 && formE1Data?.longGSBCAntes !== 0;
-                          else viewModeGSBC
-                        "
-                      >
-                        <input type="number" formControlName="longGSBCAntes" />
+                          isEditingFormE1; else viewModeGSBC">
+                        <input type="number" formControlName="longGSBCAntes" min="0"/>
                         <label class="center">cm</label>
-                        <input type="number" formControlName="longGSBCDesp" />
+                        <input type="number" formControlName="longGSBCDesp" min="0"/>
                         <label class="center">cm</label>
                       </ng-container>
                       <ng-template #viewModeGSBC>
@@ -1916,10 +1929,7 @@
                   <label class="text-right"><strong>Resultado (X)</strong></label>
                   <ng-container
                     *ngIf="
-                      isEditingFormE1 && formE1Data?.longResulSimpleDos !== 'N/A';
-                      else viewModeResultSimpleDos
-                    "
-                  >
+                      isEditingFormE1; else viewModeResultSimpleDos">
                     <label class="cursor-pointer">
                       <input
                         type="radio"
@@ -1941,6 +1951,14 @@
                         value="insatisfactorio"
                       />
                       Insatisfactorio
+                    </label>
+                    <label class="cursor-pointer">
+                      <input
+                        type="radio"
+                        formControlName="longResulSimpleDos"
+                        value=""
+                      />
+                      Ninguno
                     </label>
                   </ng-container>
                   <ng-template #viewModeResultSimpleDos>
@@ -1992,13 +2010,10 @@
                       >
                       <ng-container
                         *ngIf="
-                          isEditingFormE1 && formE1Data?.longGSATBAntes !== 0;
-                          else viewModeGSATB
-                        "
-                      >
-                        <input type="number" formControlName="longGSATBAntes" />
+                          isEditingFormE1; else viewModeGSATB">
+                        <input type="number" formControlName="longGSATBAntes" min="0"/>
                         <label class="center">cm</label>
-                        <input type="number" formControlName="longGSATBDesp" />
+                        <input type="number" formControlName="longGSATBDesp" min="0"/>
                         <label class="center">cm</label>
                       </ng-container>
                       <ng-template #viewModeGSATB>
@@ -2023,13 +2038,10 @@
                       >
                       <ng-container
                         *ngIf="
-                          isEditingFormE1 && formE1Data?.longGSBTCAntes !== 0;
-                          else viewModeGSBTC
-                        "
-                      >
-                        <input type="number" formControlName="longGSBTCAntes" />
+                          isEditingFormE1; else viewModeGSBTC">
+                        <input type="number" formControlName="longGSBTCAntes" min="0"/>
                         <label class="center">cm</label>
-                        <input type="number" formControlName="longGSBTCDesp" />
+                        <input type="number" formControlName="longGSBTCDesp" min="0"/>
                         <label class="center">cm</label>
                       </ng-container>
                       <ng-template #viewModeGSBTC>
@@ -2068,11 +2080,7 @@
                   <label class="text-right"><strong>Resultado (X)</strong></label>
                   <ng-container
                     *ngIf="
-                      isEditingFormE1 &&
-                        formE1Data?.longResulSimpleTres !== 'N/A';
-                      else viewModeResultSimpleTres
-                    "
-                  >
+                      isEditingFormE1; else viewModeResultSimpleTres">
                     <label class="cursor-pointer">
                       <input
                         type="radio"
@@ -2094,6 +2102,14 @@
                         value="insatisfactorio"
                       />
                       Insatisfactorio
+                    </label>
+                    <label class="cursor-pointer">
+                      <input
+                        type="radio"
+                        formControlName="longResulSimpleTres"
+                        value=""
+                      />
+                      Ninguno
                     </label>
                   </ng-container>
                   <ng-template #viewModeResultSimpleTres>

@@ -237,7 +237,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
       cargaPruebaAplicadaAux: [''],
       porcentajeCapacidadNominalAux: [''],
       comentarios: ['', [Validators.maxLength(500)]],
-      nombreRutInspector: ['', [Validators.required, Validators.maxLength(100)]],
+      nombreRutInspector: ['', [Validators.maxLength(100)]],
     });
   }
 
@@ -308,6 +308,21 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
           console.error('Error fetching informe details:', error);
         },
       });
+  }
+
+  // Método para formatear la fecha
+  formatDate(date: string | Date): string {
+    return this.datePipe.transform(date, 'dd-MM-yyyy') || '';
+  }
+
+  // Método para calcular el próximo control
+  getNextControlDate(fechaInspeccion: string): string {
+    const proximoControl = new Date(fechaInspeccion);
+    proximoControl.setFullYear(proximoControl.getFullYear() + 1);
+
+    // Sumar un día a la fecha del próximo control
+    proximoControl.setDate(proximoControl.getDate() + 1);
+    return this.formatDate(proximoControl);
   }
 
   private getTitulosForm() {
@@ -556,6 +571,7 @@ async deletePhotos(item: any) {
       .subscribe({
         next: (data) => {
           this.formEData = data[0];
+
           this.formE.patchValue({
             ...this.formEData,
           });
@@ -781,6 +797,28 @@ async deletePhotos(item: any) {
       this.messageType = 'warning';
       this.showMessage = true;
     }
+  }
+
+  toggleEditFormE() {
+    if (this.isEditingFormE) {
+      // Cancelar la edición, restaurar los valores originales
+      this.formE.patchValue(this.originalValues);
+    } else {
+      // Guardar los valores actuales antes de editar
+      this.originalValues = this.formE.getRawValue();
+    }
+    this.isEditingFormE = !this.isEditingFormE;
+  }
+
+  toggleEditFormE1() {
+    if (this.isEditingFormE1) {
+      // Si se cancela la edición, restaurar los valores originales
+      this.formE1.patchValue(this.formE1Data);
+    } else {
+      // Guardar los valores originales antes de editar
+      this.formE1Data = this.formE1.getRawValue();
+    }
+    this.isEditingFormE1 = !this.isEditingFormE1;
   }
 
   toggleGanchoPrincipal() {
@@ -1245,6 +1283,116 @@ async deletePhotos(item: any) {
       });
     }
   }
+
+  saveFormEChanges() {
+    if (this.formE.valid && this.selectedInforme?.idInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      // Obtener todos los valores actuales del formulario
+      const formValues = this.formE.getRawValue();
+
+      // Asegurarse de incluir el idInforme
+      formValues['idInforme'] = this.selectedInforme.idInforme;
+
+      // Enviar los datos al backend
+      this.puertoService.editFormEPuerto(formValues).subscribe({
+        next: (response) => {
+          console.log('Formulario actualizado:', response);
+          this.isEditingFormE = false;
+
+          // Recargar los datos del formulario desde el servidor
+          this.loadFormE(this.selectedInforme.idInforme);
+
+          // Mostrar mensaje de éxito
+          this.showMessage = true;
+          this.messageText = 'Datos actualizados exitosamente.';
+          this.messageType = 'success';
+          setTimeout(() => {
+            this.showMessage = false;
+          }, 3000);
+        },
+        error: (error) => {
+          console.error('Error al guardar:', error);
+
+          // Mostrar mensaje de error
+          this.messageText = 'Error al guardar los datos. Inténtalo de nuevo.';
+          this.messageType = 'error';
+          this.showMessage = true;
+        },
+        complete: () => {
+          this.isSaving = false; // Desactivar el spinner
+        },
+      });
+    } else {
+      alert('Por favor complete los campos requeridos.');
+    }
+  }
+
+  saveFormE1Changes() {
+    if (this.formE1.valid && this.selectedInforme?.idInforme) {
+      this.isSaving = true; // Activar el spinner
+      this.savingMessage = 'Guardando cambios, por favor espere...';
+
+      const updatedData = {
+        ...this.formE1.getRawValue(), // Obtener todos los valores del formulario E1
+        idInforme: this.selectedInforme.idInforme, // Añadir ID del informe
+      };
+
+      // Reemplazar los campos vacíos por 0 antes de enviarlos al backend
+      Object.keys(updatedData).forEach((key) => {
+        if (updatedData[key] === '' || updatedData[key] === null) {
+          updatedData[key] = 0; // Reemplazar los valores vacíos con 0
+        }
+      });
+
+      // Llamada al servicio para guardar los datos
+      this.puertoService.editFormE1Puerto(updatedData).subscribe({
+        next: (response) => {
+          console.log('Formulario E1 actualizado exitosamente:', response);
+
+          // Actualizar los valores en el formulario después de guardar
+          this.formE1.patchValue({
+            comentarios: updatedData.comentarios,
+            ganchoAntes: updatedData.ganchoAntes,
+            ganchoDespues: updatedData.ganchoDespues,
+            ganchoHInicio: updatedData.ganchoHInicio,
+            ganchoHTermino: updatedData.ganchoHTermino,
+            ganchoResultado: updatedData.ganchoResultado,
+            ganchoAuxAntes: updatedData.ganchoAuxAntes,
+            ganchoAuxDespues: updatedData.ganchoAuxDespues,
+            ganchoAuxHInicio: updatedData.ganchoAuxHInicio,
+            ganchoAuxHTermino: updatedData.ganchoAuxHTermino,
+            ganchoAuxResultado: updatedData.ganchoAuxResultado
+          });
+          this.loadFormE1(this.selectedInforme.idInforme);
+
+          // Actualizar la variable de visualización de comentarios
+          this.formE1Data.comentarios = updatedData.comentarios;
+
+          // Mostrar mensaje de éxito
+          this.showMessage = true;
+          this.messageText = 'Datos actualizados exitosamente.';
+          this.messageType = 'success';
+          setTimeout(() => (this.showMessage = false), 3000);
+
+          this.isEditingFormE1 = false;
+        },
+        error: (error) => {
+          console.error('Error al actualizar el formulario E1:', error);
+          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+          this.messageType = 'error';
+          this.showMessage = true;
+        },
+        complete: () => {
+          this.isSaving = false; // Desactivar el spinner
+        }
+      });
+    } else {
+      alert('Por favor completa todos los campos antes de guardar.');
+    }
+  }
+
 
   openModal(item: any, allowImages: boolean): void {
   const idInforme = this.selectedInforme?.idInforme;
