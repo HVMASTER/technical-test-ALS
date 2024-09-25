@@ -1,0 +1,25 @@
+<div class="modal">
+  <div class="modal-content">
+    <h2>Agregar Descripción y Subir Imágenes</h2>
+
+    <!-- Bloque de imágenes subidas -->
+    <div *ngFor="let img of images; let i = index" class="image-upload">
+      <div class="content-image">
+        <img *ngIf="img" [src]="img" alt="Imagen subida" />
+      </div>
+      <div class="description-wrapper">
+        <textarea [(ngModel)]="descripcionSF[i]" placeholder="Descripción de la imagen"></textarea>
+      </div>
+      <button (click)="removeImage(i)" class="delete-btn">✖</button>
+    </div>
+
+    <!-- Input para subir imágenes -->
+    <div class="image-upload">
+      <input *ngIf="images.length < 2" type="file" (change)="onFileSelected($event)" />
+    </div>
+
+    <!-- Botones para guardar y cancelar -->
+    <button [disabled]="!canSave" (click)="onSave()">Guardar</button>
+    <button (click)="onCancel()">Cancelar</button>
+  </div>
+</div>

@@ -392,7 +392,8 @@ async deletePhotos(item: any) {
           const fotoData = {
             idInforme: idInforme,
             idDetalle: idDetalle,
-            numeroInforme: numeroInforme
+            numeroInforme: numeroInforme,
+            foto: foto.foto,
           };
           await lastValueFrom(this.telescopicaService.deleteFotoTelescopicasByIdDetalle(fotoData));
           console.log(`Foto eliminada para idDetalle: ${idDetalle}`);
@@ -898,15 +899,15 @@ async deletePhotos(item: any) {
   }
 
   convertBase64ToBlob(base64: string): Blob {
-  const byteString = atob(base64.split(',')[1]);
-  const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
-  const ab = new ArrayBuffer(byteString.length);
-  const ia = new Uint8Array(ab);
-  for (let i = 0; i < byteString.length; i++) {
-    ia[i] = byteString.charCodeAt(i);
+    const byteString = atob(base64.split(',')[1]);
+    const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
   }
-  return new Blob([ab], { type: mimeString });
-}
 
   saveChanges() {
     if (this.informeForm.valid && this.selectedInforme) {
@@ -981,10 +982,11 @@ async deletePhotos(item: any) {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
           formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1096,10 +1098,11 @@ async deletePhotos(item: any) {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
           formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1211,10 +1214,11 @@ async deletePhotos(item: any) {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
           formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1326,10 +1330,11 @@ async deletePhotos(item: any) {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
           formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1441,10 +1446,11 @@ async deletePhotos(item: any) {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
           formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1556,10 +1562,11 @@ async deletePhotos(item: any) {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
           formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1759,7 +1766,7 @@ async deletePhotos(item: any) {
     if (descripcionesToUpdate.length === 0) {
       console.log('No se encontraron descripciones modificadas para actualizar.');
       this.isSaving = false;
-      this.isEditingFormG = false; // Usar isEditingFormG en vez de isEditingDescription
+      this.isEditingFormG = false; 
       return;
     }
 
@@ -1792,7 +1799,7 @@ async deletePhotos(item: any) {
               }
 
               this.isSaving = false;
-              this.isEditingFormG = false; // Cambiar a isEditingFormG en vez de isEditingDescription
+              this.isEditingFormG = false; 
               setTimeout(() => (this.showMessage = false), 3000);
             }
           },
@@ -1928,17 +1935,13 @@ async deletePhotos(item: any) {
   closeModal(modalData: { description: string; images: string[]; imagesNames: string[] }): void {
   if (this.currentItemIndex !== null) {
     const currentItem = this.itemsWithStatus[this.currentItemIndex];
-
-    // Actualizar la descripción
     currentItem.descripcionNoCumple = modalData.description;
 
     // Si allowImages es true, manejar las imágenes, de lo contrario, ignorarlas
     if (this.allowImages) {
-      // Reiniciar las imágenes antes de agregar las nuevas para evitar duplicados
       currentItem.images = [...modalData.images];
-      currentItem.imagesNames = [...modalData.imagesNames];
+      currentItem.imagesNames = modalData.images.map((index) => `${Date.now()}.png`);
 
-      // Verificar que no se estén duplicando imágenes antes de subir
       if (currentItem.images.length > 0 && currentItem.imagesNames.length === currentItem.images.length) {
         console.log('Imágenes almacenadas en el item:', currentItem.images);
         console.log('Nombres de imágenes almacenados en el item:', currentItem.imagesNames);
