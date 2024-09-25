@@ -40,6 +40,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   isEditingFormE = false;
   isEditingFormE1 = false;
   isEditingFormF = false;
+  isEditingImages = false;
   isLoading = false;
   isLoadingPdf = false;
   isSaving = false;
@@ -64,6 +65,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
     { idStatus: 3, alias: 'N/A' },
     { idStatus: 4, alias: 'RE' },
   ];
+  maxPhotoNumber: number = 0;
   defaultEmptyRows = new Array(7);
   onAccept: () => void = () => {};
   onCancel: () => void = () => {};
@@ -672,20 +674,33 @@ async deletePhotos(item: any) {
   }
 
   private loadSetFotografico(idInforme: number) {
-    this.puertoService
-      .getSetFotograficoByIdInformePuerto(idInforme)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          if (response.success && response.photos.length > 0) {
-            this.photos = response.photos;
-          }
-        },
-        error: (error) => {
-          console.error('Error fetching set fotografico:', error);
-        },
-      });
-  }
+  this.puertoService
+    .getSetFotograficoByIdInformePuerto(idInforme)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        if (response.success && response.photos.length > 0) {
+          this.photos = response.photos;
+
+          // Obtener el número más alto entre las fotos cargadas
+          this.maxPhotoNumber = this.getMaxPhotoNumber(this.photos); 
+        } else {
+          this.photos = [];
+          this.maxPhotoNumber = 0; // Si no hay fotos, el número inicial es 0
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching set fotografico:', error);
+      },
+    });
+}
+
+// Método para obtener el número más alto de las fotos
+getMaxPhotoNumber(photos: any[]): number {
+  if (photos.length === 0) return 0; // Si no hay fotos, empezamos desde 0
+
+  return Math.max(...photos.map(photo => photo.numero)); // Devolvemos el número más alto
+}
 
   refreshStatus() {
     if (this.selectedInforme) {
@@ -834,6 +849,10 @@ async deletePhotos(item: any) {
       this.informeForm.patchValue(this.originalValues);
       this.informeForm.disable(); // Deshabilitar el formulario fuera del modo edición
     }
+  }
+
+  toggleEditImages() {
+    this.isEditingImages = !this.isEditingImages;
   }
 
   toggleGanchoPrincipal() {
@@ -1442,6 +1461,12 @@ async deletePhotos(item: any) {
     }
   }
 
+  // Guardar cambios de edición (como los comentarios)
+  saveImageChanges() {
+    // Aquí puedes agregar la lógica para guardar los cambios en el backend si es necesario
+    console.log('Cambios de imágenes guardados:', this.photos);
+    this.isEditingImages = false; // Salir del modo de edición
+  }
 
   openModal(item: any, allowImages: boolean): void {
   const idInforme = this.selectedInforme?.idInforme;
@@ -1592,6 +1617,7 @@ private uploadDescripciones(descripciones: any[]) {
     this.modalInstance = {
       idInforme: this.selectedInforme?.idInforme,
       numeroInforme: this.selectedInforme?.numeroInforme,
+      maxPhotoNumber: this.maxPhotoNumber,
       allowImages: true,
       uploadImageService: this.uploadSetFotograficoService.bind(this) // Servicio de subida
     };
@@ -1600,65 +1626,98 @@ private uploadDescripciones(descripciones: any[]) {
 
   // Acción al guardar desde el modal
   async onSaveSetFotografico(event: { descripcionSF: string[]; images: Blob[]; imageNames: string[] }) {
-    if (event.images.length > 0) {
-      this.isSaving = true; // Activar el spinner
-      this.savingMessage = 'Subiendo imágenes, por favor espere...';
+  if (event.images.length > 0) {
+    this.isSaving = true; // Activar el spinner
+    this.savingMessage = 'Subiendo imágenes, por favor espere...';
 
-      let uploadCount = 0; // Contador de imágenes subidas correctamente
+    let uploadCount = 0; // Contador de imágenes subidas correctamente
 
-      try {
-        // Subir imágenes de manera secuencial
-        for (let index = 0; index < event.images.length; index++) {
-          const image = event.images[index];
-          const formData = new FormData();
-          formData.append('idInforme', this.selectedInforme.idInforme.toString());
-          formData.append('numeroInforme', this.selectedInforme.numeroInforme);
+    try {
+      // Subir imágenes de manera secuencial
+      for (let index = 0; index < event.images.length; index++) {
+        const image = event.images[index];
+        const formData = new FormData();
+        formData.append('idInforme', this.selectedInforme.idInforme.toString());
+        formData.append('numeroInforme', this.selectedInforme.numeroInforme);
 
-          // Agregar la descripción correspondiente
-          formData.append('descripcionSF', event.descripcionSF[index]);
+        // Asignar un número consecutivo para cada imagen subida
+        const newPhotoNumber = this.maxPhotoNumber + 1;
+        this.maxPhotoNumber = newPhotoNumber; // Actualizar el número máximo
 
-          // Agregar la imagen correspondiente
-          formData.append('data', image);
-          formData.append('foto', event.imageNames[index]);
-          formData.append('numero', (index + 1).toString());
+        // Agregar la descripción correspondiente
+        formData.append('descripcionSF', event.descripcionSF[index]);
 
-          // Esperar a que la imagen se suba antes de continuar con la siguiente
-          const response = await this.uploadSetFotograficoService(formData).pipe(takeUntil(this.destroy$)).toPromise();
-          console.log(`Imagen ${index + 1} subida con éxito:`, response);
-          
-          // Cargar inmediatamente las imágenes subidas para que se muestren en la vista
-          this.loadSetFotografico(this.selectedInforme.idInforme);
+        // Agregar la imagen correspondiente
+        formData.append('data', image);
+        formData.append('foto', event.imageNames[index]);
+        formData.append('numero', newPhotoNumber.toString()); // Usar el número consecutivo
 
-          // Incrementar el contador de imágenes subidas
-          uploadCount++;
+        // Esperar a que la imagen se suba antes de continuar con la siguiente
+        const response = await this.uploadSetFotograficoService(formData).pipe(takeUntil(this.destroy$)).toPromise();
+        console.log(`Imagen ${index + 1} subida con éxito:`, response);
+        
+        // Cargar inmediatamente las imágenes subidas para que se muestren en la vista
+        this.loadSetFotografico(this.selectedInforme.idInforme);
 
-          // Si todas las imágenes se han subido, mostrar mensaje de éxito y detener el spinner
-          if (uploadCount === event.images.length) {
-            this.showMessage = true;
-            this.messageText = 'Imágenes subidas exitosamente.';
-            this.messageType = 'success';
-            setTimeout(() => (this.showMessage = false), 3000);
+        // Incrementar el contador de imágenes subidas
+        uploadCount++;
 
-            this.showSetFotograficoModal = false; // Cerrar el modal al finalizar
-            this.isSaving = false; // Desactivar el spinner
-          }
+        // Si todas las imágenes se han subido, mostrar mensaje de éxito y detener el spinner
+        if (uploadCount === event.images.length) {
+          this.showMessage = true;
+          this.messageText = 'Imágenes subidas exitosamente.';
+          this.messageType = 'success';
+          setTimeout(() => (this.showMessage = false), 3000);
+
+          this.showSetFotograficoModal = false; // Cerrar el modal al finalizar
+          this.isSaving = false; // Desactivar el spinner
         }
-      } catch (error) {
-        console.error('Error al subir las imágenes:', error);
-        this.messageText = 'Error al subir las imágenes. Inténtalo de nuevo.';
-        this.messageType = 'error';
-        this.showMessage = true;
-        this.isSaving = false; // Desactivar el spinner en caso de error
       }
-    } else {
-      alert('No hay imágenes para subir.');
+    } catch (error) {
+      console.error('Error al subir las imágenes:', error);
+      this.messageText = 'Error al subir las imágenes. Inténtalo de nuevo.';
+      this.messageType = 'error';
+      this.showMessage = true;
+      this.isSaving = false; // Desactivar el spinner en caso de error
     }
+  } else {
+    alert('No hay imágenes para subir.');
   }
+}
 
 
   // Cancelar la subida
   onCancelSetFotografico() {
     this.showSetFotograficoModal = false;
+  }
+
+  // Confirmar y eliminar la imagen seleccionada
+  async confirmDeletePhoto(photo: any, index: number) {
+    const confirmDelete = confirm(`¿Estás seguro de que deseas eliminar esta imagen?`);
+    
+    if (confirmDelete) {
+      await this.deleteSetFotograficoPhoto(photo, index);
+    }
+  }
+
+  async deleteSetFotograficoPhoto(photo: any, index: number) {
+    const idInforme = this.selectedInforme.idInforme;
+    const numeroInforme = this.selectedInforme.numeroInforme;
+
+    const fotoData = {
+      idInforme: idInforme,
+      numeroInforme: numeroInforme,
+      foto: photo.foto, // Nombre de la imagen
+      numero: photo.numero // Número de la imagen
+    };
+
+    try {
+      await lastValueFrom(this.puertoService.deleteFotoSetFotograficoPuerto(fotoData));
+      console.log(`Imagen eliminada: ${photo.foto}`);
+      this.photos.splice(index, 1); // Eliminar la imagen del array de fotos
+    } catch (error) {
+      console.error('Error al eliminar la imagen:', error);
+    }
   }
 
 }

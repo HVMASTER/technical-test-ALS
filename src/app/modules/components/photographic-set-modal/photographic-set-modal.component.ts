@@ -9,6 +9,7 @@ export class PhotographicSetModalComponent {
   @Input() idInforme!: any;
   @Input() numeroInforme!: string;
   @Input() allowImages: boolean = true;
+  @Input() maxPhotoNumber: number = 0;
 
   // Servicio de subida de imágenes
   @Input() uploadImageService!: (formData: FormData) => any;
@@ -45,7 +46,7 @@ export class PhotographicSetModalComponent {
       this.images.push(base64Image); 
       this.imageBlobs.push(file);
       this.descripcionSF.push(''); // Inicializar descripción vacía
-      this.currentImageIndex++;
+      this.maxPhotoNumber++;
     }
   }
 

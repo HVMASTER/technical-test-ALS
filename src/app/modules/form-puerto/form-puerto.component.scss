@@ -802,3 +802,20 @@ table.custom-table {
     font-size: 12px;
   }
 }}
+
+.photo-item {
+  position: relative;
+}
+
+.delete-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+

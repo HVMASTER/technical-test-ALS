@@ -2262,23 +2262,44 @@
             >
               <strong>{{ tituloForm[7].nombre }}</strong>
             </h2>
-            <!-- Botón para abrir el modal -->
-            <button (click)="openSetFotograficoModal()">Agregar Imágenes</button>
-            <div class="photo-grid">
-              <div *ngFor="let photo of photos" class="photo-item">
-                <img
-                  [src]="'data:image/png;base64,' + photo.data"
-                  [alt]="photo.descripcionSF"
-                />
-                <span>{{ photo.descripcionSF }}</span>
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <div class="edit-save-buttons">
+                <button type="button" (click)="toggleEditImages()">
+                  {{ isEditingImages ? "Cancelar" : "Editar" }}
+                </button>
+                <button type="button" *ngIf="isEditingImages" (click)="saveImageChanges()">
+                  Guardar
+                </button>
               </div>
+              <!-- Botón para abrir el modal -->
+              <button (click)="openSetFotograficoModal()">Agregar Imágenes</button>
             </div>
+            <div class="photo-grid">
+  <div *ngFor="let photo of photos; let i = index" class="photo-item">
+    <!-- Mostrar la imagen -->
+    <img [src]="'data:image/png;base64,' + photo.data" [alt]="photo.descripcionSF" />
+
+    <!-- Editar la descripción si estamos en modo edición -->
+    <div *ngIf="isEditingImages; else viewMode">
+      <!-- <textarea [(ngModel)]="photo.descripcionSF"></textarea> -->
+
+      <!-- Botón para eliminar la imagen -->
+      <button (click)="confirmDeletePhoto(photo, i)" class="delete-btn">Eliminar</button>
+    </div>
+
+    <!-- Modo de visualización de la descripción -->
+    <ng-template #viewMode>
+      <span>{{ photo.descripcionSF }}</span>
+    </ng-template>
+  </div>
+</div>
 
             <app-photographic-set-modal
               *ngIf="showSetFotograficoModal && modalInstance"
               [idInforme]="modalInstance?.idInforme"
               [numeroInforme]="modalInstance?.numeroInforme"
               [allowImages]="modalInstance?.allowImages"
+              [maxPhotoNumber]="modalInstance?.maxPhotoNumber"
               [uploadImageService]="modalInstance?.uploadImageService"
               (save)="onSaveSetFotografico($event)"
               (cancel)="onCancelSetFotografico()"

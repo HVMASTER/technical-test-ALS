@@ -98,4 +98,8 @@ export class PuertoService {
   deleteFotoPuertoByIdDetalle(data: any) {
     return this.http.request<any>('delete', `${this.baseUrl}deleteFotoPuertoByIdDetalle`, { body: data });
   }
+
+  deleteFotoSetFotograficoPuerto(data: any) {
+    return this.http.request<any>('delete', `${this.baseUrl}deleteFotoSetFotograficoPuerto`, { body: data });
+  }
 }
