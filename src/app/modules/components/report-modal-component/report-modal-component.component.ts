@@ -36,7 +36,8 @@ export class ReportModalComponentComponent {
   async onFileSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
-      this.imageNames.push(file.name);
+      const imageName = `${Date.now()}.png`;
+      this.imageNames.push(imageName);
       const base64Image = await this.convertBlobToBase64(file);
       this.images.push(base64Image); 
       this.imageBlobs.push(file);

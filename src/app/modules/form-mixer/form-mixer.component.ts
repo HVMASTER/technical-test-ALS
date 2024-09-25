@@ -1039,10 +1039,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
           formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1154,10 +1155,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
-          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1269,10 +1271,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
-          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1385,10 +1388,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
-          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1500,10 +1504,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
-          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1615,10 +1620,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
-          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1731,10 +1737,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
-          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1847,10 +1854,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
-          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -1963,10 +1971,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
-          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -2079,10 +2088,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
-          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -2195,10 +2205,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
-          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -2311,10 +2322,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
-          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -2427,10 +2439,11 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       if (item.imagesNames?.length > 0 && item.images?.length > 0) {
         item.images.forEach((image: string, index: number) => {
           const formData = new FormData();
+          const imageName = `${Date.now()}.png`;
           formData.append('idInforme', idInforme.toString());
-          formData.append('numeroInforme', numeroInforme); // Añadir numeroInforme al FormData
+          formData.append('numeroInforme', numeroInforme);  // Añadir numeroInforme al FormData
           formData.append('idDetalle', item.idDetalle.toString());
-          formData.append('foto', item.imagesNames[index]);
+          formData.append('foto', imageName);
           formData.append('data', this.convertBase64ToBlob(item.images[index]));
           formData.append('numero', (index + 1).toString()); // Número de imagen
           formData.append('idStatus', item.idStatus.toString());
@@ -2756,7 +2769,7 @@ export class FormMixerComponent implements OnInit, OnDestroy {
       const currentItem = this.itemsWithStatus[this.currentItemIndex];
       currentItem.descripcionNoCumple = modalData.description;
       currentItem.images = modalData.images;
-      currentItem.imagesNames = modalData.imagesNames;
+      currentItem.imagesNames = modalData.images.map((index) => `${Date.now()}.png`);
 
       if (currentItem.idStatus === 2) {
         currentItem.alias = 'N/C';
@@ -2802,7 +2815,8 @@ export class FormMixerComponent implements OnInit, OnDestroy {
           const fotoData = {
             idInforme: idInforme,
             idDetalle: idDetalle,
-            numeroInforme: numeroInforme
+            numeroInforme: numeroInforme,
+            foto: foto.foto,
           };
           await lastValueFrom(this.mixerService.deleteFotoMixerByIdDetalle(fotoData));
           console.log(`Foto eliminada para idDetalle: ${idDetalle}`);
