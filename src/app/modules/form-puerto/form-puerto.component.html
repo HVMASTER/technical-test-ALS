@@ -2151,7 +2151,7 @@
             <h2 class="subtitle" *ngIf="tituloForm.length > 0">
               {{ tituloForm[6].nombre }}
             </h2>
-            <!-- <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
               <button type="button" (click)="toggleEditFormF()">
                 {{ isEditingFormF ? "Cancelar" : "Editar" }}
               </button>
@@ -2162,7 +2162,7 @@
               >
                 Guardar
               </button>
-            </div> -->
+            </div>
             <form class="padding-none" [formGroup]="informeForm">
               <div class="form-row border-color primary-row-color">
                 <label class="font-size-20"
@@ -2175,18 +2175,23 @@
               </div>
               <!-- Modo Edición -->
               <ng-container *ngIf="isEditingFormF; else viewModeResultGeneral">
-                <label class="center cursor-pointer">
-                  <input type="radio" formControlName="idResul" [value]="1" />
-                  <div class="font-weight-100">
-                    <h3><span class="underline">Sin</span> salvedades</h3>
-                  </div>
-                </label>
-                <label class="center cursor-pointer">
-                  <input type="radio" formControlName="idResul" [value]="2" />
-                  <div class="font-weight-100">
-                    <h3><span class="underline">Sin</span> salvedades</h3>
-                  </div>
-                </label>
+                <div class="flexResul">
+                  <label class="center cursor-pointer display-content">
+                    <div class="font-weight-100">
+                      <h3><span class="underline">Sin</span> salvedades</h3>
+                    </div>
+                    <input type="radio" formControlName="idResul" [value]="1" />
+                  </label>
+                </div>
+                <div class="flexResul">
+                  <label class="center cursor-pointer display-content">
+                    <div class="font-weight-100">
+                      <h3><span class="underline">Con</span> salvedades</h3>
+                    </div>
+                    <input type="radio" formControlName="idResul" [value]="2" />
+                  </label>
+                </div>
+                <span>(ver sección D de este informe)</span>
               </ng-container>
               <!-- Modo Visualización -->
 

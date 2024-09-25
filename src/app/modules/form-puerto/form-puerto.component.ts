@@ -821,6 +821,20 @@ async deletePhotos(item: any) {
     this.isEditingFormE1 = !this.isEditingFormE1;
   }
 
+  toggleEditFormF() {
+    this.isEditingFormF = !this.isEditingFormF;
+
+    if (this.isEditingFormF) {
+      // Guardar los valores actuales antes de comenzar la edición
+      this.originalValues = this.informeForm.getRawValue();
+      this.informeForm.enable(); // Habilitar el formulario en modo edición
+    } else {
+      // Si se cancela la edición, restaurar los valores originales
+      this.informeForm.patchValue(this.originalValues);
+      this.informeForm.disable(); // Deshabilitar el formulario fuera del modo edición
+    }
+  }
+
   toggleGanchoPrincipal() {
     if (this.formEData?.ganchoPrincipal > 0) {
       this.showGanchoPrincipal = !this.showGanchoPrincipal;
@@ -1387,6 +1401,40 @@ async deletePhotos(item: any) {
         complete: () => {
           this.isSaving = false; // Desactivar el spinner
         }
+      });
+    } else {
+      alert('Por favor completa todos los campos antes de guardar.');
+    }
+  }
+
+  saveFormFChanges() {
+    if (this.informeForm.get('idResul')?.valid) {
+      const currentFormData = this.informeForm.getRawValue(); 
+
+      const formIData = {
+        ...currentFormData, 
+        idResul: this.informeForm.get('idResul')?.value,
+        idInforme: this.selectedInforme.idInforme,
+      };
+
+      // Llamada al servicio para actualizar solo el idResul sin modificar otros campos
+      this.puertoService.editInformePuerto(formIData).subscribe({
+        next: (response) => {
+          console.log('idResul actualizado exitosamente', response);
+          this.isEditingFormF = false;
+          this.showMessage = true;
+          this.messageText = 'Datos actualizados exitosamente.';
+          this.messageType = 'success';
+          setTimeout(() => (this.showMessage = false), 3000);
+          this.selectedInforme.idResul = formIData.idResul;
+        },
+        error: (error) => {
+          console.error('Error al actualizar el idResul', error);
+          this.messageText =
+            'Error al actualizar los datos. Inténtalo de nuevo.';
+          this.messageType = 'error';
+          this.showMessage = true;
+        },
       });
     } else {
       alert('Por favor completa todos los campos antes de guardar.');
