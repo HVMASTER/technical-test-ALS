@@ -50,7 +50,7 @@ export class PhotographicSetModalComponent {
   async onFileSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
-      const imageName = `${Date.now()}-${this.currentImageIndex}.png`;
+      const imageName = `${Date.now()}-${this.maxPhotoNumber + 1}.png`;
       this.imageNames.push(imageName);
       const base64Image = await this.convertBlobToBase64(file);
       this.images.push(base64Image); 
@@ -73,13 +73,17 @@ export class PhotographicSetModalComponent {
   }
 
   // Eliminar imagen
-  removeImage(index: number) {
-    this.images.splice(index, 1); // Eliminar de la lista de imágenes base64
-    this.imageBlobs.splice(index, 1); // Eliminar el blob de la imagen
-    this.imageNames.splice(index, 1); // Eliminar el nombre de la imagen
-    this.descripcionSF.splice(index, 1); // Eliminar la descripción asociada a esa imagen
-    this.currentImageIndex--;
-  }
+removeImage(index: number) {
+  const imageName = this.imageNames[index]; // Identifica la imagen a eliminar
+  console.log(`Eliminando imagen: ${imageName}`);
+  
+  // Eliminar solo la imagen y la descripción asociada sin afectar las demás
+  this.images.splice(index, 1); // Eliminar la imagen base64
+  this.imageBlobs.splice(index, 1); // Eliminar el blob
+  this.imageNames.splice(index, 1); // Eliminar el nombre de la imagen
+  this.descripcionSF.splice(index, 1); // Eliminar la descripción
+}
+
 
   // Guardar datos del modal
   onSave() {
