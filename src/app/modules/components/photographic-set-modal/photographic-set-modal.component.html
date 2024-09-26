@@ -15,7 +15,7 @@
 
     <!-- Input para subir imágenes -->
     <div class="image-upload">
-      <input *ngIf="images.length < 2" type="file" (change)="onFileSelected($event)" />
+       <input *ngIf="images.length < (maxPhotoNumber < 6 ? 1 : 2)" type="file" (change)="onFileSelected($event)" />
     </div>
 
     <!-- Botones para guardar y cancelar -->

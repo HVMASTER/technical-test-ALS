@@ -29,12 +29,22 @@ export class PhotographicSetModalComponent {
 
   // Propiedad para habilitar/deshabilitar el botón de guardar
   get canSave(): boolean {
+  // Si hay menos de 6 imágenes, permitir subir solo una imagen con su descripción
+  if (this.maxPhotoNumber < 6) {
     return (
-      this.images.length === 2 && // Asegurarse de que haya 2 imágenes
-      this.descripcionSF.length === 2 && // Asegurarse de que haya 2 descripciones
-      this.descripcionSF.every(desc => desc.trim().length > 0) // Verificar que cada descripción no esté vacía
+      this.images.length === 1 && // Solo permitir 1 imagen
+      this.descripcionSF.length === 1 && // Debe haber una descripción
+      this.descripcionSF[0].trim().length > 0 // Verificar que la descripción no esté vacía
     );
   }
+
+  // Si hay 6 o más imágenes, permitir subir una o dos imágenes
+  return (
+    (this.images.length === 1 || this.images.length === 2) && // Permitir 1 o 2 imágenes
+    this.descripcionSF.length === this.images.length && // Debe haber tantas descripciones como imágenes
+    this.descripcionSF.every(desc => desc.trim().length > 0) // Verificar que cada descripción no esté vacía
+  );
+}
 
   // Manejo de archivos seleccionados
   async onFileSelected(event: Event) {

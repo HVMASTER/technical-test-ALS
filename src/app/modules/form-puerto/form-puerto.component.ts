@@ -17,6 +17,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   formE: FormGroup;
   formE1: FormGroup;
   modalInstance: any = null;
+  deletedPhoto: any = null;
   selectedInforme: any | null = null;
   fechaEmisionInforme: string | null = null;
   currentItemIndex: number | null = null;
@@ -735,31 +736,39 @@ getMaxPhotoNumber(photos: any[]): number {
   }
 
   toggleEdit() {
-    if (!this.isEditing) {
-        // Guardar los valores actuales antes de comenzar la edición
-        this.originalValues = this.informeForm.getRawValue();
-        this.informeForm.enable(); // Habilitar el formulario en modo edición
-    } else {
-        // Si se cancela la edición, restaurar los valores originales
-        this.informeForm.patchValue(this.originalValues);
-        this.informeForm.disable(); // Deshabilitar el formulario fuera del modo edición
-    }
-    this.isEditing = !this.isEditing;
+  if (!this.isAnyEditing) {
+    this.isEditing = true;
+    this.isAnyEditing = true;
+    this.originalValues = this.informeForm.getRawValue();
+    this.informeForm.enable(); 
+  } else if (this.isEditing) {
+    this.informeForm.patchValue(this.originalValues);
+    this.informeForm.disable();
+    this.isEditing = false;
+    this.isAnyEditing = false;
+  } else {
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
+}
 
   toggleEditStatusA() {
-    this.isEditingStatusA = !this.isEditingStatusA;
-
-    if (this.isEditingStatusA) {
-      // Guarda los valores actuales para que puedan ser restaurados si se cancela la edición
-      this.originalValues = this.itemsWithStatus.map((item) => ({ ...item }));
-    } else {
-      // Restaura los valores originales si se cancela la edición
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
+  if (!this.isAnyEditing) {
+    this.isEditingStatusA = true;
+    this.isAnyEditing = true;
+    this.originalValues = JSON.parse(JSON.stringify(this.itemsWithStatus)); 
+  } else if (this.isEditingStatusA) {
+    this.itemsWithStatus = JSON.parse(JSON.stringify(this.originalValues)); 
+    this.isEditingStatusA = false;
+    this.isAnyEditing = false; 
+  } else {
+    this.messageText =
+      'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
+}
 
   toggleEditStatusB() {
     this.isEditingStatusB = !this.isEditingStatusB;
@@ -1611,66 +1620,68 @@ private uploadDescripciones(descripciones: any[]) {
 
   uploadSetFotograficoService(formData: FormData) {
     return this.puertoService.sendSetFotograficoPuerto(formData);
-  }
+}
 
-  openSetFotograficoModal() {
+openSetFotograficoModal() {
+    const nextPhotoNumber = this.maxPhotoNumber || this.photos.length + 1;
+
     this.modalInstance = {
-      idInforme: this.selectedInforme?.idInforme,
-      numeroInforme: this.selectedInforme?.numeroInforme,
-      maxPhotoNumber: this.maxPhotoNumber,
-      allowImages: true,
-      uploadImageService: this.uploadSetFotograficoService.bind(this) // Servicio de subida
+        idInforme: this.selectedInforme?.idInforme,
+        numeroInforme: this.selectedInforme?.numeroInforme,
+        maxPhotoNumber: nextPhotoNumber,
+        allowImages: true,
+        uploadImageService: this.uploadSetFotograficoService.bind(this)
     };
     this.showSetFotograficoModal = true;
-  }
+}
 
-  // Acción al guardar desde el modal
-  async onSaveSetFotografico(event: { descripcionSF: string[]; images: Blob[]; imageNames: string[] }) {
+
+async onSaveSetFotografico(event: { descripcionSF: string[]; images: Blob[]; imageNames: string[] }) {
   if (event.images.length > 0) {
-    this.isSaving = true; // Activar el spinner
+    this.isSaving = true;
     this.savingMessage = 'Subiendo imágenes, por favor espere...';
 
-    let uploadCount = 0; // Contador de imágenes subidas correctamente
+    let uploadCount = 0;
 
     try {
-      // Subir imágenes de manera secuencial
       for (let index = 0; index < event.images.length; index++) {
         const image = event.images[index];
         const formData = new FormData();
         formData.append('idInforme', this.selectedInforme.idInforme.toString());
         formData.append('numeroInforme', this.selectedInforme.numeroInforme);
-
-        // Asignar un número consecutivo para cada imagen subida
         const newPhotoNumber = this.maxPhotoNumber + 1;
-        this.maxPhotoNumber = newPhotoNumber; // Actualizar el número máximo
+        this.maxPhotoNumber = newPhotoNumber;
 
-        // Agregar la descripción correspondiente
         formData.append('descripcionSF', event.descripcionSF[index]);
-
-        // Agregar la imagen correspondiente
         formData.append('data', image);
         formData.append('foto', event.imageNames[index]);
-        formData.append('numero', newPhotoNumber.toString()); // Usar el número consecutivo
+        formData.append('numero', newPhotoNumber.toString());
 
-        // Esperar a que la imagen se suba antes de continuar con la siguiente
         const response = await this.uploadSetFotograficoService(formData).pipe(takeUntil(this.destroy$)).toPromise();
-        console.log(`Imagen ${index + 1} subida con éxito:`, response);
-        
-        // Cargar inmediatamente las imágenes subidas para que se muestren en la vista
-        this.loadSetFotografico(this.selectedInforme.idInforme);
-
-        // Incrementar el contador de imágenes subidas
         uploadCount++;
 
-        // Si todas las imágenes se han subido, mostrar mensaje de éxito y detener el spinner
         if (uploadCount === event.images.length) {
           this.showMessage = true;
           this.messageText = 'Imágenes subidas exitosamente.';
           this.messageType = 'success';
           setTimeout(() => (this.showMessage = false), 3000);
+          this.showSetFotograficoModal = false;
+          this.isSaving = false;
 
-          this.showSetFotograficoModal = false; // Cerrar el modal al finalizar
-          this.isSaving = false; // Desactivar el spinner
+          // Confirmar la eliminación de la imagen en el backend
+          if (this.deletedPhoto) {
+            const fotoData = {
+              idInforme: this.selectedInforme.idInforme,
+              numeroInforme: this.selectedInforme.numeroInforme,
+              foto: this.deletedPhoto.foto,
+              numero: this.deletedPhoto.numero,
+            };
+            await lastValueFrom(this.puertoService.deleteFotoSetFotograficoPuerto(fotoData));
+            // Eliminar visualmente la foto del array `photos` antes de recargar la lista
+            this.photos = this.photos.filter((photo: any) => photo.numero !== this.deletedPhoto.numero);
+            this.deletedPhoto = null; 
+          }
+          this.loadSetFotografico(this.selectedInforme.idInforme);
         }
       }
     } catch (error) {
@@ -1678,46 +1689,59 @@ private uploadDescripciones(descripciones: any[]) {
       this.messageText = 'Error al subir las imágenes. Inténtalo de nuevo.';
       this.messageType = 'error';
       this.showMessage = true;
-      this.isSaving = false; // Desactivar el spinner en caso de error
+      this.isSaving = false;
     }
   } else {
     alert('No hay imágenes para subir.');
   }
 }
 
-
-  // Cancelar la subida
-  onCancelSetFotografico() {
-    this.showSetFotograficoModal = false;
+onCancelSetFotografico() {
+  if (this.photos.length < 6 && this.deletedPhoto) {
+    this.photos.push(this.deletedPhoto); // Restaurar la imagen eliminada si el modal es cancelado
+    this.deletedPhoto = null;
   }
+  this.showSetFotograficoModal = false;
+}
 
-  // Confirmar y eliminar la imagen seleccionada
-  async confirmDeletePhoto(photo: any, index: number) {
-    const confirmDelete = confirm(`¿Estás seguro de que deseas eliminar esta imagen?`);
-    
-    if (confirmDelete) {
-      await this.deleteSetFotograficoPhoto(photo, index);
+// Confirmar y eliminar la imagen seleccionada
+async confirmDeletePhoto(photo: any, index: number) {
+  const confirmDelete = confirm(`¿Estás seguro de que deseas eliminar esta imagen?`);
+
+  if (confirmDelete) {
+    // Guardar la imagen eliminada temporalmente
+    this.deletedPhoto = { ...photo };
+    this.photos.splice(index, 1); // Eliminar visualmente la imagen del array
+
+    if (this.photos.length < 6) {
+      // Si quedan menos de 6 imágenes, abrir el modal para agregar una nueva
+      this.maxPhotoNumber = photo.numero;
+      this.openSetFotograficoModal();
+    } else {
+      // Si hay más de 6 imágenes, preguntar si se desea agregar una nueva
+      this.maxPhotoNumber = photo.numero;
+      const addNewPhoto = confirm('¿Deseas agregar una nueva imagen?');
+
+      if (addNewPhoto) {
+        this.openSetFotograficoModal();
+      } else {
+        try {
+          const fotoData = {
+            idInforme: this.selectedInforme.idInforme,
+            numeroInforme: this.selectedInforme.numeroInforme,
+            foto: this.deletedPhoto.foto,
+            numero: this.deletedPhoto.numero,
+          };
+          await lastValueFrom(this.puertoService.deleteFotoSetFotograficoPuerto(fotoData));
+          console.log(`Imagen eliminada: ${this.deletedPhoto.foto}`);
+          this.deletedPhoto = null;
+        } catch (error) {
+          console.error('Error al eliminar la imagen del backend:', error);
+        }
+      }
     }
   }
+}
 
-  async deleteSetFotograficoPhoto(photo: any, index: number) {
-    const idInforme = this.selectedInforme.idInforme;
-    const numeroInforme = this.selectedInforme.numeroInforme;
-
-    const fotoData = {
-      idInforme: idInforme,
-      numeroInforme: numeroInforme,
-      foto: photo.foto, // Nombre de la imagen
-      numero: photo.numero // Número de la imagen
-    };
-
-    try {
-      await lastValueFrom(this.puertoService.deleteFotoSetFotograficoPuerto(fotoData));
-      console.log(`Imagen eliminada: ${photo.foto}`);
-      this.photos.splice(index, 1); // Eliminar la imagen del array de fotos
-    } catch (error) {
-      console.error('Error al eliminar la imagen:', error);
-    }
-  }
 
 }
