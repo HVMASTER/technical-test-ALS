@@ -2424,6 +2424,37 @@
           </form>
         </div>
       </div>
+
+      <div class="page">
+        <div class="content">
+          <form class="H">
+            <h2 class="center justifyCenter font-size-xxxlarge">
+        <strong>Set fotográfico No Conformidades</strong>
+      </h2>
+     <!-- <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+        <button type="button" (click)="toggleEditNcImages()"> {{ isEditingNcImages ? "Cancelar" : "Editar" }} </button>
+        <button type="button" *ngIf="isEditingNcImages" (click)="saveNcImageChanges()"> Guardar </button>
+        <button (click)="openNoConformidadesModal()"> Agregar Imágenes </button>
+      </div> -->
+      <div class="photo-grid">
+        <div [formGroup]="ncPhotoDescriptionsForm" class="display-content">
+          <div *ngFor="let photo of ncPhotos; let i = index" class="photo-item">
+            <img [src]="'data:image/png;base64,' + photo.data" [alt]="photo.descripFoto" />
+            <p>Ítem: {{ photo.idDetalle }} </p>
+            <div *ngIf="isEditingNcImages; else viewMode">
+              <input type="text" [formControlName]="'descripFoto_' + photo.idDetalle" placeholder="Editar descripción" />
+              <!-- <button (click)="confirmDeleteNcPhoto(photo)" class="delete-btn">Eliminar</button> -->
+            </div>
+            <ng-template #viewMode>
+              <span>{{ photo.descripFoto }}</span>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+          </form>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

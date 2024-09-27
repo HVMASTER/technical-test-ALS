@@ -39,6 +39,8 @@ export class FormPuertoComponent implements OnInit, OnDestroy {
   formEData: any;
   formE1Data: any;
   photos: any;
+  ncPhotos: any[] = [];
+  isEditingNcImages = false;
   isEditingStatusA = false;
   isEditingStatusB = false;
   isEditingStatusC = false;
@@ -73,6 +75,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy {
   ];
   maxPhotoNumber: number = 0;
   photoDescriptionsForm!: FormGroup;
+  ncPhotoDescriptionsForm!: FormGroup;
   defaultEmptyRows = new Array(7);
   onAccept: () => void = () => {};
   onCancel: () => void = () => {};
@@ -89,6 +92,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy {
     this.formE = this.createFormE();
     this.formE1 = this.createFormE1();
     this.photoDescriptionsForm = this.formBuilder.group({});
+    this.ncPhotoDescriptionsForm = this.formBuilder.group({});
   }
 
   private createPhotoDescriptionsForm() {
@@ -97,6 +101,14 @@ export class FormPuertoComponent implements OnInit, OnDestroy {
     group[`descripcionSF_${photo.numero}`] = new FormControl(photo.descripcionSF || '');
   });
   this.photoDescriptionsForm = this.formBuilder.group(group);
+}
+
+private createNcPhotoDescriptionsForm() {
+  const group: any = {};
+  this.ncPhotos.forEach((photo: { descripFoto: string, idDetalle: number }) => {
+    group[`descripFoto_${photo.idDetalle}`] = new FormControl(photo.descripFoto || '');
+  });
+  this.ncPhotoDescriptionsForm = this.formBuilder.group(group);
 }
 
   ngOnInit(): void {
@@ -322,6 +334,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy {
           this.loadFormE(informe.idInforme);
           this.loadFormE1(informe.idInforme);
           this.loadSetFotografico(informe.idInforme);
+          this.loadSetFotograficoNC(informe.idInforme);
         },
         error: (error) => {
           console.error('Error fetching informe details:', error);
@@ -581,6 +594,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy {
             await lastValueFrom(
               this.puertoService.deleteFotoPuertoByIdDetalle(fotoData)
             );
+            this.loadSetFotograficoNC(this.selectedInforme.idInforme);
             console.log(`Foto eliminada para idDetalle: ${idDetalle}`);
           }
         } else {
@@ -706,6 +720,21 @@ export class FormPuertoComponent implements OnInit, OnDestroy {
         if (response.success && response.photos.length > 0) {
           this.photos = response.photos;
           this.createPhotoDescriptionsForm(); // Crear el FormGroup una vez que las fotos estén cargadas
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching set fotografico:', error);
+      },
+    });
+  }
+
+  private loadSetFotograficoNC(idInforme: number) {
+    this.puertoService.getFotoByIdInformePuerto(idInforme).subscribe({
+      next: (response) => {
+        if (response.success && response.photos.length > 0) {
+          this.ncPhotos = response.photos;
+          console.log(this.ncPhotos);
+          this.createNcPhotoDescriptionsForm();
         }
       },
       error: (error) => {
@@ -1063,6 +1092,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy {
               // Refrescar los datos
               this.refreshNonConformities();
               this.refreshStatus();
+              this.loadSetFotograficoNC(this.selectedInforme.idInforme);
 
               setTimeout(() => (this.showMessage = false), 3000);
               this.isSaving = false;
