@@ -1846,14 +1846,7 @@ openSetFotograficoModal() {
         uploadCount++;
 
         if (uploadCount === event.images.length) {
-          this.showMessage = true;
-          this.messageText = 'Imágenes subidas exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-          this.showSetFotograficoModal = false;
-          this.isSaving = false;
-
-          // Eliminar imagen eliminada en el backend si existe
+          // Eliminar la imagen eliminada anteriormente si la subida es exitosa
           if (this.deletedPhoto) {
             const fotoData = {
               idInforme: this.selectedInforme.idInforme,
@@ -1865,8 +1858,23 @@ openSetFotograficoModal() {
 
             // Eliminar visualmente la foto y la descripción
             this.photos = this.photos.filter((photo: any) => photo.numero !== this.deletedPhoto.numero);
-            this.deletedPhoto = null;
+
+            // Eliminar el control del formulario
+            const controlName = `descripcionSF_${this.deletedPhoto.numero}`;
+            if (this.photoDescriptionsForm.contains(controlName)) {
+              this.photoDescriptionsForm.removeControl(controlName); // Eliminar el control del formulario
+            }
+
+            this.deletedPhoto = null; // Limpiar la imagen eliminada temporal
           }
+
+          this.showMessage = true;
+          this.messageText = 'Imágenes subidas exitosamente.';
+          this.messageType = 'success';
+          setTimeout(() => (this.showMessage = false), 3000);
+          this.showSetFotograficoModal = false;
+          this.isSaving = false;
+
           // Recargar el set fotográfico después de la subida
           this.loadSetFotografico(this.selectedInforme.idInforme);
         }
@@ -1884,44 +1892,143 @@ openSetFotograficoModal() {
 }
 
   onCancelSetFotografico() {
-  if (this.photos.length < 6 && this.deletedPhoto) {
-    this.photos.push(this.deletedPhoto); // Restaurar la imagen eliminada si el modal es cancelado
-    this.deletedPhoto = null;
-  }
-  this.showSetFotograficoModal = false;
-}
-
-  // Confirmar y eliminar la imagen seleccionada
-async confirmDeletePhoto(photo: any) {
-  const confirmDelete = confirm(`¿Estás seguro de que deseas eliminar esta imagen?`);
-
-  if (confirmDelete) {
-    this.deletedPhoto = { ...photo };
-
-    // Elimina la imagen del array de fotos
-    this.photos = this.photos.filter((p: any) => p.foto !== photo.foto);
-
-    // También elimina la descripción asociada a esa foto
-    if (this.photoDescriptionsForm.contains(`descripcionSF_${photo.numero}`)) {
-      this.photoDescriptionsForm.removeControl(`descripcionSF_${photo.numero}`);
+  if (this.deletedPhoto) {
+    // Restaurar la imagen eliminada si el modal es cancelado
+    const exists = this.photos.some((photo: any) => photo.numero === this.deletedPhoto.numero);
+    
+    if (!exists) {
+      this.photos.push(this.deletedPhoto);  // Restauramos solo si no está
     }
 
-    // Eliminar la imagen del backend
-    try {
+    // Habilitar el control asociado en el formulario
+    const controlName = `descripcionSF_${this.deletedPhoto.numero}`;
+    if (this.photoDescriptionsForm.contains(controlName)) {
+      this.photoDescriptionsForm.get(controlName)?.enable();  // Habilitamos el control nuevamente
+    }
+
+    this.deletedPhoto = null;  // Limpiar la imagen eliminada temporalmente
+
+    // Forzar la actualización de la lista de fotos y del formulario
+    this.cdr.detectChanges();
+  }
+
+  // Cerrar el modal
+  this.showSetFotograficoModal = false;
+
+  // Refrescar la vista por completo para evitar cualquier duplicación visual
+  setTimeout(() => {
+    this.loadSetFotografico(this.selectedInforme.idInforme);
+  }, 0);
+}
+
+async confirmDeletePhoto(photo: any) {
+  const confirmDelete = await this.showWarningMessage('¿Estás seguro de que deseas eliminar esta imagen?');
+
+  if (confirmDelete) {
+    // Almacenar temporalmente la imagen que se intenta eliminar
+    this.deletedPhoto = { ...photo };
+
+    // Condición 1: Si hay más de 6 imágenes, eliminar del backend inmediatamente
+    if (this.photos.length > 6) {
+      // Remover visualmente la imagen
+      this.photos = this.photos.filter((p: any) => p.foto !== photo.foto);
+
+      // Deshabilitar el control en lugar de eliminarlo
+      const controlName = `descripcionSF_${photo.numero}`;
+      if (this.photoDescriptionsForm.contains(controlName)) {
+        this.photoDescriptionsForm.get(controlName)?.disable();
+      }
+
+      // Eliminar la imagen del backend inmediatamente
       const fotoData = {
         idInforme: this.selectedInforme.idInforme,
         numeroInforme: this.selectedInforme.numeroInforme,
-        foto: this.deletedPhoto.foto,
-        numero: this.deletedPhoto.numero, // Incluye el número de la foto
+        foto: photo.foto,
+        numero: photo.numero,
       };
-      await lastValueFrom(this.puertoService.deleteFotoSetFotograficoPuerto(fotoData));
-      console.log(`Imagen eliminada del backend: ${photo.foto}`);
-    } catch (error) {
-      console.error('Error al eliminar la imagen del backend:', error);
+
+      try {
+        await lastValueFrom(this.puertoService.deleteFotoSetFotograficoPuerto(fotoData));
+        console.log(`Foto eliminada exitosamente del backend: ${photo.foto}`);
+      } catch (error) {
+        console.error('Error al eliminar la foto del backend:', error);
+        this.messageText = 'Error al eliminar la imagen del servidor.';
+        this.messageType = 'error';
+        this.showMessage = true;
+        setTimeout(() => (this.showMessage = false), 3000);
+      }
+
+      // Preguntar si desea reemplazar la imagen
+      const confirmReplace = await this.showWarningMessage('¿Deseas reemplazar la imagen eliminada con una nueva?');
+
+      if (confirmReplace) {
+        this.openSetFotograficoModal(); // Abrir modal para reemplazar la imagen
+      } else {
+        console.log('Imagen eliminada sin reemplazo.');
+      }
     }
 
-    this.deletedPhoto = null;
+    // Condición 2: Si hay exactamente 6 imágenes
+    else if (this.photos.length === 6) {
+      // Abrir el modal para reemplazar la imagen
+      this.openSetFotograficoModal();
+
+      // Esperar la respuesta del modal
+      const confirmReplace = await this.showWarningMessage('¿Deseas reemplazar la imagen eliminada con una nueva?');
+
+      if (confirmReplace) {
+        // Si se sube una nueva imagen, eliminar la anterior del backend
+        const fotoData = {
+          idInforme: this.selectedInforme.idInforme,
+          numeroInforme: this.selectedInforme.numeroInforme,
+          foto: photo.foto,
+          numero: photo.numero,
+        };
+
+        try {
+          await lastValueFrom(this.puertoService.deleteFotoSetFotograficoPuerto(fotoData));
+          console.log(`Foto eliminada exitosamente del backend: ${photo.foto}`);
+        } catch (error) {
+          console.error('Error al eliminar la foto del backend:', error);
+          this.messageText = 'Error al eliminar la imagen del servidor.';
+          this.messageType = 'error';
+          this.showMessage = true;
+          setTimeout(() => (this.showMessage = false), 3000);
+        }
+      } else {
+        // Si el usuario cancela el modal, restaurar la imagen visualmente
+        this.restoreDeletedPhoto();
+      }
+    }
   }
 }
+
+restoreDeletedPhoto() {
+  // Restaurar la imagen eliminada en la vista
+  this.photos.push(this.deletedPhoto);
+
+  // Habilitar el control asociado en el formulario nuevamente
+  const controlName = `descripcionSF_${this.deletedPhoto.numero}`;
+  if (this.photoDescriptionsForm.contains(controlName)) {
+    this.photoDescriptionsForm.get(controlName)?.enable();
+  }
+
+  // Limpiar la imagen eliminada temporalmente
+  this.deletedPhoto = null;
+
+  // Forzar la actualización de la vista
+  this.cdr.detectChanges();
+
+  // Limpiar el estado para asegurar futuras eliminaciones
+  this.resetState();
+}
+
+resetState() {
+  this.deletedPhoto = null;
+  // Asegúrate de reiniciar cualquier otro estado que esté afectando el flujo
+  this.cdr.detectChanges(); // Actualiza la vista para reflejar el cambio
+}
+
+
 
 }

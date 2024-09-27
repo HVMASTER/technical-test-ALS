@@ -10,6 +10,7 @@ export class PhotographicSetModalComponent {
   @Input() numeroInforme!: string;
   @Input() allowImages: boolean = true;
   @Input() maxPhotoNumber: number = 0;
+  @Input() disableCancel: boolean = false;
 
   // Servicio de subida de imágenes
   @Input() uploadImageService!: (formData: FormData) => any;
@@ -100,6 +101,8 @@ removeImage(index: number) {
 
   // Cancelar acción
   onCancel() {
+  if (!this.disableCancel) {
     this.cancel.emit();
   }
+}
 }

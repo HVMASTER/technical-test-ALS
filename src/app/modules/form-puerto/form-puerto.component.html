@@ -2387,12 +2387,11 @@
               </button>
             </div>
             <div class="photo-grid">
-              <form [formGroup]="photoDescriptionsForm" class="display-content">
+              <div [formGroup]="photoDescriptionsForm" class="display-content">
                 <div
                   *ngFor="let photo of photos; let i = index"
                   class="photo-item"
                 >
-                  <!-- Imagen -->
                   <img
                     [src]="'data:image/png;base64,' + photo.data"
                     [alt]="photo.descripcionSF"
@@ -2416,22 +2415,22 @@
                   <!-- Vista de solo lectura -->
                   <ng-template #viewMode>
                     <span>{{ photo.descripcionSF }}</span>
-                    <!-- Verifica que photo.descripcionSF refleje los cambios -->
                   </ng-template>
                 </div>
-              </form>
+              </div>
 
               <app-photographic-set-modal
-                *ngIf="showSetFotograficoModal && modalInstance"
+                *ngIf="showSetFotograficoModal"
                 [idInforme]="modalInstance?.idInforme"
                 [numeroInforme]="modalInstance?.numeroInforme"
                 [allowImages]="modalInstance?.allowImages"
                 [maxPhotoNumber]="modalInstance?.maxPhotoNumber"
                 [uploadImageService]="modalInstance?.uploadImageService"
+                [disableCancel]="photos.length === 6"
                 (save)="onSaveSetFotografico($event)"
                 (cancel)="onCancelSetFotografico()"
-              ></app-photographic-set-modal>
-
+              >
+              </app-photographic-set-modal>
             </div>
           </form>
         </div>
