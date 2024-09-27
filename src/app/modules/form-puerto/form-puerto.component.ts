@@ -1,17 +1,22 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { PuertoService } from './services/puerto.service';
 import { PdfService } from '../../services/pdf.service';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { lastValueFrom, Subject, takeUntil } from 'rxjs';
+import { lastValueFrom, Subject, take, takeUntil } from 'rxjs';
 import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-form-puerto',
   templateUrl: './form-puerto.component.html',
-  styleUrl: './form-puerto.component.scss'
+  styleUrl: './form-puerto.component.scss',
 })
-export class FormPuertoComponent implements OnInit, OnDestroy{
+export class FormPuertoComponent implements OnInit, OnDestroy {
   informes: any[] = [];
   informeForm: FormGroup;
   formE: FormGroup;
@@ -67,6 +72,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
     { idStatus: 4, alias: 'RE' },
   ];
   maxPhotoNumber: number = 0;
+  photoDescriptionsForm!: FormGroup;
   defaultEmptyRows = new Array(7);
   onAccept: () => void = () => {};
   onCancel: () => void = () => {};
@@ -78,11 +84,20 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
     private cdr: ChangeDetectorRef,
     private formBuilder: FormBuilder,
     private datePipe: DatePipe
-  ) { 
-      this.informeForm = this.createFormGroup();
-      this.formE = this.createFormE();
-      this.formE1 = this.createFormE1();
-    }
+  ) {
+    this.informeForm = this.createFormGroup();
+    this.formE = this.createFormE();
+    this.formE1 = this.createFormE1();
+    this.photoDescriptionsForm = this.formBuilder.group({});
+  }
+
+  private createPhotoDescriptionsForm() {
+  const group: any = {};
+  this.photos.forEach((photo: { descripcionSF: string, numero: number }) => {
+    group[`descripcionSF_${photo.numero}`] = new FormControl(photo.descripcionSF || '');
+  });
+  this.photoDescriptionsForm = this.formBuilder.group(group);
+}
 
   ngOnInit(): void {
     this.informeForm.disable();
@@ -114,7 +129,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
     this.isPreviewMode = !this.isPreviewMode;
     this.showHeaderFooter = this.isPreviewMode;
     const contentContainer = document.getElementById('contentToConvert');
-    
+
     if (this.isPreviewMode) {
       this.informeForm.disable();
       this.hideButtonsForPreview(true);
@@ -139,48 +154,48 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   }
 
   generatePDF() {
-  this.isLoadingPdf = true; // Mostrar la barra de carga
+    this.isLoadingPdf = true; // Mostrar la barra de carga
 
-  // Ocultar botones antes de generar el PDF
-  this.isPreviewMode = true;
-  this.showHeaderFooter = true;
+    // Ocultar botones antes de generar el PDF
+    this.isPreviewMode = true;
+    this.showHeaderFooter = true;
 
-  // Definir los ajustes específicos para las páginas
-  const pageAdjustments: any[] = [];
+    // Definir los ajustes específicos para las páginas
+    const pageAdjustments: any[] = [];
 
-  setTimeout(async () => {
-    const content = document.getElementById('contentToConvert');
-    if (content) {
-      const pages = content.querySelectorAll('.page');
-      
-      for (let i = 0; i < pages.length; i++) {
-        const page = pages[i] as HTMLElement;
-        const canvas = await html2canvas(page); // Crear el canvas
-        const canvasHeight = (canvas.height * 210) / canvas.width; // Calcular el alto del canvas ajustado al ancho A4
+    setTimeout(async () => {
+      const content = document.getElementById('contentToConvert');
+      if (content) {
+        const pages = content.querySelectorAll('.page');
 
-        // Ajustes específicos por página
-        if (i >= 0 && i < 5) {
-          // Aumentar el tamaño en las páginas 1-5
-          pageAdjustments.push({ scale: 1.2 });
-        } else if (i === 5) {
-          // Centrar el contenido en la página 6
-          pageAdjustments.push({ yOffset: (297 - canvasHeight) / 2 });
-        } else {
-          // Sin ajustes adicionales para otras páginas
-          pageAdjustments.push({});
+        for (let i = 0; i < pages.length; i++) {
+          const page = pages[i] as HTMLElement;
+          const canvas = await html2canvas(page); // Crear el canvas
+          const canvasHeight = (canvas.height * 210) / canvas.width; // Calcular el alto del canvas ajustado al ancho A4
+
+          // Ajustes específicos por página
+          if (i >= 0 && i < 5) {
+            // Aumentar el tamaño en las páginas 1-5
+            pageAdjustments.push({ scale: 1.2 });
+          } else if (i === 5) {
+            // Centrar el contenido en la página 6
+            pageAdjustments.push({ yOffset: (297 - canvasHeight) / 2 });
+          } else {
+            // Sin ajustes adicionales para otras páginas
+            pageAdjustments.push({});
+          }
         }
+
+        // Generar el PDF con los ajustes específicos
+        await this.pdfService.generatePDF('contentToConvert', pageAdjustments);
       }
 
-      // Generar el PDF con los ajustes específicos
-      await this.pdfService.generatePDF('contentToConvert', pageAdjustments);
-    }
-
-    // Restaurar el estado después de la generación del PDF
-    this.isLoadingPdf = false; // Ocultar la barra de carga
-    this.isPreviewMode = false;
-    this.showHeaderFooter = false;
-  }, 0);
-}
+      // Restaurar el estado después de la generación del PDF
+      this.isLoadingPdf = false; // Ocultar la barra de carga
+      this.isPreviewMode = false;
+      this.showHeaderFooter = false;
+    }, 0);
+  }
 
   private createFormGroup(): FormGroup {
     return this.formBuilder.group({
@@ -423,150 +438,161 @@ export class FormPuertoComponent implements OnInit, OnDestroy{
   }
 
   selectStatus(item: any, selectedIdStatus: string, index: number): void {
-  const selectedOption = this.optionStatus.find(
-    (option) => option.idStatus.toString() === selectedIdStatus
-  );
+    const selectedOption = this.optionStatus.find(
+      (option) => option.idStatus.toString() === selectedIdStatus
+    );
 
-  if (selectedOption) {
-    const previousStatus = item.idStatus;  // Guardamos el estado anterior
-    const previousAlias = item.alias;      // Guardamos el alias anterior
+    if (selectedOption) {
+      const previousStatus = item.idStatus; // Guardamos el estado anterior
+      const previousAlias = item.alias; // Guardamos el alias anterior
 
-    // Mensaje de confirmación según el estado previo
-    const confirmMessage =
-      previousStatus === 2 && ['1', '3', '4'].includes(selectedIdStatus)
-        ? '¿Estás seguro de cambiar el estado de N/C? Esto eliminará las imágenes y la descripción asociadas a este ítem.'
-        : previousStatus === 4 && ['1', '2', '3'].includes(selectedIdStatus)
-        ? '¿Estás seguro de cambiar el estado de RE? Esto eliminará la descripción asociada a este ítem.'
-        : null;
+      // Mensaje de confirmación según el estado previo
+      const confirmMessage =
+        previousStatus === 2 && ['1', '3', '4'].includes(selectedIdStatus)
+          ? '¿Estás seguro de cambiar el estado de N/C? Esto eliminará las imágenes y la descripción asociadas a este ítem.'
+          : previousStatus === 4 && ['1', '2', '3'].includes(selectedIdStatus)
+          ? '¿Estás seguro de cambiar el estado de RE? Esto eliminará la descripción asociada a este ítem.'
+          : null;
 
-    if (confirmMessage) {
-      // Mostrar mensaje de advertencia
-      this.showWarningMessage(confirmMessage).then((confirmed) => {
-        if (confirmed) {
-          // Aplicar el cambio de estado solo si el usuario confirma
-          this.handleStatusChange(item, selectedIdStatus, previousStatus);
+      if (confirmMessage) {
+        // Mostrar mensaje de advertencia
+        this.showWarningMessage(confirmMessage).then((confirmed) => {
+          if (confirmed) {
+            // Aplicar el cambio de estado solo si el usuario confirma
+            this.handleStatusChange(item, selectedIdStatus, previousStatus);
+          } else {
+            // Si el usuario cancela, revertimos el estado a su valor anterior
+            item.idStatus = previousStatus;
+            item.alias = previousAlias;
+            this.cdr.detectChanges(); // Forzar la actualización visual
+          }
+        });
+      } else {
+        // Si no es necesario confirmar, aplicar el cambio directamente
+        this.handleStatusChange(item, selectedIdStatus, previousStatus);
+      }
+    }
+  }
+
+  handleStatusChange(
+    item: any,
+    selectedIdStatus: string,
+    previousStatus: number
+  ): void {
+    // Solo realizamos la eliminación de fotos o descripciones después de confirmar el cambio
+    if (previousStatus === 2 && selectedIdStatus === '4') {
+      // De N/C a RE (Eliminar fotos y descripción)
+      this.deletePhotosAndDescription(item, previousStatus);
+      item.idStatus = 4;
+      item.alias = 'RE';
+      this.openModal(item, false); // Abrir modal para ingresar una nueva descripción
+    } else if (previousStatus === 4 && selectedIdStatus === '2') {
+      // De RE a N/C (Eliminar solo la descripción)
+      this.deleteDescription(item, previousStatus);
+      item.idStatus = 2;
+      item.alias = 'N/C';
+      this.openModal(item, true); // Abrir modal para ingresar descripción e imágenes
+    } else if (previousStatus === 2 && ['1', '3'].includes(selectedIdStatus)) {
+      // De N/C a CU o N/A (Eliminar fotos y descripción)
+      this.deletePhotosAndDescription(item, previousStatus);
+      item.idStatus = selectedIdStatus === '1' ? 1 : 3;
+      item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
+      item.descripcionNoCumple = ''; // Limpiar la descripción
+      item.images = []; // Limpiar las imágenes asociadas
+      item.imagesNames = []; // Limpiar los nombres de las imágenes
+    } else if (previousStatus === 4 && ['1', '3'].includes(selectedIdStatus)) {
+      // De RE a CU o N/A (Eliminar solo la descripción)
+      this.deleteDescription(item, previousStatus);
+      item.idStatus = selectedIdStatus === '1' ? 1 : 3;
+      item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
+      item.descripcionNoCumple = ''; // Limpiar la descripción
+    } else if (selectedIdStatus === '2' || selectedIdStatus === '4') {
+      // Si es RE o N/C, abrir el modal con la lógica correspondiente
+      item.idStatus = selectedIdStatus;
+      item.alias = selectedIdStatus === '2' ? 'N/C' : 'RE';
+      const requireImages = selectedIdStatus === '2'; // Si es N/C, requiere imágenes
+      this.openModal(item, requireImages); // Abrir modal para RE o N/C según sea necesario
+    } else {
+      // Otros cambios de estado (CU, N/A)
+      item.idStatus = selectedIdStatus === '1' ? 1 : 3;
+      item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
+    }
+
+    this.cdr.detectChanges(); // Forzar la actualización visual
+  }
+
+  // Eliminar fotos y descripción para el caso N/C a CU o N/A
+  async deletePhotosAndDescription(item: any, originalStatus: number) {
+    await this.deletePhotos(item);
+    await this.deleteDescription(item, originalStatus);
+  }
+
+  async deleteDescription(item: any, originalStatus: number) {
+    const idInforme = this.selectedInforme.idInforme;
+    const idDetalle = item.idDetalle;
+
+    try {
+      const descripcionData = {
+        idInforme,
+        idDetalle,
+        idStatus: originalStatus,
+      };
+      const descripcionResponse = await lastValueFrom(
+        this.puertoService.deleteDescripcionPuerto(descripcionData)
+      );
+
+      if (descripcionResponse.success) {
+        console.log('Descripción eliminada exitosamente.');
+      } else {
+        console.error(
+          'Error al eliminar la descripción:',
+          descripcionResponse.message
+        );
+      }
+    } catch (error) {
+      console.error('Error al eliminar la descripción:', error);
+    }
+  }
+
+  // Método para eliminar solo las fotos
+  async deletePhotos(item: any) {
+    const idInforme = this.selectedInforme.idInforme;
+    const idDetalle = item.idDetalle;
+    const numeroInforme = this.selectedInforme.numeroInforme;
+
+    try {
+      const fotosResponse = await lastValueFrom(
+        this.puertoService.getFotoByIdInformePuerto(idInforme)
+      );
+
+      if (fotosResponse && fotosResponse.photos) {
+        const fotosFiltradas = fotosResponse.photos.filter(
+          (foto: any) => foto.idDetalle === idDetalle
+        );
+
+        if (fotosFiltradas.length > 0) {
+          for (const foto of fotosFiltradas) {
+            const fotoData = {
+              idInforme: idInforme,
+              idDetalle: idDetalle,
+              numeroInforme: numeroInforme,
+              foto: foto.foto,
+            };
+            await lastValueFrom(
+              this.puertoService.deleteFotoPuertoByIdDetalle(fotoData)
+            );
+            console.log(`Foto eliminada para idDetalle: ${idDetalle}`);
+          }
         } else {
-          // Si el usuario cancela, revertimos el estado a su valor anterior
-          item.idStatus = previousStatus;
-          item.alias = previousAlias;
-          this.cdr.detectChanges();  // Forzar la actualización visual
-        }
-      });
-    } else {
-      // Si no es necesario confirmar, aplicar el cambio directamente
-      this.handleStatusChange(item, selectedIdStatus, previousStatus);
-    }
-  }
-}
-
-handleStatusChange(item: any, selectedIdStatus: string, previousStatus: number): void {
-  // Solo realizamos la eliminación de fotos o descripciones después de confirmar el cambio
-  if (previousStatus === 2 && selectedIdStatus === '4') {
-    // De N/C a RE (Eliminar fotos y descripción)
-    this.deletePhotosAndDescription(item, previousStatus);
-    item.idStatus = 4;
-    item.alias = 'RE';
-    this.openModal(item, false); // Abrir modal para ingresar una nueva descripción
-
-  } else if (previousStatus === 4 && selectedIdStatus === '2') {
-    // De RE a N/C (Eliminar solo la descripción)
-    this.deleteDescription(item, previousStatus);
-    item.idStatus = 2;
-    item.alias = 'N/C';
-    this.openModal(item, true); // Abrir modal para ingresar descripción e imágenes
-
-  } else if (previousStatus === 2 && ['1', '3'].includes(selectedIdStatus)) {
-    // De N/C a CU o N/A (Eliminar fotos y descripción)
-    this.deletePhotosAndDescription(item, previousStatus);
-    item.idStatus = selectedIdStatus === '1' ? 1 : 3;
-    item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
-    item.descripcionNoCumple = ''; // Limpiar la descripción
-    item.images = []; // Limpiar las imágenes asociadas
-    item.imagesNames = []; // Limpiar los nombres de las imágenes
-
-  } else if (previousStatus === 4 && ['1', '3'].includes(selectedIdStatus)) {
-    // De RE a CU o N/A (Eliminar solo la descripción)
-    this.deleteDescription(item, previousStatus);
-    item.idStatus = selectedIdStatus === '1' ? 1 : 3;
-    item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
-    item.descripcionNoCumple = ''; // Limpiar la descripción
-
-  } else if (selectedIdStatus === '2' || selectedIdStatus === '4') {
-    // Si es RE o N/C, abrir el modal con la lógica correspondiente
-    item.idStatus = selectedIdStatus;
-    item.alias = selectedIdStatus === '2' ? 'N/C' : 'RE';
-    const requireImages = selectedIdStatus === '2'; // Si es N/C, requiere imágenes
-    this.openModal(item, requireImages); // Abrir modal para RE o N/C según sea necesario
-  } else {
-    // Otros cambios de estado (CU, N/A)
-    item.idStatus = selectedIdStatus === '1' ? 1 : 3;
-    item.alias = selectedIdStatus === '1' ? 'CU' : 'N/A';
-  }
-
-  this.cdr.detectChanges(); // Forzar la actualización visual
-}
-
-// Eliminar fotos y descripción para el caso N/C a CU o N/A
-async deletePhotosAndDescription(item: any, originalStatus: number) {
-  await this.deletePhotos(item);
-  await this.deleteDescription(item, originalStatus);
-}
-
-async deleteDescription(item: any, originalStatus: number) {
-  const idInforme = this.selectedInforme.idInforme;
-  const idDetalle = item.idDetalle;
-
-  try {
-    const descripcionData = { idInforme, idDetalle, idStatus: originalStatus };
-    const descripcionResponse = await lastValueFrom(
-      this.puertoService.deleteDescripcionPuerto(descripcionData)
-    );
-
-    if (descripcionResponse.success) {
-      console.log('Descripción eliminada exitosamente.');
-    } else {
-      console.error('Error al eliminar la descripción:', descripcionResponse.message);
-    }
-  } catch (error) {
-    console.error('Error al eliminar la descripción:', error);
-  }
-}
-
-// Método para eliminar solo las fotos
-async deletePhotos(item: any) {
-  const idInforme = this.selectedInforme.idInforme;
-  const idDetalle = item.idDetalle;
-  const numeroInforme = this.selectedInforme.numeroInforme;
-
-  try {
-    const fotosResponse = await lastValueFrom(
-      this.puertoService.getFotoByIdInformePuerto(idInforme)
-    );
-
-    if (fotosResponse && fotosResponse.photos) {
-      const fotosFiltradas = fotosResponse.photos.filter((foto: any) => foto.idDetalle === idDetalle);
-
-      if (fotosFiltradas.length > 0) {
-        for (const foto of fotosFiltradas) {
-          const fotoData = {
-            idInforme: idInforme,
-            idDetalle: idDetalle,
-            numeroInforme: numeroInforme,
-            foto: foto.foto,
-          };
-          await lastValueFrom(this.puertoService.deleteFotoPuertoByIdDetalle(fotoData));
-          console.log(`Foto eliminada para idDetalle: ${idDetalle}`);
+          console.log('No se encontraron fotos para eliminar.');
         }
       } else {
-        console.log('No se encontraron fotos para eliminar.');
+        console.log('No se encontraron fotos en el backend.');
       }
-    } else {
-      console.log('No se encontraron fotos en el backend.');
+    } catch (error) {
+      console.error('Error al eliminar las fotos:', error);
     }
-  } catch (error) {
-    console.error('Error al eliminar las fotos:', error);
   }
-}
 
   private loadFormE(idInforme: number) {
     this.puertoService
@@ -675,33 +701,25 @@ async deletePhotos(item: any) {
   }
 
   private loadSetFotografico(idInforme: number) {
-  this.puertoService
-    .getSetFotograficoByIdInformePuerto(idInforme)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
+    this.puertoService.getSetFotograficoByIdInformePuerto(idInforme).subscribe({
       next: (response) => {
         if (response.success && response.photos.length > 0) {
           this.photos = response.photos;
-
-          // Obtener el número más alto entre las fotos cargadas
-          this.maxPhotoNumber = this.getMaxPhotoNumber(this.photos); 
-        } else {
-          this.photos = [];
-          this.maxPhotoNumber = 0; // Si no hay fotos, el número inicial es 0
+          this.createPhotoDescriptionsForm(); // Crear el FormGroup una vez que las fotos estén cargadas
         }
       },
       error: (error) => {
         console.error('Error fetching set fotografico:', error);
       },
     });
-}
+  }
 
-// Método para obtener el número más alto de las fotos
-getMaxPhotoNumber(photos: any[]): number {
-  if (photos.length === 0) return 0; // Si no hay fotos, empezamos desde 0
+  // Método para obtener el número más alto de las fotos
+  getMaxPhotoNumber(photos: any[]): number {
+    if (photos.length === 0) return 0; // Si no hay fotos, empezamos desde 0
 
-  return Math.max(...photos.map(photo => photo.numero)); // Devolvemos el número más alto
-}
+    return Math.max(...photos.map((photo) => photo.numero)); // Devolvemos el número más alto
+  }
 
   refreshStatus() {
     if (this.selectedInforme) {
@@ -736,39 +754,40 @@ getMaxPhotoNumber(photos: any[]): number {
   }
 
   toggleEdit() {
-  if (!this.isAnyEditing) {
-    this.isEditing = true;
-    this.isAnyEditing = true;
-    this.originalValues = this.informeForm.getRawValue();
-    this.informeForm.enable(); 
-  } else if (this.isEditing) {
-    this.informeForm.patchValue(this.originalValues);
-    this.informeForm.disable();
-    this.isEditing = false;
-    this.isAnyEditing = false;
-  } else {
-    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
+    if (!this.isAnyEditing) {
+      this.isEditing = true;
+      this.isAnyEditing = true;
+      this.originalValues = this.informeForm.getRawValue();
+      this.informeForm.enable();
+    } else if (this.isEditing) {
+      this.informeForm.patchValue(this.originalValues);
+      this.informeForm.disable();
+      this.isEditing = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
-}
 
   toggleEditStatusA() {
-  if (!this.isAnyEditing) {
-    this.isEditingStatusA = true;
-    this.isAnyEditing = true;
-    this.originalValues = JSON.parse(JSON.stringify(this.itemsWithStatus)); 
-  } else if (this.isEditingStatusA) {
-    this.itemsWithStatus = JSON.parse(JSON.stringify(this.originalValues)); 
-    this.isEditingStatusA = false;
-    this.isAnyEditing = false; 
-  } else {
-    this.messageText =
-      'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-    this.messageType = 'warning';
-    this.showMessage = true;
+    if (!this.isAnyEditing) {
+      this.isEditingStatusA = true;
+      this.isAnyEditing = true;
+      this.originalValues = JSON.parse(JSON.stringify(this.itemsWithStatus));
+    } else if (this.isEditingStatusA) {
+      this.itemsWithStatus = JSON.parse(JSON.stringify(this.originalValues));
+      this.isEditingStatusA = false;
+      this.isAnyEditing = false;
+    } else {
+      this.messageText =
+        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+      this.messageType = 'warning';
+      this.showMessage = true;
+    }
   }
-}
 
   toggleEditStatusB() {
     this.isEditingStatusB = !this.isEditingStatusB;
@@ -861,8 +880,37 @@ getMaxPhotoNumber(photos: any[]): number {
   }
 
   toggleEditImages() {
-    this.isEditingImages = !this.isEditingImages;
+  this.isEditingImages = !this.isEditingImages;
+
+  if (this.isEditingImages) {
+    // Guardar los valores originales antes de comenzar la edición
+    this.originalValues = this.photos.map((photo: any) => ({
+      numero: photo.numero,
+      descripcionSF: photo.descripcionSF
+    }));
+
+    // Habilitar los campos de descripción en el formulario de las fotos
+    this.photos.forEach((photo: any) => {
+      const controlName = `descripcionSF_${photo.numero}`;
+      this.photoDescriptionsForm.get(controlName)?.enable();
+    });
+  } else {
+    // Si se cancela la edición, restaurar los valores originales
+    this.photos.forEach((photo: any) => {
+      const originalPhoto = this.originalValues.find((orig: any) => orig.numero === photo.numero);
+      if (originalPhoto) {
+        const controlName = `descripcionSF_${photo.numero}`;
+        this.photoDescriptionsForm.get(controlName)?.setValue(originalPhoto.descripcionSF);
+      }
+    });
+
+    // Deshabilitar los campos de descripción en el formulario de las fotos
+    this.photos.forEach((photo: any) => {
+      const controlName = `descripcionSF_${photo.numero}`;
+      this.photoDescriptionsForm.get(controlName)?.disable();
+    });
   }
+}
 
   toggleGanchoPrincipal() {
     if (this.formEData?.ganchoPrincipal > 0) {
@@ -926,7 +974,12 @@ getMaxPhotoNumber(photos: any[]): number {
       const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
       // Array para almacenar las descripciones que se enviarán al backend
-      const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
+      const descripciones: {
+        descripcion: string;
+        idInforme: number;
+        idDetalle: number;
+        idStatus: number;
+      }[] = [];
 
       const itemsToUpdate = this.itemsWithStatus
         .slice(0, 18)
@@ -935,7 +988,9 @@ getMaxPhotoNumber(photos: any[]): number {
 
           // Asegurarse de que originalItem existe
           if (!originalItem) {
-            console.log(`No se encontró el ítem original en la posición ${index}.`);
+            console.log(
+              `No se encontró el ítem original en la posición ${index}.`
+            );
             return false;
           }
 
@@ -946,7 +1001,9 @@ getMaxPhotoNumber(photos: any[]): number {
         });
 
       if (itemsToUpdate.length === 0) {
-        console.log('No se encontraron ítems modificados para actualizar en la tabla A.');
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla A.'
+        );
         this.isSaving = false;
         return;
       }
@@ -962,11 +1019,16 @@ getMaxPhotoNumber(photos: any[]): number {
             formData.append('numeroInforme', numeroInforme);
             formData.append('idDetalle', item.idDetalle.toString());
             formData.append('foto', imageName);
-            formData.append('data', this.convertBase64ToBlob(item.images[index]));
-            formData.append('numero', (index + 1).toString()); 
+            formData.append(
+              'data',
+              this.convertBase64ToBlob(item.images[index])
+            );
+            formData.append('numero', (index + 1).toString());
             formData.append('idStatus', item.idStatus.toString());
 
-            const imageUploadPromise = lastValueFrom(this.puertoService.sendFotosPuerto(formData));
+            const imageUploadPromise = lastValueFrom(
+              this.puertoService.sendFotosPuerto(formData)
+            );
             imageUploadPromises.push(imageUploadPromise);
           });
         }
@@ -977,7 +1039,7 @@ getMaxPhotoNumber(photos: any[]): number {
             descripcion: item.descripcionNoCumple,
             idInforme: idInforme,
             idDetalle: item.idDetalle,
-            idStatus: item.idStatus
+            idStatus: item.idStatus,
           });
         }
 
@@ -1012,10 +1074,10 @@ getMaxPhotoNumber(photos: any[]): number {
               if (descripciones.length > 0) {
                 this.uploadDescripciones(descripciones);
               }
-
             } else {
-              this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-              this.messageType = 'error';           
+              this.messageText =
+                'Error al actualizar los datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
               this.refreshStatus();
               this.restoreOriginalValues();
               this.isSaving = false;
@@ -1040,7 +1102,12 @@ getMaxPhotoNumber(photos: any[]): number {
       const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
       // Array para almacenar las descripciones que se enviarán al backend
-      const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
+      const descripciones: {
+        descripcion: string;
+        idInforme: number;
+        idDetalle: number;
+        idStatus: number;
+      }[] = [];
 
       const itemsToUpdate = this.itemsWithStatus
         .slice(18, 31)
@@ -1050,7 +1117,9 @@ getMaxPhotoNumber(photos: any[]): number {
 
           // Asegurarse de que originalItem existe
           if (!originalItem) {
-            console.log(`No se encontró el ítem original en la posición ${index}.`);
+            console.log(
+              `No se encontró el ítem original en la posición ${index}.`
+            );
             return false;
           }
 
@@ -1061,7 +1130,9 @@ getMaxPhotoNumber(photos: any[]): number {
         });
 
       if (itemsToUpdate.length === 0) {
-        console.log('No se encontraron ítems modificados para actualizar en la tabla B.');
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla B.'
+        );
         this.isSaving = false;
         return;
       }
@@ -1077,11 +1148,16 @@ getMaxPhotoNumber(photos: any[]): number {
             formData.append('numeroInforme', numeroInforme);
             formData.append('idDetalle', item.idDetalle.toString());
             formData.append('foto', imageName);
-            formData.append('data', this.convertBase64ToBlob(item.images[index]));
-            formData.append('numero', (index + 1).toString()); 
+            formData.append(
+              'data',
+              this.convertBase64ToBlob(item.images[index])
+            );
+            formData.append('numero', (index + 1).toString());
             formData.append('idStatus', item.idStatus.toString());
 
-            const imageUploadPromise = lastValueFrom(this.puertoService.sendFotosPuerto(formData));
+            const imageUploadPromise = lastValueFrom(
+              this.puertoService.sendFotosPuerto(formData)
+            );
             imageUploadPromises.push(imageUploadPromise);
           });
         }
@@ -1092,7 +1168,7 @@ getMaxPhotoNumber(photos: any[]): number {
             descripcion: item.descripcionNoCumple,
             idInforme: idInforme,
             idDetalle: item.idDetalle,
-            idStatus: item.idStatus
+            idStatus: item.idStatus,
           });
         }
 
@@ -1127,10 +1203,10 @@ getMaxPhotoNumber(photos: any[]): number {
               if (descripciones.length > 0) {
                 this.uploadDescripciones(descripciones);
               }
-
             } else {
-              this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-              this.messageType = 'error';           
+              this.messageText =
+                'Error al actualizar los datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
               this.refreshStatus();
               this.restoreOriginalValues();
               this.isSaving = false;
@@ -1144,7 +1220,7 @@ getMaxPhotoNumber(photos: any[]): number {
         });
       });
     }
-  } 
+  }
 
   saveChangesStatusC() {
     if (this.selectedInforme) {
@@ -1155,7 +1231,12 @@ getMaxPhotoNumber(photos: any[]): number {
       const numeroInforme = this.selectedInforme.numeroInforme; // Asegúrate de tener el numeroInforme aquí
 
       // Array para almacenar las descripciones que se enviarán al backend
-      const descripciones: { descripcion: string; idInforme: number; idDetalle: number; idStatus: number }[] = [];
+      const descripciones: {
+        descripcion: string;
+        idInforme: number;
+        idDetalle: number;
+        idStatus: number;
+      }[] = [];
 
       const itemsToUpdate = this.itemsWithStatus
         .slice(31, 51)
@@ -1165,7 +1246,9 @@ getMaxPhotoNumber(photos: any[]): number {
 
           // Asegurarse de que originalItem existe
           if (!originalItem) {
-            console.log(`No se encontró el ítem original en la posición ${index}.`);
+            console.log(
+              `No se encontró el ítem original en la posición ${index}.`
+            );
             return false;
           }
 
@@ -1176,7 +1259,9 @@ getMaxPhotoNumber(photos: any[]): number {
         });
 
       if (itemsToUpdate.length === 0) {
-        console.log('No se encontraron ítems modificados para actualizar en la tabla C.');
+        console.log(
+          'No se encontraron ítems modificados para actualizar en la tabla C.'
+        );
         this.isSaving = false;
         return;
       }
@@ -1192,11 +1277,16 @@ getMaxPhotoNumber(photos: any[]): number {
             formData.append('numeroInforme', numeroInforme);
             formData.append('idDetalle', item.idDetalle.toString());
             formData.append('foto', imageName);
-            formData.append('data', this.convertBase64ToBlob(item.images[index]));
-            formData.append('numero', (index + 1).toString()); 
+            formData.append(
+              'data',
+              this.convertBase64ToBlob(item.images[index])
+            );
+            formData.append('numero', (index + 1).toString());
             formData.append('idStatus', item.idStatus.toString());
 
-            const imageUploadPromise = lastValueFrom(this.puertoService.sendFotosPuerto(formData));
+            const imageUploadPromise = lastValueFrom(
+              this.puertoService.sendFotosPuerto(formData)
+            );
             imageUploadPromises.push(imageUploadPromise);
           });
         }
@@ -1207,7 +1297,7 @@ getMaxPhotoNumber(photos: any[]): number {
             descripcion: item.descripcionNoCumple,
             idInforme: idInforme,
             idDetalle: item.idDetalle,
-            idStatus: item.idStatus
+            idStatus: item.idStatus,
           });
         }
 
@@ -1242,10 +1332,10 @@ getMaxPhotoNumber(photos: any[]): number {
               if (descripciones.length > 0) {
                 this.uploadDescripciones(descripciones);
               }
-
             } else {
-              this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-              this.messageType = 'error';           
+              this.messageText =
+                'Error al actualizar los datos. Inténtalo de nuevo.';
+              this.messageType = 'error';
               this.refreshStatus();
               this.restoreOriginalValues();
               this.isSaving = false;
@@ -1283,46 +1373,50 @@ getMaxPhotoNumber(photos: any[]): number {
         .filter((item) => item !== null); // Filtrar las descripciones que no han cambiado
 
       if (descripcionesToUpdate.length === 0) {
-        console.log('No se encontraron descripciones modificadas para actualizar.');
+        console.log(
+          'No se encontraron descripciones modificadas para actualizar.'
+        );
         this.isSaving = false;
-        this.isEditingFormD = false; 
+        this.isEditingFormD = false;
         return;
       }
 
       let success = true;
       descripcionesToUpdate.forEach((descripcionData, index) => {
-        this.puertoService
-          .editDescripcionPuerto(descripcionData)
-          .subscribe({
-            next: (response) => {
-              if (!response.success) {
-                success = false;
-                console.error('Error al actualizar algunas descripciones:', response.message);
-              }
-            },
-            error: (error) => {
+        this.puertoService.editDescripcionPuerto(descripcionData).subscribe({
+          next: (response) => {
+            if (!response.success) {
               success = false;
-              console.error('Error al actualizar algunas descripciones:', error);
-            },
-            complete: () => {
-              if (index === descripcionesToUpdate.length - 1) {
-                if (success) {
-                  this.showMessage = true;
-                  this.messageText = 'Datos actualizados exitosamente.';
-                  this.messageType = 'success';
-                  this.refreshNonConformities();
-                  this.isAnyEditing = false;
-                } else {
-                  this.messageText = 'Error al guardar algunos datos. Inténtalo de nuevo.';
-                  this.messageType = 'error';
-                }
-
-                this.isSaving = false;
-                this.isEditingFormD = false; 
-                setTimeout(() => (this.showMessage = false), 3000);
+              console.error(
+                'Error al actualizar algunas descripciones:',
+                response.message
+              );
+            }
+          },
+          error: (error) => {
+            success = false;
+            console.error('Error al actualizar algunas descripciones:', error);
+          },
+          complete: () => {
+            if (index === descripcionesToUpdate.length - 1) {
+              if (success) {
+                this.showMessage = true;
+                this.messageText = 'Datos actualizados exitosamente.';
+                this.messageType = 'success';
+                this.refreshNonConformities();
+                this.isAnyEditing = false;
+              } else {
+                this.messageText =
+                  'Error al guardar algunos datos. Inténtalo de nuevo.';
+                this.messageType = 'error';
               }
-            },
-          });
+
+              this.isSaving = false;
+              this.isEditingFormD = false;
+              setTimeout(() => (this.showMessage = false), 3000);
+            }
+          },
+        });
       });
     }
   }
@@ -1406,7 +1500,7 @@ getMaxPhotoNumber(photos: any[]): number {
             ganchoAuxDespues: updatedData.ganchoAuxDespues,
             ganchoAuxHInicio: updatedData.ganchoAuxHInicio,
             ganchoAuxHTermino: updatedData.ganchoAuxHTermino,
-            ganchoAuxResultado: updatedData.ganchoAuxResultado
+            ganchoAuxResultado: updatedData.ganchoAuxResultado,
           });
           this.loadFormE1(this.selectedInforme.idInforme);
 
@@ -1423,13 +1517,14 @@ getMaxPhotoNumber(photos: any[]): number {
         },
         error: (error) => {
           console.error('Error al actualizar el formulario E1:', error);
-          this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+          this.messageText =
+            'Error al actualizar los datos. Inténtalo de nuevo.';
           this.messageType = 'error';
           this.showMessage = true;
         },
         complete: () => {
           this.isSaving = false; // Desactivar el spinner
-        }
+        },
       });
     } else {
       alert('Por favor completa todos los campos antes de guardar.');
@@ -1438,10 +1533,10 @@ getMaxPhotoNumber(photos: any[]): number {
 
   saveFormFChanges() {
     if (this.informeForm.get('idResul')?.valid) {
-      const currentFormData = this.informeForm.getRawValue(); 
+      const currentFormData = this.informeForm.getRawValue();
 
       const formIData = {
-        ...currentFormData, 
+        ...currentFormData,
         idResul: this.informeForm.get('idResul')?.value,
         idInforme: this.selectedInforme.idInforme,
       };
@@ -1472,171 +1567,261 @@ getMaxPhotoNumber(photos: any[]): number {
 
   // Guardar cambios de edición (como los comentarios)
   saveImageChanges() {
-    // Aquí puedes agregar la lógica para guardar los cambios en el backend si es necesario
-    console.log('Cambios de imágenes guardados:', this.photos);
-    this.isEditingImages = false; // Salir del modo de edición
-  }
+  // Iterar sobre las fotos actuales
+  this.photos.forEach((photo: any) => {
+    const controlName = `descripcionSF_${photo.numero}`;
+    const currentDescription = this.photoDescriptionsForm.get(controlName)?.value;
+
+    // Solo actualiza si la descripción ha cambiado
+    if (currentDescription !== photo.descripcionSF) {
+      const updatedPhotoData = {
+        idInforme: this.selectedInforme.idInforme,
+        numeroInforme: this.selectedInforme.numeroInforme,
+        descripcionSF: currentDescription,
+        numero: photo.numero,
+      };
+
+      // Hacer la petición para actualizar solo si hay cambios
+      this.puertoService.editSetFotograficoPuerto(updatedPhotoData)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              // Actualizar la descripción en el objeto photo
+              photo.descripcionSF = currentDescription;
+              console.log(`Descripción actualizada para la imagen número: ${photo.numero}`);
+            }
+          },
+          error: (error) => {
+            console.error('Error al actualizar la descripción:', error);
+          }
+        });
+    }
+  });
+
+  // Finalizar el modo de edición
+  this.isEditingImages = false;
+}
 
   openModal(item: any, allowImages: boolean): void {
-  const idInforme = this.selectedInforme?.idInforme;
-  const numeroInforme = this.informeForm.get('numeroInforme')?.value;
-  const idDetalle = item.idDetalle;
-  const idStatus = item.idStatus;
+    const idInforme = this.selectedInforme?.idInforme;
+    const numeroInforme = this.informeForm.get('numeroInforme')?.value;
+    const idDetalle = item.idDetalle;
+    const idStatus = item.idStatus;
 
-  if (!idInforme || !numeroInforme || !idDetalle || !idStatus) {
-    console.error('Datos faltantes al intentar abrir el modal.');
-    return;
-  }
-
-  this.originalStatus = { ...item };
-
-  this.selecInforme = idInforme;
-  this.selecNumInforme = numeroInforme;
-  this.selecDetalle = idDetalle;
-  this.selecStatus = idStatus;
-  this.allowImages = allowImages;
-
-  this.showModal = true;
-  this.currentItemIndex = this.itemsWithStatus.indexOf(item);
-
-  console.log('Modal abierto con los siguientes datos:');
-  console.log('idInforme:', idInforme);
-  console.log('numeroInforme:', numeroInforme);
-  console.log('idDetalle:', idDetalle);
-  console.log('idStatus:', idStatus);
-  console.log('allowImages:', allowImages);
-
-  // Aquí pasamos el servicio al modal
-  this.modalInstance = {
-    idInforme: idInforme,
-    idDetalle: idDetalle,
-    idStatus: idStatus,
-    numeroInforme: numeroInforme,
-    allowImages: allowImages,
-    uploadImageService: this.puertoService.sendFotosPuerto.bind(this.puertoService), // Servicio de subida
-  };
-}
-
-  closeModal(modalData: { description: string; images: string[]; imagesNames: string[] }): void {
-  if (this.currentItemIndex !== null) {
-    const currentItem = this.itemsWithStatus[this.currentItemIndex];
-    currentItem.descripcionNoCumple = modalData.description;
-
-    // Si allowImages es true, manejar las imágenes, de lo contrario, ignorarlas
-    if (this.allowImages) {
-      currentItem.images = [...modalData.images];
-      currentItem.imagesNames = modalData.images.map((index) => `${Date.now()}.png`);
-
-      // Verificar que no se estén duplicando imágenes antes de subir
-      if (currentItem.images.length > 0 && currentItem.imagesNames.length === currentItem.images.length) {
-        console.log('Imágenes almacenadas en el item:', currentItem.images);
-        console.log('Nombres de imágenes almacenados en el item:', currentItem.imagesNames);
-      } else {
-        console.error('Error: Las imágenes y los nombres de las imágenes no coinciden.');
-      }
+    if (!idInforme || !numeroInforme || !idDetalle || !idStatus) {
+      console.error('Datos faltantes al intentar abrir el modal.');
+      return;
     }
 
-    // Cerrar el modal y restablecer el índice actual
-    this.showModal = false;
-    this.currentItemIndex = null;
-    this.cdr.detectChanges(); // Forzar la actualización visual
+    this.originalStatus = { ...item };
+
+    this.selecInforme = idInforme;
+    this.selecNumInforme = numeroInforme;
+    this.selecDetalle = idDetalle;
+    this.selecStatus = idStatus;
+    this.allowImages = allowImages;
+
+    this.showModal = true;
+    this.currentItemIndex = this.itemsWithStatus.indexOf(item);
+
+    console.log('Modal abierto con los siguientes datos:');
+    console.log('idInforme:', idInforme);
+    console.log('numeroInforme:', numeroInforme);
+    console.log('idDetalle:', idDetalle);
+    console.log('idStatus:', idStatus);
+    console.log('allowImages:', allowImages);
+
+    // Aquí pasamos el servicio al modal
+    this.modalInstance = {
+      idInforme: idInforme,
+      idDetalle: idDetalle,
+      idStatus: idStatus,
+      numeroInforme: numeroInforme,
+      allowImages: allowImages,
+      uploadImageService: this.puertoService.sendFotosPuerto.bind(
+        this.puertoService
+      ), // Servicio de subida
+    };
   }
-}
+
+  closeModal(modalData: {
+    description: string;
+    images: string[];
+    imagesNames: string[];
+  }): void {
+    if (this.currentItemIndex !== null) {
+      const currentItem = this.itemsWithStatus[this.currentItemIndex];
+      currentItem.descripcionNoCumple = modalData.description;
+
+      // Si allowImages es true, manejar las imágenes, de lo contrario, ignorarlas
+      if (this.allowImages) {
+        currentItem.images = [...modalData.images];
+        currentItem.imagesNames = modalData.images.map(
+          (index) => `${Date.now()}.png`
+        );
+
+        // Verificar que no se estén duplicando imágenes antes de subir
+        if (
+          currentItem.images.length > 0 &&
+          currentItem.imagesNames.length === currentItem.images.length
+        ) {
+          console.log('Imágenes almacenadas en el item:', currentItem.images);
+          console.log(
+            'Nombres de imágenes almacenados en el item:',
+            currentItem.imagesNames
+          );
+        } else {
+          console.error(
+            'Error: Las imágenes y los nombres de las imágenes no coinciden.'
+          );
+        }
+      }
+
+      // Cerrar el modal y restablecer el índice actual
+      this.showModal = false;
+      this.currentItemIndex = null;
+      this.cdr.detectChanges(); // Forzar la actualización visual
+    }
+  }
 
   cancelModal(): void {
-  // Verifica si hay un ítem seleccionado para restaurar su estado original
-  if (this.currentItemIndex !== null && this.originalStatus) {
-    // Restaurar el ítem al estado original antes de abrir el modal
-    this.itemsWithStatus[this.currentItemIndex] = { ...this.originalStatus };
+    // Verifica si hay un ítem seleccionado para restaurar su estado original
+    if (this.currentItemIndex !== null && this.originalStatus) {
+      // Restaurar el ítem al estado original antes de abrir el modal
+      this.itemsWithStatus[this.currentItemIndex] = { ...this.originalStatus };
+    }
+
+    // Ocultar el modal y limpiar las variables relacionadas
+    this.showModal = false;
+    this.currentItemIndex = null;
+    this.originalStatus = null;
+    this.allowImages = false;
+
+    // Actualizar la vista para reflejar los cambios
+    this.cdr.detectChanges();
   }
 
-  // Ocultar el modal y limpiar las variables relacionadas
-  this.showModal = false;
-  this.currentItemIndex = null;
-  this.originalStatus = null;
-  this.allowImages = false;
+  private uploadDescripciones(descripciones: any[]) {
+    // Enviar el array de descripciones al backend
+    this.puertoService.postDescripcionPuerto({ descripciones }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          console.log('Descripciones subidas exitosamente.');
+          this.showMessage = true;
+          this.messageText = 'Datos actualizados exitosamente.';
+          this.messageType = 'success';
+          this.isAnyEditing = false;
 
-  // Actualizar la vista para reflejar los cambios
-  this.cdr.detectChanges();
-}
+          //this.refreshNonConformities();
+          this.refreshStatus();
 
-private uploadDescripciones(descripciones: any[]) {
-  // Enviar el array de descripciones al backend
-  this.puertoService.postDescripcionPuerto({ descripciones }).subscribe({
-    next: (response) => {
-      if (response.success) {
-        console.log('Descripciones subidas exitosamente.');
-        this.showMessage = true;
-        this.messageText = 'Datos actualizados exitosamente.';
-        this.messageType = 'success';
-        this.isAnyEditing = false;
-
-        //this.refreshNonConformities();
-        this.refreshStatus();
-
-        setTimeout(() => (this.showMessage = false), 3000);
-        this.isSaving = false;
-        this.isAnyEditing = false;
-      } else {
-        console.error('Error al subir las descripciones:', response.message);
+          setTimeout(() => (this.showMessage = false), 3000);
+          this.isSaving = false;
+          this.isAnyEditing = false;
+        } else {
+          console.error('Error al subir las descripciones:', response.message);
+          this.handleSaveError();
+        }
+      },
+      error: (error) => {
+        console.error('Error al subir las descripciones:', error);
         this.handleSaveError();
-      }
-    },
-    error: (error) => {
-      console.error('Error al subir las descripciones:', error);
-      this.handleSaveError();
-    },
-  });
-}
+      },
+    });
+  }
 
   private handleSaveError(error?: any) {
-  this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
-  this.messageType = 'error';
-  console.error('Error al actualizar los datos:', error);
-  this.refreshStatus();
-  this.restoreOriginalValues();
-  this.isSaving = false;
-  this.isAnyEditing = false;
-}
+    this.messageText = 'Error al actualizar los datos. Inténtalo de nuevo.';
+    this.messageType = 'error';
+    console.error('Error al actualizar los datos:', error);
+    this.refreshStatus();
+    this.restoreOriginalValues();
+    this.isSaving = false;
+    this.isAnyEditing = false;
+  }
 
   showWarningMessage(message: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    this.messageText = message;
-    this.messageType = 'warning';
-    this.showMessage = true; // Mostrar el modal
+    return new Promise((resolve) => {
+      this.messageText = message;
+      this.messageType = 'warning';
+      this.showMessage = true; // Mostrar el modal
 
-    // Configurar las funciones de aceptación y cancelación para el mensaje
-    this.onAccept = () => {
-      resolve(true);  // Confirmar la acción
-      this.showMessage = false;  // Ocultar el modal
-    };
+      // Configurar las funciones de aceptación y cancelación para el mensaje
+      this.onAccept = () => {
+        resolve(true); // Confirmar la acción
+        this.showMessage = false; // Ocultar el modal
+      };
 
-    this.onCancel = () => {
-      resolve(false);  // Cancelar la acción
-      this.showMessage = false;  // Ocultar el modal
-    };
-  });
-}
+      this.onCancel = () => {
+        resolve(false); // Cancelar la acción
+        this.showMessage = false; // Ocultar el modal
+      };
+    });
+  }
 
   uploadSetFotograficoService(formData: FormData) {
-    return this.puertoService.sendSetFotograficoPuerto(formData);
+  return this.puertoService.sendSetFotograficoPuerto(formData);
 }
 
 openSetFotograficoModal() {
-    const nextPhotoNumber = this.maxPhotoNumber || this.photos.length + 1;
+  this.puertoService.getSetFotograficoByIdInformePuerto(this.selectedInforme.idInforme).subscribe({
+    next: (response) => {
+      if (response.success && response.photos.length > 0) {
+        // Cargar las imágenes existentes
+        this.photos = response.photos;
 
-    this.modalInstance = {
-        idInforme: this.selectedInforme?.idInforme,
-        numeroInforme: this.selectedInforme?.numeroInforme,
-        maxPhotoNumber: nextPhotoNumber,
+        // Obtener el número más alto entre las fotos existentes
+        const existingMaxPhotoNumber = Math.max(...this.photos.map((photo: any) => photo.numero), 0);
+        
+        // Asignar el valor más alto al `maxPhotoNumber`
+        this.maxPhotoNumber = existingMaxPhotoNumber;
+      } else {
+        // Si no hay fotos, inicializamos `photos` y `maxPhotoNumber`
+        this.photos = [];
+        this.maxPhotoNumber = 0;
+      }
+
+      // Abrir el modal y permitir la subida de nuevas imágenes
+      this.modalInstance = {
+        idInforme: this.selectedInforme.idInforme,
+        numeroInforme: this.selectedInforme.numeroInforme,
+        maxPhotoNumber: this.maxPhotoNumber,
         allowImages: true,
-        uploadImageService: this.uploadSetFotograficoService.bind(this)
-    };
-    this.showSetFotograficoModal = true;
+        uploadImageService: this.uploadSetFotograficoService.bind(this),
+      };
+      this.showSetFotograficoModal = true;
+    },
+    error: (error) => {
+      console.error('Error al cargar el set fotográfico:', error);
+
+      if (error.status === 500 && error.error?.message.includes('No se encontraron fotos')) {
+        // Si el error es que no hay fotos, lo manejamos como un caso válido
+        console.log('No se encontraron fotos, se permite subir nuevas.');
+
+        // Inicializar `photos` y `maxPhotoNumber`
+        this.photos = [];
+        this.maxPhotoNumber = 0;
+
+        // Abrir el modal y permitir la subida de nuevas imágenes
+        this.modalInstance = {
+          idInforme: this.selectedInforme.idInforme,
+          numeroInforme: this.selectedInforme.numeroInforme,
+          maxPhotoNumber: this.maxPhotoNumber,
+          allowImages: true,
+          uploadImageService: this.uploadSetFotograficoService.bind(this),
+        };
+        this.showSetFotograficoModal = true;
+      } else {
+        // Manejar otros errores
+        console.error('Error desconocido al cargar el set fotográfico.');
+        alert('Error al cargar el set fotográfico. Por favor, inténtalo de nuevo.');
+      }
+    }
+  });
 }
 
-
-async onSaveSetFotografico(event: { descripcionSF: string[]; images: Blob[]; imageNames: string[] }) {
+  async onSaveSetFotografico(event: { descripcionSF: string[]; images: Blob[]; imageNames: string[]; }) {
   if (event.images.length > 0) {
     this.isSaving = true;
     this.savingMessage = 'Subiendo imágenes, por favor espere...';
@@ -1661,14 +1846,7 @@ async onSaveSetFotografico(event: { descripcionSF: string[]; images: Blob[]; ima
         uploadCount++;
 
         if (uploadCount === event.images.length) {
-          this.showMessage = true;
-          this.messageText = 'Imágenes subidas exitosamente.';
-          this.messageType = 'success';
-          setTimeout(() => (this.showMessage = false), 3000);
-          this.showSetFotograficoModal = false;
-          this.isSaving = false;
-
-          // Confirmar la eliminación de la imagen en el backend
+          // Eliminar la imagen eliminada anteriormente si la subida es exitosa
           if (this.deletedPhoto) {
             const fotoData = {
               idInforme: this.selectedInforme.idInforme,
@@ -1677,10 +1855,27 @@ async onSaveSetFotografico(event: { descripcionSF: string[]; images: Blob[]; ima
               numero: this.deletedPhoto.numero,
             };
             await lastValueFrom(this.puertoService.deleteFotoSetFotograficoPuerto(fotoData));
-            // Eliminar visualmente la foto del array `photos` antes de recargar la lista
+
+            // Eliminar visualmente la foto y la descripción
             this.photos = this.photos.filter((photo: any) => photo.numero !== this.deletedPhoto.numero);
-            this.deletedPhoto = null; 
+
+            // Eliminar el control del formulario
+            const controlName = `descripcionSF_${this.deletedPhoto.numero}`;
+            if (this.photoDescriptionsForm.contains(controlName)) {
+              this.photoDescriptionsForm.removeControl(controlName); // Eliminar el control del formulario
+            }
+
+            this.deletedPhoto = null; // Limpiar la imagen eliminada temporal
           }
+
+          this.showMessage = true;
+          this.messageText = 'Imágenes subidas exitosamente.';
+          this.messageType = 'success';
+          setTimeout(() => (this.showMessage = false), 3000);
+          this.showSetFotograficoModal = false;
+          this.isSaving = false;
+
+          // Recargar el set fotográfico después de la subida
           this.loadSetFotografico(this.selectedInforme.idInforme);
         }
       }
@@ -1696,52 +1891,144 @@ async onSaveSetFotografico(event: { descripcionSF: string[]; images: Blob[]; ima
   }
 }
 
-onCancelSetFotografico() {
-  if (this.photos.length < 6 && this.deletedPhoto) {
-    this.photos.push(this.deletedPhoto); // Restaurar la imagen eliminada si el modal es cancelado
-    this.deletedPhoto = null;
+  onCancelSetFotografico() {
+  if (this.deletedPhoto) {
+    // Restaurar la imagen eliminada si el modal es cancelado
+    const exists = this.photos.some((photo: any) => photo.numero === this.deletedPhoto.numero);
+    
+    if (!exists) {
+      this.photos.push(this.deletedPhoto);  // Restauramos solo si no está
+    }
+
+    // Habilitar el control asociado en el formulario
+    const controlName = `descripcionSF_${this.deletedPhoto.numero}`;
+    if (this.photoDescriptionsForm.contains(controlName)) {
+      this.photoDescriptionsForm.get(controlName)?.enable();  // Habilitamos el control nuevamente
+    }
+
+    this.deletedPhoto = null;  // Limpiar la imagen eliminada temporalmente
+
+    // Forzar la actualización de la lista de fotos y del formulario
+    this.cdr.detectChanges();
   }
+
+  // Cerrar el modal
   this.showSetFotograficoModal = false;
+
+  // Refrescar la vista por completo para evitar cualquier duplicación visual
+  setTimeout(() => {
+    this.loadSetFotografico(this.selectedInforme.idInforme);
+  }, 0);
 }
 
-// Confirmar y eliminar la imagen seleccionada
-async confirmDeletePhoto(photo: any, index: number) {
-  const confirmDelete = confirm(`¿Estás seguro de que deseas eliminar esta imagen?`);
+async confirmDeletePhoto(photo: any) {
+  const confirmDelete = await this.showWarningMessage('¿Estás seguro de que deseas eliminar esta imagen?');
 
   if (confirmDelete) {
-    // Guardar la imagen eliminada temporalmente
+    // Almacenar temporalmente la imagen que se intenta eliminar
     this.deletedPhoto = { ...photo };
-    this.photos.splice(index, 1); // Eliminar visualmente la imagen del array
 
-    if (this.photos.length < 6) {
-      // Si quedan menos de 6 imágenes, abrir el modal para agregar una nueva
-      this.maxPhotoNumber = photo.numero;
-      this.openSetFotograficoModal();
-    } else {
-      // Si hay más de 6 imágenes, preguntar si se desea agregar una nueva
-      this.maxPhotoNumber = photo.numero;
-      const addNewPhoto = confirm('¿Deseas agregar una nueva imagen?');
+    // Condición 1: Si hay más de 6 imágenes, eliminar del backend inmediatamente
+    if (this.photos.length > 6) {
+      // Remover visualmente la imagen
+      this.photos = this.photos.filter((p: any) => p.foto !== photo.foto);
 
-      if (addNewPhoto) {
-        this.openSetFotograficoModal();
+      // Deshabilitar el control en lugar de eliminarlo
+      const controlName = `descripcionSF_${photo.numero}`;
+      if (this.photoDescriptionsForm.contains(controlName)) {
+        this.photoDescriptionsForm.get(controlName)?.disable();
+      }
+
+      // Eliminar la imagen del backend inmediatamente
+      const fotoData = {
+        idInforme: this.selectedInforme.idInforme,
+        numeroInforme: this.selectedInforme.numeroInforme,
+        foto: photo.foto,
+        numero: photo.numero,
+      };
+
+      try {
+        await lastValueFrom(this.puertoService.deleteFotoSetFotograficoPuerto(fotoData));
+        console.log(`Foto eliminada exitosamente del backend: ${photo.foto}`);
+      } catch (error) {
+        console.error('Error al eliminar la foto del backend:', error);
+        this.messageText = 'Error al eliminar la imagen del servidor.';
+        this.messageType = 'error';
+        this.showMessage = true;
+        setTimeout(() => (this.showMessage = false), 3000);
+      }
+
+      // Preguntar si desea reemplazar la imagen
+      const confirmReplace = await this.showWarningMessage('¿Deseas reemplazar la imagen eliminada con una nueva?');
+
+      if (confirmReplace) {
+        this.openSetFotograficoModal(); // Abrir modal para reemplazar la imagen
       } else {
+        console.log('Imagen eliminada sin reemplazo.');
+      }
+    }
+
+    // Condición 2: Si hay exactamente 6 imágenes
+    else if (this.photos.length === 6) {
+      // Abrir el modal para reemplazar la imagen
+      this.openSetFotograficoModal();
+
+      // Esperar la respuesta del modal
+      const confirmReplace = await this.showWarningMessage('¿Deseas reemplazar la imagen eliminada con una nueva?');
+
+      if (confirmReplace) {
+        // Si se sube una nueva imagen, eliminar la anterior del backend
+        const fotoData = {
+          idInforme: this.selectedInforme.idInforme,
+          numeroInforme: this.selectedInforme.numeroInforme,
+          foto: photo.foto,
+          numero: photo.numero,
+        };
+
         try {
-          const fotoData = {
-            idInforme: this.selectedInforme.idInforme,
-            numeroInforme: this.selectedInforme.numeroInforme,
-            foto: this.deletedPhoto.foto,
-            numero: this.deletedPhoto.numero,
-          };
           await lastValueFrom(this.puertoService.deleteFotoSetFotograficoPuerto(fotoData));
-          console.log(`Imagen eliminada: ${this.deletedPhoto.foto}`);
-          this.deletedPhoto = null;
+          console.log(`Foto eliminada exitosamente del backend: ${photo.foto}`);
         } catch (error) {
-          console.error('Error al eliminar la imagen del backend:', error);
+          console.error('Error al eliminar la foto del backend:', error);
+          this.messageText = 'Error al eliminar la imagen del servidor.';
+          this.messageType = 'error';
+          this.showMessage = true;
+          setTimeout(() => (this.showMessage = false), 3000);
         }
+      } else {
+        // Si el usuario cancela el modal, restaurar la imagen visualmente
+        this.restoreDeletedPhoto();
       }
     }
   }
 }
+
+restoreDeletedPhoto() {
+  // Restaurar la imagen eliminada en la vista
+  this.photos.push(this.deletedPhoto);
+
+  // Habilitar el control asociado en el formulario nuevamente
+  const controlName = `descripcionSF_${this.deletedPhoto.numero}`;
+  if (this.photoDescriptionsForm.contains(controlName)) {
+    this.photoDescriptionsForm.get(controlName)?.enable();
+  }
+
+  // Limpiar la imagen eliminada temporalmente
+  this.deletedPhoto = null;
+
+  // Forzar la actualización de la vista
+  this.cdr.detectChanges();
+
+  // Limpiar el estado para asegurar futuras eliminaciones
+  this.resetState();
+}
+
+resetState() {
+  this.deletedPhoto = null;
+  // Asegúrate de reiniciar cualquier otro estado que esté afectando el flujo
+  this.cdr.detectChanges(); // Actualiza la vista para reflejar el cambio
+}
+
 
 
 }

@@ -50,6 +50,17 @@
     >
     </app-report-modal-component>
 
+    <app-photographic-set-modal
+      *ngIf="showSetFotograficoModal && modalInstance"
+      [idInforme]="modalInstance?.idInforme"
+      [numeroInforme]="modalInstance?.numeroInforme"
+      [allowImages]="modalInstance?.allowImages"
+      [maxPhotoNumber]="modalInstance?.maxPhotoNumber"
+      [uploadImageService]="modalInstance?.uploadImageService"
+      (save)="onSaveSetFotografico($event)"
+      (cancel)="onCancelSetFotografico()"
+    ></app-photographic-set-modal>
+
     <div id="contentToConvert">
       <div *ngIf="showHeaderFooter" class="header">
         <app-header></app-header>
@@ -2376,39 +2387,51 @@
               </button>
             </div>
             <div class="photo-grid">
-              <div
-                *ngFor="let photo of photos; let i = index"
-                class="photo-item"
-              >
-                <img
-                  [src]="'data:image/png;base64,' + photo.data"
-                  [alt]="photo.descripcionSF"
-                />
-                <div *ngIf="isEditingImages; else viewMode">
-                  <button
-                    (click)="confirmDeletePhoto(photo, i)"
-                    class="delete-btn"
-                  >
-                    Eliminar
-                  </button>
+              <div [formGroup]="photoDescriptionsForm" class="display-content">
+                <div
+                  *ngFor="let photo of photos; let i = index"
+                  class="photo-item"
+                >
+                  <img
+                    [src]="'data:image/png;base64,' + photo.data"
+                    [alt]="photo.descripcionSF"
+                  />
+
+                  <!-- Modo edición -->
+                  <div *ngIf="isEditingImages; else viewMode">
+                    <input
+                      type="text"
+                      [formControlName]="'descripcionSF_' + photo.numero"
+                      placeholder="Editar descripción"
+                    />
+                    <button
+                      (click)="confirmDeletePhoto(photo)"
+                      class="delete-btn"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+
+                  <!-- Vista de solo lectura -->
+                  <ng-template #viewMode>
+                    <span>{{ photo.descripcionSF }}</span>
+                  </ng-template>
                 </div>
-
-                <ng-template #viewMode>
-                  <span>{{ photo.descripcionSF }}</span>
-                </ng-template>
               </div>
-            </div>
 
-            <app-photographic-set-modal
-              *ngIf="showSetFotograficoModal && modalInstance"
-              [idInforme]="modalInstance?.idInforme"
-              [numeroInforme]="modalInstance?.numeroInforme"
-              [allowImages]="modalInstance?.allowImages"
-              [maxPhotoNumber]="modalInstance?.maxPhotoNumber"
-              [uploadImageService]="modalInstance?.uploadImageService"
-              (save)="onSaveSetFotografico($event)"
-              (cancel)="onCancelSetFotografico()"
-            ></app-photographic-set-modal>
+              <app-photographic-set-modal
+                *ngIf="showSetFotograficoModal"
+                [idInforme]="modalInstance?.idInforme"
+                [numeroInforme]="modalInstance?.numeroInforme"
+                [allowImages]="modalInstance?.allowImages"
+                [maxPhotoNumber]="modalInstance?.maxPhotoNumber"
+                [uploadImageService]="modalInstance?.uploadImageService"
+                [disableCancel]="photos.length === 6"
+                (save)="onSaveSetFotografico($event)"
+                (cancel)="onCancelSetFotografico()"
+              >
+              </app-photographic-set-modal>
+            </div>
           </form>
         </div>
       </div>

@@ -20,6 +20,6 @@
 
     <!-- Botones para guardar y cancelar -->
     <button [disabled]="!canSave" (click)="onSave()">Guardar</button>
-    <button (click)="onCancel()">Cancelar</button>
+    <button [disabled]="disableCancel" (click)="onCancel()">Cancelar</button>
   </div>
 </div>
