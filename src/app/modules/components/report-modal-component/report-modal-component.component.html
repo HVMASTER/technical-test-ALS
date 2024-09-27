@@ -2,8 +2,7 @@
   <div class="modal-content">
     <h2>{{ allowImages ? 'Agregar Descripción y Subir Imágenes' : 'Agregar Descripción' }}</h2>
 
-    <!-- Textarea para la descripción -->
-    <textarea [(ngModel)]="description" name="description" placeholder="Ingrese la descripción aquí"></textarea>
+    <textarea [(ngModel)]="description" name="description" placeholder="Ingrese la descripción general aquí"></textarea>
 
     <!-- Bloque de subida de imágenes solo si allowImages es verdadero -->
     <div *ngIf="allowImages" class="image-upload">
@@ -11,14 +10,16 @@
         <div class="content-image">
           <img *ngIf="img" [src]="img" alt="Imagen subida" />
         </div>
+        <div class="description-wrapper">
+          <!-- input para descripFoto -->
+          <textarea [(ngModel)]="descripFoto[i]" placeholder="Descripción de la imagen"></textarea>
+        </div>
         <button (click)="removeImage(i)" class="delete-btn">✖</button>
       </div>
 
-      <!-- Input para subir una imagen solo si hay menos de 5 imágenes -->
       <input *ngIf="images.length < 2" type="file" (change)="onFileSelected($event)" />
     </div>
 
-    <!-- Botones para guardar y cancelar -->
     <button [disabled]="!canSave" (click)="onSave()">Guardar</button>
     <button (click)="onCancel()">Cancelar</button>
   </div>

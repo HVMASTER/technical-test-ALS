@@ -50,17 +50,6 @@
     >
     </app-report-modal-component>
 
-    <app-photographic-set-modal
-      *ngIf="showSetFotograficoModal && modalInstance"
-      [idInforme]="modalInstance?.idInforme"
-      [numeroInforme]="modalInstance?.numeroInforme"
-      [allowImages]="modalInstance?.allowImages"
-      [maxPhotoNumber]="modalInstance?.maxPhotoNumber"
-      [uploadImageService]="modalInstance?.uploadImageService"
-      (save)="onSaveSetFotografico($event)"
-      (cancel)="onCancelSetFotografico()"
-    ></app-photographic-set-modal>
-
     <div id="contentToConvert">
       <div *ngIf="showHeaderFooter" class="header">
         <app-header></app-header>

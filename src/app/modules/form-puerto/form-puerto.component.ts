@@ -1019,12 +1019,10 @@ export class FormPuertoComponent implements OnInit, OnDestroy {
             formData.append('numeroInforme', numeroInforme);
             formData.append('idDetalle', item.idDetalle.toString());
             formData.append('foto', imageName);
-            formData.append(
-              'data',
-              this.convertBase64ToBlob(item.images[index])
-            );
+            formData.append('data', this.convertBase64ToBlob(item.images[index]));
             formData.append('numero', (index + 1).toString());
             formData.append('idStatus', item.idStatus.toString());
+            formData.append('descripFoto', item.descripFoto[index]);
 
             const imageUploadPromise = lastValueFrom(
               this.puertoService.sendFotosPuerto(formData)
@@ -1647,6 +1645,7 @@ export class FormPuertoComponent implements OnInit, OnDestroy {
 
   closeModal(modalData: {
     description: string;
+    descripFoto: string[];
     images: string[];
     imagesNames: string[];
   }): void {
@@ -1660,17 +1659,23 @@ export class FormPuertoComponent implements OnInit, OnDestroy {
         currentItem.imagesNames = modalData.images.map(
           (index) => `${Date.now()}.png`
         );
+        currentItem.descripFoto = [...modalData.descripFoto];
 
         // Verificar que no se estén duplicando imágenes antes de subir
         if (
           currentItem.images.length > 0 &&
-          currentItem.imagesNames.length === currentItem.images.length
+          currentItem.imagesNames.length === currentItem.images.length &&
+          currentItem.descripFoto.length === currentItem.images.length
         ) {
           console.log('Imágenes almacenadas en el item:', currentItem.images);
           console.log(
             'Nombres de imágenes almacenados en el item:',
             currentItem.imagesNames
           );
+          console.log(
+          'Descripciones de imágenes almacenadas en el item:',
+          currentItem.descripFoto
+        );
         } else {
           console.error(
             'Error: Las imágenes y los nombres de las imágenes no coinciden.'
