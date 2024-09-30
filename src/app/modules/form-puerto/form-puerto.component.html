@@ -50,6 +50,19 @@
     >
     </app-report-modal-component>
 
+    <app-photographic-set-modal
+      *ngIf="showSetFotograficoModal"
+      [idInforme]="modalInstance?.idInforme"
+      [numeroInforme]="modalInstance?.numeroInforme"
+      [allowImages]="modalInstance?.allowImages"
+      [maxPhotoNumber]="modalInstance?.maxPhotoNumber"
+      [uploadImageService]="modalInstance?.uploadImageService"
+      [disableCancel]="photos.length === 6"
+      (save)="onSaveSetFotografico($event)"
+      (cancel)="onCancelSetFotografico()"
+    >
+    </app-photographic-set-modal>
+
     <div id="contentToConvert">
       <div *ngIf="showHeaderFooter" class="header">
         <app-header></app-header>
@@ -371,8 +384,12 @@
             <h2 class="subtitle" *ngIf="tituloForm.length > 0">
               {{ tituloForm[1].nombre }}
             </h2>
-            <div *ngIf="!isPreviewMode">
-              <button (click)="toggleEditStatusB()">
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <button 
+                type="button"
+                (click)="toggleEditStatusB()"
+                [disabled]="isAnyEditing && !isEditingStatusB"
+              >
                 {{ isEditingStatusB ? "Cancelar" : "Editar" }}
               </button>
               <button *ngIf="isEditingStatusB" (click)="saveChangesStatusB()">
@@ -482,7 +499,11 @@
               {{ tituloForm[2].nombre }}
             </h2>
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-              <button type="button" (click)="toggleEditStatusC()">
+              <button 
+                type="button" 
+                (click)="toggleEditStatusC()"
+                [disabled]="isAnyEditing && !isEditingStatusC"
+              >
                 {{ isEditingStatusC ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -579,7 +600,11 @@
               {{ tituloForm[3].nombre }}
             </h2>
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-              <button type="button" (click)="toggleEditDescription()">
+              <button 
+                type="button"
+                (click)="toggleEditDescription()"
+                [disabled]="isAnyEditing && !isEditingFormD"
+              >
                 {{ isEditingFormD ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -669,7 +694,11 @@
               {{ tituloForm[4].nombre }}
             </h2>
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-              <button type="button" (click)="toggleEditFormE()">
+              <button 
+                type="button" 
+                (click)="toggleEditFormE()"
+                [disabled]="isAnyEditing && !isEditingFormE"
+              >
                 {{ isEditingFormE ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -1493,7 +1522,11 @@
               <strong>{{ tituloForm[5].nombre }}</strong>
             </h2>
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-              <button type="button" (click)="toggleEditFormE1()">
+              <button 
+                type="button" 
+                (click)="toggleEditFormE1()"
+                [disabled]="isAnyEditing && !isEditingFormE1"
+              >
                 {{ isEditingFormE1 ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -2250,7 +2283,11 @@
               {{ tituloForm[6].nombre }}
             </h2>
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-              <button type="button" (click)="toggleEditFormF()">
+              <button 
+                type="button" 
+                (click)="toggleEditFormF()"
+                [disabled]="isAnyEditing && !isEditingFormF"
+              >
                 {{ isEditingFormF ? "Cancelar" : "Editar" }}
               </button>
               <button
@@ -2360,7 +2397,11 @@
             </h2>
             <div *ngIf="!isPreviewMode" class="edit-save-buttons">
               <div class="edit-save-buttons">
-                <button type="button" (click)="toggleEditImages()">
+                <button 
+                  type="button" 
+                  (click)="toggleEditImages()"
+                  [disabled]="isAnyEditing && !isEditingImages"
+                >
                   {{ isEditingImages ? "Cancelar" : "Editar" }}
                 </button>
                 <button
@@ -2408,18 +2449,6 @@
                 </div>
               </div>
 
-              <app-photographic-set-modal
-                *ngIf="showSetFotograficoModal"
-                [idInforme]="modalInstance?.idInforme"
-                [numeroInforme]="modalInstance?.numeroInforme"
-                [allowImages]="modalInstance?.allowImages"
-                [maxPhotoNumber]="modalInstance?.maxPhotoNumber"
-                [uploadImageService]="modalInstance?.uploadImageService"
-                [disableCancel]="photos.length === 6"
-                (save)="onSaveSetFotografico($event)"
-                (cancel)="onCancelSetFotografico()"
-              >
-              </app-photographic-set-modal>
             </div>
           </form>
         </div>
@@ -2429,32 +2458,54 @@
         <div class="content">
           <form class="H">
             <h2 class="center justifyCenter font-size-xxxlarge">
-        <strong>Set fotográfico No Conformidades</strong>
-      </h2>
-     <!-- <div *ngIf="!isPreviewMode" class="edit-save-buttons">
-        <button type="button" (click)="toggleEditNcImages()"> {{ isEditingNcImages ? "Cancelar" : "Editar" }} </button>
-        <button type="button" *ngIf="isEditingNcImages" (click)="saveNcImageChanges()"> Guardar </button>
-        <button (click)="openNoConformidadesModal()"> Agregar Imágenes </button>
-      </div> -->
-      <div class="photo-grid">
-        <div [formGroup]="ncPhotoDescriptionsForm" class="display-content">
-          <div *ngFor="let photo of ncPhotos; let i = index" class="photo-item">
-            <img [src]="'data:image/png;base64,' + photo.data" [alt]="photo.descripFoto" />
-            <p>Ítem: {{ photo.idDetalle }} </p>
-            <div *ngIf="isEditingNcImages; else viewMode">
-              <input type="text" [formControlName]="'descripFoto_' + photo.idDetalle" placeholder="Editar descripción" />
-              <!-- <button (click)="confirmDeleteNcPhoto(photo)" class="delete-btn">Eliminar</button> -->
+              <strong>Set fotográfico No Conformidades</strong>
+            </h2>
+            <div *ngIf="!isPreviewMode" class="edit-save-buttons">
+              <button 
+                type="button" 
+                (click)="toggleEditNcImages()"
+                [disabled]="isAnyEditing && !isEditingNcImages"
+              >
+                {{ isEditingNcImages ? "Cancelar" : "Editar" }}
+              </button>
+              <button
+                type="button"
+                *ngIf="isEditingNcImages"
+                (click)="saveNcImageChanges()"
+              >
+                Guardar
+              </button>
             </div>
-            <ng-template #viewMode>
-              <span>{{ photo.descripFoto }}</span>
-            </ng-template>
-          </div>
-        </div>
-      </div>
+            <div class="photo-grid">
+              <div
+                [formGroup]="ncPhotoDescriptionsForm"
+                class="display-content"
+              >
+                <div
+                  *ngFor="let photo of ncPhotos; let i = index"
+                  class="photo-item"
+                >
+                  <img
+                    [src]="'data:image/png;base64,' + photo.data"
+                    [alt]="photo.descripFoto"
+                  />
+                  <p>Ítem: {{ photo.idDetalle }}</p>
+                  <div *ngIf="isEditingNcImages; else viewMode">
+                    <input
+                      type="text"
+                      [formControlName]="getControlName(photo.foto)"
+                      placeholder="Editar descripción"
+                    />
+                  </div>
+                  <ng-template #viewMode>
+                    <span>{{ photo.descripFoto }}</span>
+                  </ng-template>
+                </div>
+              </div>
+            </div>
           </form>
         </div>
       </div>
-
     </div>
   </div>
 </div>

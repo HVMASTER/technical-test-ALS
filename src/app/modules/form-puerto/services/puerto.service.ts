@@ -79,6 +79,10 @@ export class PuertoService {
     return this.http.put<any>(`${this.baseUrl}editFormE1Puerto`, data);
   }
 
+  editFotoPuerto(data: any) {
+    return this.http.put<any>(`${this.baseUrl}editFotoPuerto`, data);
+  }
+
   editSetFotograficoPuerto(data: any) {
     return this.http.put<any>(`${this.baseUrl}editSetFotograficoPuerto`, data);
   }

@@ -105,11 +105,13 @@ export class FormPuertoComponent implements OnInit, OnDestroy {
 
 private createNcPhotoDescriptionsForm() {
   const group: any = {};
-  this.ncPhotos.forEach((photo: { descripFoto: string, idDetalle: number }) => {
-    group[`descripFoto_${photo.idDetalle}`] = new FormControl(photo.descripFoto || '');
+  this.ncPhotos.forEach((photo: { descripFoto: string, foto: string }) => {
+    const controlName = `descripFoto_${photo.foto.replace(/\./g, '_')}`; // Reemplaza puntos con guion bajo
+    group[controlName] = new FormControl(photo.descripFoto || '');
   });
   this.ncPhotoDescriptionsForm = this.formBuilder.group(group);
 }
+
 
   ngOnInit(): void {
     this.informeForm.disable();
@@ -715,37 +717,60 @@ private createNcPhotoDescriptionsForm() {
   }
 
   private loadSetFotografico(idInforme: number) {
-    this.puertoService.getSetFotograficoByIdInformePuerto(idInforme).subscribe({
-      next: (response) => {
-        if (response.success && response.photos.length > 0) {
-          this.photos = response.photos;
-          this.createPhotoDescriptionsForm(); // Crear el FormGroup una vez que las fotos estén cargadas
-        }
-      },
-      error: (error) => {
-        console.error('Error fetching set fotografico:', error);
-      },
-    });
-  }
+  this.puertoService.getSetFotograficoByIdInformePuerto(idInforme).subscribe({
+    next: (response) => {
+      if (response.success && response.photos.length > 0) {
+        this.photos = response.photos;
+        this.createPhotoDescriptionsForm(); 
+      } else {
+        
+        console.log('No se encontraron fotos para el set fotográfico.');
+        this.photos = [];
+        this.createPhotoDescriptionsForm(); 
+      }
+    },
+    error: (error) => {
+      if (error.status === 500 && error.error?.message.includes('No se encontraron fotos')) {
+        console.log('No se encontraron fotos para este informe.');
+        this.photos = []; 
+        this.createPhotoDescriptionsForm(); 
+      } else {
+        console.error('Error desconocido al cargar el set fotográfico:', error);
+        alert('Error al cargar el set fotográfico. Por favor, inténtalo de nuevo.');
+      }
+    },
+  });
+}
 
   private loadSetFotograficoNC(idInforme: number) {
-    this.puertoService.getFotoByIdInformePuerto(idInforme).subscribe({
-      next: (response) => {
-        if (response.success && response.photos.length > 0) {
-          this.ncPhotos = response.photos;
-          console.log(this.ncPhotos);
-          this.createNcPhotoDescriptionsForm();
-        }
-      },
-      error: (error) => {
-        console.error('Error fetching set fotografico:', error);
-      },
-    });
-  }
+  this.puertoService.getFotoByIdInformePuerto(idInforme).subscribe({
+    next: (response) => {
+      if (response.success && response.photos.length > 0) {
+        this.ncPhotos = response.photos;
+        this.createNcPhotoDescriptionsForm();
+      } else {
+       
+        console.log('No se encontraron fotos de no conformidades.');
+        this.ncPhotos = [];
+        this.createNcPhotoDescriptionsForm(); 
+      }
+    },
+    error: (error) => {
+      if (error.status === 500 && error.error?.message.includes('No se encontraron fotos')) {
+        console.log('No se encontraron fotos de no conformidades.');
+        this.ncPhotos = []; 
+        this.createNcPhotoDescriptionsForm(); 
+      } else {
+        console.error('Error desconocido al cargar el set fotográfico de no conformidades:', error);
+        alert('Error al cargar el set fotográfico de no conformidades. Por favor, inténtalo de nuevo.');
+      }
+    },
+  });
+}
 
   // Método para obtener el número más alto de las fotos
   getMaxPhotoNumber(photos: any[]): number {
-    if (photos.length === 0) return 0; // Si no hay fotos, empezamos desde 0
+    if (photos.length === 0) return 0;
 
     return Math.max(...photos.map((photo) => photo.numero)); // Devolvemos el número más alto
   }
@@ -819,103 +844,148 @@ private createNcPhotoDescriptionsForm() {
   }
 
   toggleEditStatusB() {
-    this.isEditingStatusB = !this.isEditingStatusB;
-
-    if (this.isEditingStatusB) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({ ...item }));
-    } else {
-      // Restaura los valores originales si se cancela la edición
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
+  if (!this.isAnyEditing) {
+    // Si no hay ninguna edición activa, permitir la edición de la sección B
+    this.isEditingStatusB = true;
+    this.isAnyEditing = true;
+    this.originalValues = JSON.parse(JSON.stringify(this.itemsWithStatus)); // Guardar los valores originales
+  } else if (this.isEditingStatusB) {
+    // Si ya se está editando la sección B, cancelar la edición y restaurar los valores originales
+    this.itemsWithStatus = JSON.parse(JSON.stringify(this.originalValues));
+    this.isEditingStatusB = false;
+    this.isAnyEditing = false;
+  } else {
+    // Si hay otra edición activa, mostrar un mensaje de advertencia
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
+}
 
   toggleEditStatusC() {
-    this.isEditingStatusC = !this.isEditingStatusC;
-
-    if (this.isEditingStatusC) {
-      this.originalValues = this.itemsWithStatus.map((item) => ({ ...item }));
-    } else {
-      // Restaura los valores originales si se cancela la edición
-      this.itemsWithStatus = this.originalValues.map((item: any) => ({
-        ...item,
-      }));
-    }
+  if (!this.isAnyEditing) {
+    // Si no hay ninguna edición activa, permitir la edición de la sección C
+    this.isEditingStatusC = true;
+    this.isAnyEditing = true;
+    this.originalValues = JSON.parse(JSON.stringify(this.itemsWithStatus)); // Guardar los valores originales
+  } else if (this.isEditingStatusC) {
+    // Si ya se está editando la sección C, cancelar la edición y restaurar los valores originales
+    this.itemsWithStatus = JSON.parse(JSON.stringify(this.originalValues));
+    this.isEditingStatusC = false;
+    this.isAnyEditing = false;
+  } else {
+    // Si hay otra edición activa, mostrar un mensaje de advertencia
+    this.messageText = 'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
+}
 
   toggleEditDescription() {
-    if (!this.isAnyEditing) {
-      // Iniciar la edición
-      this.isEditingFormD = true;
-      this.isAnyEditing = true;
-      this.descripcionItems.forEach((item, index) => {
-        const controlName = `descripcion_${index}`;
-        // Habilitar los campos de descripción
-        this.informeForm.get(controlName)?.enable();
-      });
-    } else if (this.isEditingFormD) {
-      // Cancelar la edición
-      this.isEditingFormD = false;
-      this.isAnyEditing = false;
-      this.descripcionItems.forEach((item, index) => {
-        const controlName = `descripcion_${index}`;
-        // Restaurar los valores originales y deshabilitar
-        this.informeForm.get(controlName)?.setValue(item.descripcion);
-        this.informeForm.get(controlName)?.disable();
-      });
-    } else {
-      this.messageText =
-        'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
-      this.messageType = 'warning';
-      this.showMessage = true;
-    }
+  if (!this.isAnyEditing) {
+    // Iniciar la edición
+    this.isEditingFormD = true;
+    this.isAnyEditing = true;
+    this.descripcionItems.forEach((item, index) => {
+      const controlName = `descripcion_${index}`;
+      // Habilitar los campos de descripción
+      this.informeForm.get(controlName)?.enable();
+    });
+  } else if (this.isEditingFormD) {
+    // Cancelar la edición si ya estamos en el modo de edición de este punto
+    this.isEditingFormD = false;
+    this.isAnyEditing = false;
+    this.descripcionItems.forEach((item, index) => {
+      const controlName = `descripcion_${index}`;
+      // Restaurar los valores originales y deshabilitar
+      this.informeForm.get(controlName)?.setValue(item.descripcion);
+      this.informeForm.get(controlName)?.disable();
+    });
+  } else {
+    // Si hay otro punto en modo edición, mostrar advertencia
+    this.messageText =
+      'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
+}
 
   toggleEditFormE() {
-    if (this.isEditingFormE) {
-      // Cancelar la edición, restaurar los valores originales
-      this.formE.patchValue(this.originalValues);
-    } else {
-      // Guardar los valores actuales antes de editar
-      this.originalValues = this.formE.getRawValue();
-    }
-    this.isEditingFormE = !this.isEditingFormE;
+  if (!this.isAnyEditing) {
+    // Iniciar la edición
+    this.isEditingFormE = true;
+    this.isAnyEditing = true;
+    // Guardar los valores actuales antes de editar
+    this.originalValues = this.formE.getRawValue();
+  } else if (this.isEditingFormE) {
+    // Cancelar la edición, restaurar los valores originales
+    this.isEditingFormE = false;
+    this.isAnyEditing = false;
+    this.formE.patchValue(this.originalValues);
+  } else {
+    // Si hay otra sección en modo edición, mostrar advertencia
+    this.messageText =
+      'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
+}
 
   toggleEditFormE1() {
-    if (this.isEditingFormE1) {
-      // Si se cancela la edición, restaurar los valores originales
-      this.formE1.patchValue(this.formE1Data);
-    } else {
-      // Guardar los valores originales antes de editar
-      this.formE1Data = this.formE1.getRawValue();
-    }
-    this.isEditingFormE1 = !this.isEditingFormE1;
+  if (!this.isAnyEditing) {
+    // Iniciar la edición
+    this.isEditingFormE1 = true;
+    this.isAnyEditing = true;
+    // Guardar los valores originales antes de editar
+    this.formE1Data = this.formE1.getRawValue();
+  } else if (this.isEditingFormE1) {
+    // Cancelar la edición, restaurar los valores originales
+    this.isEditingFormE1 = false;
+    this.isAnyEditing = false;
+    this.formE1.patchValue(this.formE1Data);
+  } else {
+    // Si hay otra sección en modo edición, mostrar advertencia
+    this.messageText =
+      'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
+}
 
   toggleEditFormF() {
-    this.isEditingFormF = !this.isEditingFormF;
-
-    if (this.isEditingFormF) {
-      // Guardar los valores actuales antes de comenzar la edición
-      this.originalValues = this.informeForm.getRawValue();
-      this.informeForm.enable(); // Habilitar el formulario en modo edición
-    } else {
-      // Si se cancela la edición, restaurar los valores originales
-      this.informeForm.patchValue(this.originalValues);
-      this.informeForm.disable(); // Deshabilitar el formulario fuera del modo edición
-    }
+  if (!this.isAnyEditing) {
+    // Iniciar la edición
+    this.isEditingFormF = true;
+    this.isAnyEditing = true;
+    // Guardar los valores actuales antes de comenzar la edición
+    this.originalValues = this.informeForm.getRawValue();
+    this.informeForm.enable(); // Habilitar el formulario en modo edición
+  } else if (this.isEditingFormF) {
+    // Cancelar la edición y restaurar los valores originales
+    this.isEditingFormF = false;
+    this.isAnyEditing = false;
+    this.informeForm.patchValue(this.originalValues);
+    this.informeForm.disable(); // Deshabilitar el formulario fuera del modo edición
+  } else {
+    // Si hay otra sección en modo edición, mostrar advertencia
+    this.messageText =
+      'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
+}
+
 
   toggleEditImages() {
-  this.isEditingImages = !this.isEditingImages;
+  if (!this.isAnyEditing) {
+    // Iniciar la edición
+    this.isEditingImages = true;
+    this.isAnyEditing = true;
 
-  if (this.isEditingImages) {
     // Guardar los valores originales antes de comenzar la edición
     this.originalValues = this.photos.map((photo: any) => ({
       numero: photo.numero,
-      descripcionSF: photo.descripcionSF
+      descripcionSF: photo.descripcionSF,
     }));
 
     // Habilitar los campos de descripción en el formulario de las fotos
@@ -923,8 +993,11 @@ private createNcPhotoDescriptionsForm() {
       const controlName = `descripcionSF_${photo.numero}`;
       this.photoDescriptionsForm.get(controlName)?.enable();
     });
-  } else {
-    // Si se cancela la edición, restaurar los valores originales
+  } else if (this.isEditingImages) {
+    // Cancelar la edición y restaurar los valores originales
+    this.isEditingImages = false;
+    this.isAnyEditing = false;
+
     this.photos.forEach((photo: any) => {
       const originalPhoto = this.originalValues.find((orig: any) => orig.numero === photo.numero);
       if (originalPhoto) {
@@ -938,6 +1011,57 @@ private createNcPhotoDescriptionsForm() {
       const controlName = `descripcionSF_${photo.numero}`;
       this.photoDescriptionsForm.get(controlName)?.disable();
     });
+  } else {
+    // Si hay otra sección en modo edición, mostrar advertencia
+    this.messageText =
+      'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+  }
+}
+
+  toggleEditNcImages() {
+  if (!this.isAnyEditing) {
+    // Iniciar la edición
+    this.isEditingNcImages = true;
+    this.isAnyEditing = true;
+
+    // Guardar los valores originales antes de comenzar la edición
+    this.originalValues = this.ncPhotos.map((photo: any) => ({
+      foto: photo.foto,
+      descripFoto: photo.descripFoto
+    }));
+
+    // Habilitar los campos de descripción en el formulario de las fotos de NC
+    this.ncPhotos.forEach((photo: any) => {
+      const controlName = `descripFoto_${photo.foto.replace(/\./g, '_')}`; 
+      const control = this.ncPhotoDescriptionsForm.get(controlName);
+      if (control) {
+        control.enable();  // Habilitar los campos si existen en el formulario
+      }
+    });
+  } else if (this.isEditingNcImages) {
+    // Cancelar la edición y restaurar los valores originales
+    this.isEditingNcImages = false;
+    this.isAnyEditing = false;
+
+    this.ncPhotos.forEach((photo: any) => {
+      const originalPhoto = this.originalValues.find((orig: any) => orig.foto === photo.foto);
+      if (originalPhoto) {
+        const controlName = `descripFoto_${photo.foto.replace(/\./g, '_')}`;
+        const control = this.ncPhotoDescriptionsForm.get(controlName);
+        if (control) {
+          control.setValue(originalPhoto.descripFoto); // Restaurar los valores originales
+          control.disable(); // Deshabilitar el campo
+        }
+      }
+    });
+  } else {
+    // Si hay otra sección en modo edición, mostrar advertencia
+    this.messageText =
+      'Ya estás editando otra sección. Guarda o cancela esa edición primero.';
+    this.messageType = 'warning';
+    this.showMessage = true;
   }
 }
 
@@ -1596,7 +1720,7 @@ private createNcPhotoDescriptionsForm() {
   // Guardar cambios de edición (como los comentarios)
   saveImageChanges() {
   // Iterar sobre las fotos actuales
-  this.photos.forEach((photo: any) => {
+  const updates = this.photos.map((photo: any) => {
     const controlName = `descripcionSF_${photo.numero}`;
     const currentDescription = this.photoDescriptionsForm.get(controlName)?.value;
 
@@ -1610,25 +1734,123 @@ private createNcPhotoDescriptionsForm() {
       };
 
       // Hacer la petición para actualizar solo si hay cambios
-      this.puertoService.editSetFotograficoPuerto(updatedPhotoData)
+      return this.puertoService.editSetFotograficoPuerto(updatedPhotoData)
         .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              // Actualizar la descripción en el objeto photo
-              photo.descripcionSF = currentDescription;
-              console.log(`Descripción actualizada para la imagen número: ${photo.numero}`);
-            }
-          },
-          error: (error) => {
-            console.error('Error al actualizar la descripción:', error);
-          }
-        });
+        .toPromise();  // Convertir a promesa para manejarlo de manera async
     }
+    return Promise.resolve();  // Si no hay cambios, retorna una promesa resuelta
   });
 
-  // Finalizar el modo de edición
-  this.isEditingImages = false;
+  // Esperar a que todas las actualizaciones se completen
+  Promise.all(updates)
+    .then((responses) => {
+      responses.forEach((response, index) => {
+        if (response && response.success) {
+          // Actualizar la descripción en el objeto photo solo si la actualización fue exitosa
+          const updatedPhoto = this.photos[index];
+          const controlName = `descripcionSF_${updatedPhoto.numero}`;
+          const updatedDescription = this.photoDescriptionsForm.get(controlName)?.value;
+          updatedPhoto.descripcionSF = updatedDescription;
+        }
+      });
+      
+      console.log('Todas las descripciones fueron actualizadas exitosamente.');
+      this.showMessage = true;
+      this.messageText = 'Descripciones actualizadas exitosamente.';
+      this.messageType = 'success';
+      setTimeout(() => (this.showMessage = false), 3000);
+
+      // Finalizar el modo de edición
+      this.isEditingImages = false;
+      this.isAnyEditing = false;  // Asegúrate de permitir otras ediciones
+    })
+    .catch((error) => {
+      console.error('Error al actualizar las descripciones:', error);
+      this.messageText = 'Error al actualizar las descripciones. Inténtalo de nuevo.';
+      this.messageType = 'error';
+      this.showMessage = true;
+      this.isEditingImages = false;
+      this.isAnyEditing = false;  // Asegurarte de restaurar esto también en caso de error
+    });
+}
+
+
+  saveNcImageChanges() {
+  if (!this.selectedInforme || !this.ncPhotoDescriptionsForm) {
+    console.error('No se ha seleccionado ningún informe o formulario de descripciones no válido.');
+    return;
+  }
+
+  const idInforme = this.selectedInforme.idInforme;
+  const changesToSave = this.ncPhotos.map((photo) => {
+    const controlName = `descripFoto_${photo.foto.replace(/\./g, '_')}`; // Usamos el mismo nombre con guion bajo
+    const newDescription = this.ncPhotoDescriptionsForm.get(controlName)?.value;
+
+    // Solo enviar si la descripción ha cambiado
+    if (newDescription !== photo.descripFoto) {
+      return {
+        idInforme: idInforme,
+        descripFoto: newDescription,
+        foto: photo.foto // Aquí usamos el nombre de la foto con puntos (original)
+      };
+    }
+    return null;
+  }).filter(change => change !== null);
+
+  if (changesToSave.length === 0) {
+    console.log('No se encontraron descripciones modificadas.');
+    this.messageText = 'No se encontraron descripciones modificadas.';
+    this.messageType = 'warning';
+    this.showMessage = true;
+    setTimeout(() => {
+      this.showMessage = false;
+    }, 3000);
+    this.isEditingNcImages = false; // Salir del modo de edición
+    this.isAnyEditing = false; // Permitir la edición en otras secciones
+    return;
+  }
+
+  this.isSaving = true; // Activar el spinner
+  this.savingMessage = 'Guardando cambios, por favor espere...';
+
+  // Enviar los cambios al backend
+  Promise.all(changesToSave.map(change => {
+    return lastValueFrom(this.puertoService.editFotoPuerto(change));
+  }))
+  .then(responses => {
+    console.log('Descripciones actualizadas con éxito.');
+    // Mostrar mensaje de éxito
+    this.showMessage = true;
+    this.messageText = 'Descripciones actualizadas exitosamente.';
+    this.messageType = 'success';
+    setTimeout(() => {
+      this.showMessage = false;
+    }, 3000);
+
+    // Refrescar las fotos una vez guardadas las descripciones
+    this.loadSetFotograficoNC(idInforme);
+    this.isEditingNcImages = false; // Salir del modo de edición
+    this.isAnyEditing = false; // Permitir la edición en otras secciones
+  })
+  .catch(error => {
+    console.error('Error al actualizar las descripciones:', error);
+    // Mostrar mensaje de error
+    this.messageText = 'Error al actualizar las descripciones. Inténtalo de nuevo.';
+    this.messageType = 'error';
+    this.showMessage = true;
+    setTimeout(() => {
+      this.showMessage = false;
+    }, 3000);
+    this.isEditingNcImages = false; // Salir del modo de edición
+    this.isAnyEditing = false; // Permitir la edición en otras secciones
+  })
+  .finally(() => {
+    this.isSaving = false; // Desactivar el spinner
+  });
+}
+
+getControlName(foto: string): string {
+  return `descripFoto_${foto.replace(/\./g, '_')}`; // Reemplaza los puntos por guiones bajos
 }
 
   openModal(item: any, allowImages: boolean): void {
