@@ -11,12 +11,12 @@ export class ReportModalComponentComponent {
   @Input() idStatus!: any;
   @Input() numeroInforme!: string;
   @Input() allowImages: boolean = true;
-  
   // Recibir el servicio de subida como input
   @Input() uploadImageService!: (formData: FormData) => any; 
 
   @Output() save = new EventEmitter<{
     description: string;
+    descripFoto: string[];
     images: string[];
     imagesNames: any[];
   }>();
@@ -26,6 +26,7 @@ export class ReportModalComponentComponent {
   images: any[] = []; 
   imageBlobs: Blob[] = []; 
   imageNames: any[] = [];
+  descripFoto: string[] = [];
 
   // Propiedad para habilitar/deshabilitar el botón de guardar
   get canSave(): boolean {
@@ -41,6 +42,7 @@ export class ReportModalComponentComponent {
       const base64Image = await this.convertBlobToBase64(file);
       this.images.push(base64Image); 
       this.imageBlobs.push(file);
+      this.descripFoto.push('');
     }
   }
 
@@ -61,6 +63,7 @@ export class ReportModalComponentComponent {
     this.images.splice(index, 1); // Eliminar de la lista de imágenes base64
     this.imageBlobs.splice(index, 1); // Eliminar el blob de la imagen
     this.imageNames.splice(index, 1); // Eliminar el nombre de la imagen
+    this.descripFoto.splice(index, 1); // Eliminar la descripción de la imagen
   }
 
   // Guardar datos del modal
@@ -68,6 +71,7 @@ export class ReportModalComponentComponent {
     if (this.description && (!this.allowImages || this.images.length === 2)) {
       this.save.emit({
         description: this.description,
+        descripFoto: this.descripFoto,
         images: this.images,
         imagesNames: this.imageNames  
       });
